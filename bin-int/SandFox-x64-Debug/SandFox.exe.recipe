@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <ProjectOutputs>
+    <ProjectOutput>
+      <FullPath>D:\dev\cpp\SandFox\bin\SandFox-x64-Debug\SandFox.exe</FullPath>
+    </ProjectOutput>
+  </ProjectOutputs>
+  <ContentFiles>
+    <ContentFile>
+      <FullPath>D:\dev\cpp\SandFox\bin\SandFox-x64-Debug\Data\Shaders\PSBasicOpaque.cso</FullPath>
+    </ContentFile>
+    <ContentFile>
+      <FullPath>D:\dev\cpp\SandFox\bin\SandFox-x64-Debug\Data\Shaders\PSPhongTextured.cso</FullPath>
+    </ContentFile>
+    <ContentFile>
+      <FullPath>D:\dev\cpp\SandFox\bin\SandFox-x64-Debug\Data\Shaders\VSColor.cso</FullPath>
+    </ContentFile>
+    <ContentFile>
+      <FullPath>D:\dev\cpp\SandFox\bin\SandFox-x64-Debug\Data\Shaders\VSStandard.cso</FullPath>
+    </ContentFile>
+  </ContentFiles>
+  <SatelliteDlls />
+  <NonRecipeFileRefs />
+</Project>

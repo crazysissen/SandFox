@@ -1,0 +1,242 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <FxCompile Include="Shaders\VSStandard.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\VSColor.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\PSPhongTextured.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\PSBasicOpaque.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Graphics.cpp">
+      <Filter>Source\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Camera.cpp">
+      <Filter>Source\Camera</Filter>
+    </ClCompile>
+    <ClCompile Include="core.cpp">
+      <Filter>Source\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="ConstantBuffer.cpp">
+      <Filter>Source\%2a Bindable\ConstantBuffer</Filter>
+    </ClCompile>
+    <ClCompile Include="CubeInterpolated.cpp">
+      <Filter>Source\%2a Drawable\CubeInterpolated</Filter>
+    </ClCompile>
+    <ClCompile Include="IndexBuffer.cpp">
+      <Filter>Source\%2a Bindable\IndexBuffer</Filter>
+    </ClCompile>
+    <ClCompile Include="IBindable.cpp">
+      <Filter>Source\%2a Bindable\IBindable</Filter>
+    </ClCompile>
+    <ClCompile Include="Drawable.cpp">
+      <Filter>Source\%2a Drawable\Drawable</Filter>
+    </ClCompile>
+    <ClCompile Include="Input.cpp">
+      <Filter>Source\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="Window.cpp">
+      <Filter>Source\Window</Filter>
+    </ClCompile>
+    <ClCompile Include="Main.cpp">
+      <Filter>Source\Main</Filter>
+    </ClCompile>
+    <ClCompile Include="InputLayout.cpp">
+      <Filter>Source\%2a Bindable\InputLayout</Filter>
+    </ClCompile>
+    <ClCompile Include="PixelShader.cpp">
+      <Filter>Source\%2a Bindable\PixelShader</Filter>
+    </ClCompile>
+    <ClCompile Include="SamplerState.cpp">
+      <Filter>Source\%2a Bindable\SamplerState</Filter>
+    </ClCompile>
+    <ClCompile Include="PrimitiveTopology.cpp">
+      <Filter>Source\%2a Bindable\PrimitiveTopology</Filter>
+    </ClCompile>
+    <ClCompile Include="SplitTransformConstantBuffer.cpp">
+      <Filter>Source\%2a Bindable\ConstantBuffer %28Split Transform%29</Filter>
+    </ClCompile>
+    <ClCompile Include="Texture.cpp">
+      <Filter>Source\Texture</Filter>
+    </ClCompile>
+    <ClCompile Include="TextureBindable.cpp">
+      <Filter>Source\%2a Bindable\TextureBindable</Filter>
+    </ClCompile>
+    <ClCompile Include="TexturePlane.cpp">
+      <Filter>Source\%2a Drawable\TexturePlane</Filter>
+    </ClCompile>
+    <ClCompile Include="TransformConstantBuffer.cpp">
+      <Filter>Source\%2a Bindable\ConstantBuffer %28Transform%29</Filter>
+    </ClCompile>
+    <ClCompile Include="Transform.cpp">
+      <Filter>Source\Transform</Filter>
+    </ClCompile>
+    <ClCompile Include="VertexBuffer.cpp">
+      <Filter>Source\%2a Bindable\VertexBuffer</Filter>
+    </ClCompile>
+    <ClCompile Include="VertexShader.cpp">
+      <Filter>Source\%2a Bindable\VertexShader</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Graphics.h">
+      <Filter>Source\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Camera.h">
+      <Filter>Source\Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="core.h">
+      <Filter>Source\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="ConstantBuffer.h">
+      <Filter>Source\%2a Bindable\ConstantBuffer</Filter>
+    </ClInclude>
+    <ClInclude Include="CubeInterpolated.h">
+      <Filter>Source\%2a Drawable\CubeInterpolated</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexBuffer.h">
+      <Filter>Source\%2a Bindable\IndexBuffer</Filter>
+    </ClInclude>
+    <ClInclude Include="IBindable.h">
+      <Filter>Source\%2a Bindable\IBindable</Filter>
+    </ClInclude>
+    <ClInclude Include="Drawable.h">
+      <Filter>Source\%2a Drawable\Drawable</Filter>
+    </ClInclude>
+    <ClInclude Include="Window.h">
+      <Filter>Source\Window</Filter>
+    </ClInclude>
+    <ClInclude Include="Input.h">
+      <Filter>Source\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="InputLayout.h">
+      <Filter>Source\%2a Bindable\InputLayout</Filter>
+    </ClInclude>
+    <ClInclude Include="PixelShader.h">
+      <Filter>Source\%2a Bindable\PixelShader</Filter>
+    </ClInclude>
+    <ClInclude Include="SamplerState.h">
+      <Filter>Source\%2a Bindable\SamplerState</Filter>
+    </ClInclude>
+    <ClInclude Include="PrimitiveTopology.h">
+      <Filter>Source\%2a Bindable\PrimitiveTopology</Filter>
+    </ClInclude>
+    <ClInclude Include="SplitTransformConstantBuffer.h">
+      <Filter>Source\%2a Bindable\ConstantBuffer %28Split Transform%29</Filter>
+    </ClInclude>
+    <ClInclude Include="Bindables.h">
+      <Filter>Source\%2a Bindable</Filter>
+    </ClInclude>
+    <ClInclude Include="Texture.h">
+      <Filter>Source\Texture</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureBindable.h">
+      <Filter>Source\%2a Bindable\TextureBindable</Filter>
+    </ClInclude>
+    <ClInclude Include="TexturePlane.h">
+      <Filter>Source\%2a Drawable\TexturePlane</Filter>
+    </ClInclude>
+    <ClInclude Include="TransformConstantBuffer.h">
+      <Filter>Source\%2a Bindable\ConstantBuffer %28Transform%29</Filter>
+    </ClInclude>
+    <ClInclude Include="Transform.h">
+      <Filter>Source\Transform</Filter>
+    </ClInclude>
+    <ClInclude Include="VertexBuffer.h">
+      <Filter>Source\%2a Bindable\VertexBuffer</Filter>
+    </ClInclude>
+    <ClInclude Include="VertexShader.h">
+      <Filter>Source\%2a Bindable\VertexShader</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Shaders">
+      <UniqueIdentifier>{1ca818e3-2c38-4a85-8e98-5a71ec6d73eb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source">
+      <UniqueIdentifier>{87ea0c17-0653-4660-a9ca-e532db155c60}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Window">
+      <UniqueIdentifier>{906ac5d4-c319-418d-8db5-75c9f639b434}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\%2a Bindable">
+      <UniqueIdentifier>{2bd0a411-0034-4e40-a6ce-262ed8daaada}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\%2a Drawable">
+      <UniqueIdentifier>{5586fb7a-e1d4-4638-b2fa-229c6a218042}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Graphics">
+      <UniqueIdentifier>{157e7022-7b77-45b8-a9b6-5e893fce90b8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Camera">
+      <UniqueIdentifier>{dd982357-ea39-4d4d-8dfc-ebebfdf4add1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Core">
+      <UniqueIdentifier>{a3713f15-bec0-4008-8513-8206c636c3e4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\%2a Bindable\IndexBuffer">
+      <UniqueIdentifier>{f69df48a-e0a5-4e3f-92c6-5cfb2e7f4d70}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\%2a Bindable\ConstantBuffer">
+      <UniqueIdentifier>{30c1ac32-0d44-4192-b129-12372261b6a4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\%2a Bindable\IBindable">
+      <UniqueIdentifier>{0a153c6f-e008-42d1-9d52-c04f68f4f8e1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\%2a Drawable\Drawable">
+      <UniqueIdentifier>{36c8684b-5581-4850-8b87-502f5e33572f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Input">
+      <UniqueIdentifier>{2762d0de-f5e9-4ed4-a7a7-b385dcf37c6f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Main">
+      <UniqueIdentifier>{73fed256-582b-4d05-9da5-f910df5e8cec}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\%2a Bindable\InputLayout">
+      <UniqueIdentifier>{da2016fa-d8bd-4dc7-b5b4-28e81633ce8b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\%2a Bindable\ConstantBuffer %28Split Transform%29">
+      <UniqueIdentifier>{44e72e31-af57-4526-baa8-902d32dd921f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\%2a Bindable\SamplerState">
+      <UniqueIdentifier>{358b5d26-9f8c-49b6-9202-dd60ffea28c1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\%2a Bindable\PrimitiveTopology">
+      <UniqueIdentifier>{df1c34f1-0fe3-4c8e-98cb-a4c9c2438b40}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\%2a Bindable\PixelShader">
+      <UniqueIdentifier>{1c165f08-53a3-4379-af02-6b4451582d77}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Texture">
+      <UniqueIdentifier>{9963fae5-a128-4db1-b977-72798bd3b3cd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Transform">
+      <UniqueIdentifier>{e95074e2-46ac-484d-a39e-18745b47a01a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\%2a Bindable\ConstantBuffer %28Transform%29">
+      <UniqueIdentifier>{a4812037-9ef9-42dd-b6de-591288afc56f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\%2a Bindable\TextureBindable">
+      <UniqueIdentifier>{e7ffe4a2-18da-474d-97ab-41813a44c574}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\%2a Drawable\CubeInterpolated">
+      <UniqueIdentifier>{8ffac007-894a-47df-919d-827d3372ba0d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\%2a Drawable\TexturePlane">
+      <UniqueIdentifier>{7d3b6d86-2100-4878-99d9-504b5dfeecca}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\%2a Bindable\VertexBuffer">
+      <UniqueIdentifier>{1bddbff6-5b78-44a5-a07f-ed3efc68cddd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\%2a Bindable\VertexShader">
+      <UniqueIdentifier>{8f7c7458-357f-4e6b-8b12-248913ddfa67}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
