@@ -32,7 +32,7 @@ Texture::~Texture()
 {
 }
 
-void Texture::Load(std::wstring name /*std::wstring name*/)
+void Texture::Load(std::wstring name)
 {
 	// Load texture using DXTK
 
