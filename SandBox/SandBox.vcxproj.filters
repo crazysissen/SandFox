@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="Program.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="Shaders\VSTextureScreenSpace.hlsl" />
+    <FxCompile Include="Shaders\PSBasicOpaque.hlsl" />
+    <FxCompile Include="Shaders\PSPhongTextured.hlsl" />
+    <FxCompile Include="Shaders\PSPPFXSample.hlsl" />
+    <FxCompile Include="Shaders\PSTerrain.hlsl" />
+    <FxCompile Include="Shaders\VSColor.hlsl" />
+    <FxCompile Include="Shaders\VSPass.hlsl" />
+    <FxCompile Include="Shaders\VSStandard.hlsl" />
+    <FxCompile Include="Shaders\VSTerrain.hlsl" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Assets\Textures\Square3.png" />
+    <Image Include="Assets\Textures\Square.jpg" />
+    <Image Include="Assets\Textures\Square2.jpg" />
+  </ItemGroup>
+</Project>

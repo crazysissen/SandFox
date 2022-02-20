@@ -1,4 +1,6 @@
-// dear imgui, v1.88 WIP
+#include "core.h"
+
+// dear imgui, v1.87
 // (tables and columns code)
 
 /*
