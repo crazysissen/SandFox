@@ -82,8 +82,6 @@
     <ClCompile Include="Libraries\imgui\imgui_tables.cpp">
       <Filter>%2a Libraries\imgui</Filter>
     </ClCompile>
-    <ClCompile Include="src\SandFoxCore.h" />
-    <ClCompile Include="src\SandFoxRendering.h" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Graphics.h">
@@ -173,7 +171,15 @@
     <ClInclude Include="Libraries\imgui\imstb_textedit.h">
       <Filter>%2a Libraries\imgui</Filter>
     </ClInclude>
-    <ClInclude Include="SandFox.h" />
+    <ClInclude Include="SandFox.h">
+      <Filter>Source\SandFox</Filter>
+    </ClInclude>
+    <ClInclude Include="src\SandFoxCore.h">
+      <Filter>Source\SandFox</Filter>
+    </ClInclude>
+    <ClInclude Include="src\SandFoxRendering.h">
+      <Filter>Source\SandFox</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Source">

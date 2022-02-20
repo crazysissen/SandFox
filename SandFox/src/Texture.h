@@ -1,20 +1,27 @@
 #pragma once
 
-#include "Graphics.h"
+#include "SandFoxCore.h"
 
-class Texture
+#include <string>
+
+namespace SandFox
 {
-public:
-	Texture();
-	Texture(const Texture& copy);
-	Texture(std::wstring name /*std::wstring name*/);
-	virtual ~Texture();
 
-	void Load(std::wstring name /*std::wstring name*/);
+	class FOX_API Texture
+	{
+	public:
+		Texture();
+		Texture(const Texture& copy);
+		Texture(std::wstring name /*std::wstring name*/);
+		virtual ~Texture();
 
-	ComPtr<ID3D11ShaderResourceView>& GetResourceView();
+		void Load(std::wstring name /*std::wstring name*/);
 
-private:
-	ComPtr<ID3D11Resource> m_texture;
-	ComPtr<ID3D11ShaderResourceView> m_resourceView;
-};
+		ComPtr<ID3D11ShaderResourceView>& GetResourceView();
+
+	private:
+		ComPtr<ID3D11Resource> m_texture;
+		ComPtr<ID3D11ShaderResourceView> m_resourceView;
+	};
+
+}

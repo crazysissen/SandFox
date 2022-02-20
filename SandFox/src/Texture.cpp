@@ -5,22 +5,22 @@
 #include <WICTextureLoader.h>
 
 #include "Texture.h"
+#include "Graphics.h"
 
-Texture::Texture()
+SandFox::Texture::Texture()
 	:
 	m_texture(nullptr),
 	m_resourceView(nullptr)
 {
 }
-
-Texture::Texture(const Texture& copy)
+SandFox::Texture::Texture(const Texture& copy)
 	:
 	m_texture(copy.m_texture),
 	m_resourceView(copy.m_resourceView)
 {
 }
 
-Texture::Texture(std::wstring name /*std::wstring name*/)
+SandFox::Texture::Texture(std::wstring name /*std::wstring name*/)
 	:
 	m_texture(nullptr),
 	m_resourceView(nullptr)
@@ -28,11 +28,11 @@ Texture::Texture(std::wstring name /*std::wstring name*/)
 	Load(name);
 }
 
-Texture::~Texture()
+SandFox::Texture::~Texture()
 {
 }
 
-void Texture::Load(std::wstring name)
+void SandFox::Texture::Load(std::wstring name)
 {
 	// Load texture using DXTK
 
@@ -61,7 +61,7 @@ void Texture::Load(std::wstring name)
 	EXC_COMCHECKINFO(Graphics::Get().GetDevice()->CreateShaderResourceView(m_texture.Get(), &srvd, &m_resourceView));
 }
 
-ComPtr<ID3D11ShaderResourceView>& Texture::GetResourceView()
+ComPtr<ID3D11ShaderResourceView>& SandFox::Texture::GetResourceView()
 {
 	return m_resourceView;
 }

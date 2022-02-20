@@ -1,40 +1,57 @@
 #pragma once
 
+#include "SandFoxCore.h"
 #include <optional>
 
-namespace window
+namespace SandFox
 {
 
-	const int
-		c_width = 1920,
-		c_height = 1080;
+	class FOX_API Window
+	{
+	public:
+		Window();
+		~Window();
 
-	// Window class name, not window name
-	constexpr cstr wndClassName = "vworldClassDX11";
+		// Initialize window class for application
+		void InitClass(HINSTANCE hInstance);
+		// Register the window on Windows API side
+		HWND InitWindow(int width, int height, cstr name);
+		// Loads external WndProc which has priority over default proc
+		void LoadPrioritizedWndProc(WNDPROC wndProc);
+		// Show the window to the user
+		void Show(int command = SW_SHOW);
 
-	// Initialize window class for application
-	void initClass(HINSTANCE hInstance);
-	// Register the window on Windows API side
-	HWND initWindow(int width, int height, cstr name);
-	// Loads external WndProc which has priority over default proc
-	void loadPrioritizedWndProc(WNDPROC wndProc);
-	// Show the window to the user
-	void showWindow(int command = SW_SHOW);
+		// Process the current message stack and optionally return quit message
+		std::optional<int> ProcessMessages();
 
-	// Process the current message stack and optionally return quit message
-	std::optional<int> processMessages();
+		// Get handle to window
+		static HWND GetHwnd();
+		// Get application instance
+		static HINSTANCE GetHInstance();
 
-	// Get handle to window
-	HWND getHwnd();
-	// Get application instance
-	HINSTANCE getHInstance();
+		// Get window raster dimensions
+		static Point GetSize();
+		static int GetW();
+		static int GetH();
 
-	// Get window raster dimensions
-	Point getSize();
-	int getW();
-	int getH();
+		// The windows procedure
+		static LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
-	// The windows procedure
-	LRESULT WINAPI wndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
-};
+	private:
+		// Defaults
+		static constexpr int c_dWidth = 1280;
+		static constexpr int c_dHeight = 720;
+
+		// Window class name, not window name
+		static constexpr cstr c_wndClassName = "SandFoxClassDX11";
+
+		static Window* s_window;
+
+		HWND m_hWnd;
+		HINSTANCE m_hInst;
+		WNDPROC m_externWndProc;
+		Point m_size;
+	};
+
+}

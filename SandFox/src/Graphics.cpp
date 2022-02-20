@@ -68,8 +68,8 @@ void SandFox::Graphics::Init()
 	// --- Device, swap chain, rendering context, and front/back buffers
 
 	DXGI_SWAP_CHAIN_DESC scd = {};
-	scd.BufferDesc.Width = window::c_width;
-	scd.BufferDesc.Height = window::c_height;
+	scd.BufferDesc.Width = Window::GetW();
+	scd.BufferDesc.Height = Window::GetH();
 	scd.BufferDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
 	scd.BufferDesc.RefreshRate.Numerator = 0;
 	scd.BufferDesc.RefreshRate.Denominator = 0;
@@ -79,7 +79,7 @@ void SandFox::Graphics::Init()
 	scd.SampleDesc.Quality = sampleQuality;
 	scd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 	scd.BufferCount = 1;
-	scd.OutputWindow = window::getHwnd() /*(HWND)67676*/;
+	scd.OutputWindow = Window::GetHwnd() /*(HWND)67676*/;
 	scd.Windowed = true;
 	scd.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
 	scd.Flags = 0;
@@ -163,8 +163,8 @@ void SandFox::Graphics::Init()
 
 	// Create
 	D3D11_TEXTURE2D_DESC dstDesc = {};
-	dstDesc.Width = window::c_width;
-	dstDesc.Height = window::c_height;
+	dstDesc.Width = Window::GetW();
+	dstDesc.Height = Window::GetH();
 	dstDesc.MipLevels = 1u;
 	dstDesc.ArraySize = 1u;
 	dstDesc.Format = DXGI_FORMAT_D32_FLOAT;
@@ -212,8 +212,8 @@ void SandFox::Graphics::Init()
 	// --- Configure viewport
 
 	D3D11_VIEWPORT vp;
-	vp.Width = (float)window::getW();
-	vp.Height = (float)window::getH();
+	vp.Width = (float)Window::GetW();
+	vp.Height = (float)Window::GetH();
 	vp.MinDepth = 0;
 	vp.MaxDepth = 1;
 	vp.TopLeftX = 0;

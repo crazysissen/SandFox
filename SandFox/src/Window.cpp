@@ -8,28 +8,36 @@
 
 
 
-HWND g_hWnd				= nullptr;
-HINSTANCE g_hInst			= nullptr;
+SandFox::Window* SandFox::Window::s_window = nullptr;
 
-WNDPROC g_externWndProc	= nullptr;
+SandFox::Window::Window()
+	:
+	m_hWnd(nullptr),
+	m_hInst(nullptr),
+	m_externWndProc(nullptr),
+	m_size(0, 0)
+{
+	s_window = this;
+}
 
-Point g_size;
+SandFox::Window::~Window()
+{
+	s_window = nullptr;
+}
 
 
 
 // Windows Procedure
 
-LRESULT WINAPI window::wndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
+LRESULT WINAPI SandFox::Window::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-	if (g_externWndProc)
+	if (s_window->m_externWndProc)
 	{
-		if (g_externWndProc(hWnd, msg, wParam, lParam))
+		if (s_window->m_externWndProc(hWnd, msg, wParam, lParam))
 		{
 			return true;
 		}
 	}
-
-	using namespace Input::Core;
 
 	switch (msg)
 	{
@@ -38,51 +46,50 @@ LRESULT WINAPI window::wndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 		break;
 
 	case WM_CREATE:
-		//graphics::initGraphics();
 		break;
 
 	case WM_KEYDOWN:
-		queueKeyboard({ PressEventType::KeyDown, (byte)wParam });
+		Input::Get().CoreQueueKeyboard({ Input::PressEventType::KeyDown, (byte)wParam });
 		break;
 
 	case WM_KEYUP:
-		queueKeyboard({ PressEventType::KeyUp, (byte)wParam });
+		Input::Get().CoreQueueKeyboard({ Input::PressEventType::KeyUp, (byte)wParam });
 		break;
 
 	case WM_CHAR:
-		queueChar((wchar_t)wParam);
+		Input::Get().CoreQueueChar((wchar_t)wParam);
 		break;
 
 	case WM_LBUTTONDOWN:
-		queueMouse({ PressEventType::KeyDown, MBLeft });
+		Input::Get().CoreQueueMouse({ Input::PressEventType::KeyDown, MBLeft });
 		break;
 
 	case WM_LBUTTONUP:
-		queueMouse({ PressEventType::KeyUp, MBLeft });
+		Input::Get().CoreQueueMouse({ Input::PressEventType::KeyUp, MBLeft });
 		break;
 
 	case WM_RBUTTONDOWN:
-		queueMouse({ PressEventType::KeyDown, MBRight });
+		Input::Get().CoreQueueMouse({ Input::PressEventType::KeyDown, MBRight });
 		break;
 
 	case WM_RBUTTONUP:
-		queueMouse({ PressEventType::KeyUp, MBRight });
+		Input::Get().CoreQueueMouse({ Input::PressEventType::KeyUp, MBRight });
 		break;
 
 	case WM_MBUTTONDOWN:
-		queueMouse({ PressEventType::KeyDown, MBMiddle });
+		Input::Get().CoreQueueMouse({ Input::PressEventType::KeyDown, MBMiddle });
 		break;
 
 	case WM_MBUTTONUP:
-		queueMouse({ PressEventType::KeyUp, MBMiddle });
+		Input::Get().CoreQueueMouse({ Input::PressEventType::KeyUp, MBMiddle });
 		break;
 
 	case WM_XBUTTONDOWN:
-		queueMouse({ PressEventType::KeyDown, GET_XBUTTON_WPARAM(wParam) == XBUTTON1 ? MBX1 : MBX2 });
+		Input::Get().CoreQueueMouse({ Input::PressEventType::KeyDown, GET_XBUTTON_WPARAM(wParam) == XBUTTON1 ? MBX1 : MBX2 });
 		break;
 
 	case WM_XBUTTONUP:
-		queueMouse({ PressEventType::KeyUp, GET_XBUTTON_WPARAM(wParam) == XBUTTON1 ? MBX1 : MBX2 });
+		Input::Get().CoreQueueMouse({ Input::PressEventType::KeyUp, GET_XBUTTON_WPARAM(wParam) == XBUTTON1 ? MBX1 : MBX2 });
 		break;
 
 	case WM_MOUSEMOVE:
@@ -91,7 +98,7 @@ LRESULT WINAPI window::wndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 		//{
 		//	break;
 		//}
-		updateMousePosition({ GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) });
+		Input::Get().CoreUpdateMousePosition({ GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) });
 		break;
 	}
 
@@ -102,19 +109,19 @@ LRESULT WINAPI window::wndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 
 // Initialization and interaction logic
 
-void window::initClass(HINSTANCE hInstance)
+void SandFox::Window::InitClass(HINSTANCE hInstance)
 {
 	SINGLEINIT("window class");
 
-	g_hInst = hInstance;
+	m_hInst = hInstance;
 
 	// Initialize window class
 	WNDCLASSEX wndClass{ 0 };
 
 	wndClass.cbSize = sizeof(WNDCLASSEX);
 	wndClass.style = CS_OWNDC;
-	wndClass.lpfnWndProc = wndProc;
-	wndClass.lpszClassName = wndClassName;
+	wndClass.lpfnWndProc = WndProc;
+	wndClass.lpszClassName = c_wndClassName;
 	wndClass.cbClsExtra = 0;
 	wndClass.cbWndExtra = 0;
 	wndClass.hIcon = nullptr;
@@ -125,11 +132,11 @@ void window::initClass(HINSTANCE hInstance)
 	RegisterClassEx(&wndClass);
 }
 
-HWND window::initWindow(int width, int height, cstr name)
+HWND SandFox::Window::InitWindow(int width, int height, cstr name)
 {
 	SINGLEINIT("window instance");
 
-	g_size = { width, height };
+	m_size = { width, height };
 
 	DWORD windowStyles = WS_MINIMIZEBOX | WS_CAPTION | WS_SYSMENU;
 
@@ -140,44 +147,44 @@ HWND window::initWindow(int width, int height, cstr name)
 	r.bottom = height + r.top;
 	AdjustWindowRect(&r, windowStyles, FALSE);
 
-	g_hWnd = CreateWindowEx(
+	m_hWnd = CreateWindowEx(
 		0,
-		wndClassName,
+		c_wndClassName,
 		name,
 		WS_MINIMIZEBOX | WS_CAPTION | WS_SYSMENU,
 		CW_USEDEFAULT, CW_USEDEFAULT,
 		r.right - r.left, r.bottom - r.top,
 		nullptr, nullptr,
-		g_hInst,
+		m_hInst,
 		nullptr
 	);
 
-	if (g_hWnd == nullptr)
+	if (m_hWnd == nullptr)
 	{
 		EXC_HRLAST();
 	}
 
-	return g_hWnd;
+	return m_hWnd;
 }
 
-void window::loadPrioritizedWndProc(WNDPROC wndProc)
+void SandFox::Window::LoadPrioritizedWndProc(WNDPROC wndProc)
 {
-	g_externWndProc = wndProc;
+	m_externWndProc = wndProc;
 }
 
-void window::showWindow(int command)
+void SandFox::Window::Show(int command)
 {
-	if (g_hWnd == nullptr)
+	if (m_hWnd == nullptr)
 		return;
 
-	ShowWindow(g_hWnd, command);
+	ShowWindow(m_hWnd, command);
 }
 
 
 
 // Message pump processor
 
-std::optional<int> window::processMessages()
+std::optional<int> SandFox::Window::ProcessMessages()
 {
 	static MSG msg;
 
@@ -201,27 +208,27 @@ std::optional<int> window::processMessages()
 
 // Getters
 
-HWND window::getHwnd()
+HWND SandFox::Window::GetHwnd()
 {
-	return g_hWnd;
+	return s_window->m_hWnd;
 }
 
-HINSTANCE__* window::getHInstance()
+HINSTANCE__* SandFox::Window::GetHInstance()
 {
-	return g_hInst;
+	return s_window->m_hInst;
 }
 
-Point window::getSize()
+Point SandFox::Window::GetSize()
 {
-	return g_size;
+	return s_window->m_size;
 }
 
-int window::getW()
+int SandFox::Window::GetW()
 {
-	return g_size.x;
+	return s_window->m_size.x;
 }
 
-int window::getH()
+int SandFox::Window::GetH()
 {
-	return g_size.y;
+	return s_window->m_size.y;
 }

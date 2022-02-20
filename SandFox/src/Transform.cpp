@@ -2,7 +2,7 @@
 
 #include "Transform.h"
 
-Transform::Transform(Vec3 position, Vec3 rotation, Vec3 scale)
+SandFox::Transform::Transform(Vec3 position, Vec3 rotation, Vec3 scale)
 	:
 	m_position(position),
 	m_rotation(rotation),
@@ -12,58 +12,58 @@ Transform::Transform(Vec3 position, Vec3 rotation, Vec3 scale)
 {
 }
 
-Vec3 Transform::GetPosition() const
+Vec3 SandFox::Transform::GetPosition() const
 {
 	return m_position;
 }
 
-Vec3 Transform::GetRotation() const
+Vec3 SandFox::Transform::GetRotation() const
 {
 	return m_rotation;
 }
 
-Vec3 Transform::GetScale() const
+Vec3 SandFox::Transform::GetScale() const
 {
 	return m_scale;
 }
 
-void Transform::SetPosition(Vec3 position)
+void SandFox::Transform::SetPosition(Vec3 position)
 {
 	m_position = position;
 	m_updateMatrix = true;
 }
 
-void Transform::SetRotation(Vec3 rotation)
+void SandFox::Transform::SetRotation(Vec3 rotation)
 {
 	m_rotation = rotation;
 	m_updateMatrix = true;
 }
 
-void Transform::SetScale(Vec3 scale)
+void SandFox::Transform::SetScale(Vec3 scale)
 {
 	m_scale = scale;
 	m_updateMatrix = true;
 }
 
-Vec3 Transform::ChangePosition(Vec3 change)
+Vec3 SandFox::Transform::ChangePosition(Vec3 change)
 {
 	SetPosition(m_position + change);
 	return m_position;
 }
 
-Vec3 Transform::ChangeRotation(Vec3 change)
+Vec3 SandFox::Transform::ChangeRotation(Vec3 change)
 {
 	SetRotation(m_rotation + change);
 	return m_rotation;
 }
 
-Vec3 Transform::ChangeScale(Vec3 change)
+Vec3 SandFox::Transform::ChangeScale(Vec3 change)
 {
 	SetScale(m_scale + change);
 	return m_scale;
 }
 
-void Transform::UpdateMatrix()
+void SandFox::Transform::UpdateMatrix()
 {
 	if (m_updateMatrix)
 	{
@@ -79,13 +79,13 @@ void Transform::UpdateMatrix()
 	}
 }
 
-dx::XMMATRIX Transform::GetMatrix()
+dx::XMMATRIX SandFox::Transform::GetMatrix()
 {
 	UpdateMatrix();
 	return m_matrix;
 }
 
-dx::XMMATRIX Transform::GetMatrixSaved() const
+dx::XMMATRIX SandFox::Transform::GetMatrixSaved() const
 {
 	return m_matrix;
 }

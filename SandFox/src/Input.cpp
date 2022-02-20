@@ -3,155 +3,206 @@
 #include "Input.h"
 #include "Window.h"
 
-using namespace SandFox::Input::Core;
 
 
-bool g_mLocked;
+SandFox::Input* SandFox::Input::s_input = nullptr;
 
-Point g_mp, g_lastMp, g_mpDiff;
+SandFox::Input::Input()
+	:
+	m_mLocked(false),
+	m_lastMp(0, 0),
+	m_mp(0, 0),
+	m_mpDiff(0, 0),
 
-std::queue<PressEvent> g_keyboardQueue, g_mouseQueue;
+	m_keyboardQueue(),
+	m_mouseQueue(),
+	m_charQueue(),
 
-std::bitset<UCHAR_MAX> g_keyPressed, g_keyDown, g_keyUp;
-std::bitset<MAX_MOUSE_BUTTONS> g_mbPressed, g_mbDown, g_mbUp;
+	m_frameChars(new wchar_t[MIN_FRAME_CHAR_CAPACITY]),
+	m_frameCharCount(0),
+	m_frameCharCapacity(MIN_FRAME_CHAR_CAPACITY),
 
-
-
-void SandFox::Input::Core::updateState()
+	m_keyPressed(),
+	m_keyDown(),
+	m_keyUp(),
+	m_mbPressed(),
+	m_mbDown(),
+	m_mbUp()
 {
-	g_mpDiff = g_mp - g_lastMp;
+	s_input = this;
+}
 
-	g_lastMp = g_mLocked ? mouseLockedPosition() : g_mp;
+SandFox::Input::~Input()
+{
+	delete[] m_frameChars;
 
-	g_keyDown.reset();
-	g_keyUp.reset();
+	s_input = nullptr;
+}
 
-	while (!g_keyboardQueue.empty())
+void SandFox::Input::CoreUpdateState()
+{
+	m_mpDiff = m_mp - m_lastMp;
+
+	m_lastMp = m_mLocked ? MouseLockedPosition() : m_mp;
+
+	m_keyDown.reset();
+	m_keyUp.reset();
+
+	while (!m_keyboardQueue.empty())
 	{
-		PressEvent e = g_keyboardQueue.front();
-		g_keyboardQueue.pop();
+		PressEvent e = m_keyboardQueue.front();
+		m_keyboardQueue.pop();
 
 		switch (e.type)
 		{
 		case PressEventType::KeyUp:
-			g_keyPressed[e.index] = false;
-			g_keyUp[e.index] = true;
+			m_keyPressed[e.index] = false;
+			m_keyUp[e.index] = true;
 			break;
 
 		case PressEventType::KeyDown:
-			g_keyPressed[e.index] = true;
-			g_keyDown[e.index] = true;
+			m_keyPressed[e.index] = true;
+			m_keyDown[e.index] = true;
 			break;
 		}
 	}
 
-	while (!g_mouseQueue.empty())
+	while (!m_mouseQueue.empty())
 	{
-		PressEvent e = g_mouseQueue.front();
-		g_mouseQueue.pop();
+		PressEvent e = m_mouseQueue.front();
+		m_mouseQueue.pop();
 
 		switch (e.type)
 		{
 		case PressEventType::KeyUp:
-			g_mbPressed[e.index] = false;
-			g_mbUp[e.index] = true;
+			m_mbPressed[e.index] = false;
+			m_mbUp[e.index] = true;
 			break;
 
 		case PressEventType::KeyDown:
-			g_mbPressed[e.index] = true;
-			g_mbDown[e.index] = true;
+			m_mbPressed[e.index] = true;
+			m_mbDown[e.index] = true;
 			break;
 		}
 	}
 
-	if (g_mLocked)
+	if (m_charQueue.size() > m_frameCharCapacity)
 	{
-		moveMouseTo(mouseLockedPosition());
+		do
+		{
+			m_frameCharCapacity *= 2;
+		} 
+		while (m_charQueue.size() > m_frameCharCapacity);
+
+		delete[] m_frameChars;
+		m_frameChars = new wchar_t[m_frameCharCapacity];
+	}
+
+	m_frameCharCount = m_charQueue.size();
+
+	for (int i = 0; !m_charQueue.empty(); i++)
+	{
+		wchar_t c = m_charQueue.front();
+		m_charQueue.pop();
+
+		m_frameChars[i] = c;
+	}
+
+
+	if (m_mLocked)
+	{
+		MoveMouseTo(MouseLockedPosition());
 	}
 }
 
-void SandFox::Input::Core::updateMousePosition(Point p)
+void SandFox::Input::CoreUpdateMousePosition(Point p)
 {
-	g_mp = p;
+	m_mp = p;
 }
 
-void SandFox::Input::Core::queueKeyboard(PressEvent e)
+void SandFox::Input::CoreQueueKeyboard(PressEvent e)
 {
-	g_keyboardQueue.push(e);
+	m_keyboardQueue.push(e);
 }
 
-void SandFox::Input::Core::queueMouse(PressEvent e)
+void SandFox::Input::CoreQueueMouse(PressEvent e)
 {
-	g_mouseQueue.push(e);
+	m_mouseQueue.push(e);
 }
 
-void SandFox::Input::Core::queueChar(wchar_t c)
+void SandFox::Input::CoreQueueChar(wchar_t c)
 {
+	m_charQueue.push(c);
 }
 
-bool SandFox::Input::keyPressed(byte keyCode)
+bool SandFox::Input::KeyPressed(byte keyCode)
 {
-	return g_keyPressed[keyCode];
+	return s_input->m_keyPressed[keyCode];
 }
 
-bool SandFox::Input::keyDown(byte keyCode)
+bool SandFox::Input::KeyDown(byte keyCode)
 {
-	return g_keyDown[keyCode];
+	return s_input->m_keyDown[keyCode];
 }
 
-bool SandFox::Input::keyUp(byte keyCode)
+bool SandFox::Input::KeyUp(byte keyCode)
 {
-	return g_keyUp[keyCode];
+	return s_input->m_keyUp[keyCode];
 }
 
-bool SandFox::Input::mbPressed(byte keyCode)
+bool SandFox::Input::MbPressed(byte keyCode)
 {
-	return g_mbPressed[keyCode];
+	return s_input->m_mbPressed[keyCode];
 }
 
-bool SandFox::Input::mbDown(byte keyCode)
+bool SandFox::Input::MbDown(byte keyCode)
 {
-	return g_mbDown[keyCode];
+	return s_input->m_mbDown[keyCode];
 }
 
-bool SandFox::Input::mbUp(byte keyCode)
+bool SandFox::Input::MbUp(byte keyCode)
 {
-	return g_mbUp[keyCode];
+	return s_input->m_mbUp[keyCode];
 }
 
-void SandFox::Input::mouseVisible(bool show)
+void SandFox::Input::MouseVisible(bool show)
 {
 	ShowCursor(show);
 }
 
-void SandFox::Input::mouseLocked(bool locked)
+void SandFox::Input::MouseLocked(bool locked)
 {
-	g_mLocked = locked;
+	s_input->m_mLocked = locked;
 }
 
-bool SandFox::Input::getMouseLocked()
+bool SandFox::Input::GetMouseLocked()
 {
-	return g_mLocked;
+	return s_input->m_mLocked;
 }
 
-Point SandFox::Input::mouseLockedPosition()
+Point SandFox::Input::MouseLockedPosition()
 {
-	return { window::getW() / 2, window::getH() / 2 };
+	return { Window::GetW() / 2, Window::GetH() / 2 };
 }
 
-Point SandFox::Input::mousePositionDiff()
+SandFox::Input& SandFox::Input::Get()
 {
-	return g_mpDiff;
+	return *s_input;
 }
 
-Point SandFox::Input::mousePosition()
+Point SandFox::Input::MousePositionDiff()
 {
-	return g_mp;
+	return s_input->m_mpDiff;
 }
 
-void SandFox::Input::moveMouseTo(Point p)
+Point SandFox::Input::MousePosition()
+{
+	return s_input->m_mp;
+}
+
+void SandFox::Input::MoveMouseTo(Point p)
 {
 	POINT temp = { p.x, p.y };
-	ClientToScreen(window::getHwnd(), &temp);
+	ClientToScreen(Window::GetHwnd(), &temp);
 	SetCursorPos(temp.x, temp.y);
 }

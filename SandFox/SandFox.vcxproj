@@ -303,8 +303,8 @@ echo Copying complete!</Command>
     <ClCompile Include="src\PixelShader.cpp" />
     <ClCompile Include="src\PrimitiveTopology.cpp" />
     <ClCompile Include="src\SamplerState.cpp" />
-    <ClCompile Include="src\SandFoxCore.h" />
-    <ClCompile Include="src\SandFoxRendering.h" />
+    <ClInclude Include="src\SandFoxCore.h" />
+    <ClInclude Include="src\SandFoxRendering.h" />
     <ClCompile Include="src\SplitTransformConstantBuffer.cpp" />
     <ClCompile Include="src\Texture.cpp" />
     <ClCompile Include="src\TextureBindable.cpp" />

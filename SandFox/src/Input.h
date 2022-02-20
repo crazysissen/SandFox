@@ -2,55 +2,92 @@
 
 #include "SandFoxCore.h"
 
+#include <queue>
+#include <bitset>
+
 namespace SandFox
 {
 
-	namespace Input
+	class FOX_API Input
 	{
+	public:
 
-		namespace Core
+		enum class PressEventType
 		{
+			KeyUp, KeyDown, KeyNone
+		};
 
-			const int MAX_MOUSE_BUTTONS = 10;
+		struct PressEvent
+		{
+			PressEventType type;
+			byte index;
+		};
 
-			enum class PressEventType
-			{
-				KeyUp, KeyDown, KeyNone
-			};
 
-			struct PressEvent
-			{
-				PressEventType type;
-				byte index;
-			};
 
-			void updateState();
+		// Input functions
 
-			void updateMousePosition(Point p);
+		static bool KeyPressed(byte keyCode);
+		static bool KeyDown(byte keyCode);
+		static bool KeyUp(byte keyCode);
+		
+		static bool MbPressed(byte keyCode);
+		static bool MbDown(byte keyCode);
+		static bool MbUp(byte keyCode);
+		
+		static Point MousePositionDiff();
+		static Point MousePosition();
+		static void MoveMouseTo(Point p);
+		static void MouseVisible(bool show);
+		static void MouseLocked(bool locked);
+		static bool GetMouseLocked();
+		static Point MouseLockedPosition();
 
-			void queueKeyboard(PressEvent e);
-			void queueMouse(PressEvent e);
-			void queueChar(wchar_t c);
+		static Input& Get();
 
-		}
 
-		bool keyPressed(byte keyCode);
-		bool keyDown(byte keyCode);
-		bool keyUp(byte keyCode);
 
-		bool mbPressed(byte keyCode);
-		bool mbDown(byte keyCode);
-		bool mbUp(byte keyCode);
+		// Core
 
-		Point mousePositionDiff();
-		Point mousePosition();
-		void moveMouseTo(Point p);
-		void mouseVisible(bool show);
-		void mouseLocked(bool locked);
-		bool getMouseLocked();
-		Point mouseLockedPosition();
+		Input();
+		virtual ~Input();
 
-	}
+		void CoreUpdateState();
+		void CoreUpdateMousePosition(Point p);
+
+		void CoreQueueKeyboard(PressEvent e);
+		void CoreQueueMouse(PressEvent e);
+		void CoreQueueChar(wchar_t c);
+
+
+
+	private:
+		static constexpr int MAX_MOUSE_BUTTONS = 8;
+		static constexpr int MIN_FRAME_CHAR_CAPACITY = 8;
+
+		static Input* s_input;
+
+		bool m_mLocked;
+
+		Point m_lastMp;
+		Point m_mp;
+		Point m_mpDiff;
+
+		std::queue<PressEvent> m_keyboardQueue;
+		std::queue<PressEvent> m_mouseQueue;
+		std::queue<wchar_t> m_charQueue;
+
+		wchar_t* m_frameChars;
+		int m_frameCharCount;
+		int m_frameCharCapacity;
+
+		std::bitset<0xFF> m_keyPressed;
+		std::bitset<0xFF> m_keyDown;
+		std::bitset<0xFF> m_keyUp;
+		std::bitset<MAX_MOUSE_BUTTONS> m_mbPressed;
+		std::bitset<MAX_MOUSE_BUTTONS> m_mbDown; 
+		std::bitset<MAX_MOUSE_BUTTONS> m_mbUp;
+	};
 
 	enum Key : byte
 	{
