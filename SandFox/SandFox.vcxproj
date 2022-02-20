@@ -142,7 +142,7 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions);FOX_COMPILE</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)\Libraries\DirectXTK\include;$(SolutionDir)\Libraries\CHSL\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Libraries\DirectXTK\include;$(SolutionDir)Libraries\CHSL\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
     </ClCompile>
@@ -170,7 +170,7 @@ echo Copying complete!</Command>
       <PreprocessorDefinitions>RELEASE;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions);FOX_COMPILE</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)\Libraries\DirectXTK\include;$(SolutionDir)\Libraries\CHSL\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Libraries\DirectXTK\include;$(SolutionDir)Libraries\CHSL\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
     </ClCompile>
@@ -199,7 +199,7 @@ echo Copying complete!</Command>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions);FOX_COMPILE</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)\Libraries\DirectXTK\include;$(SolutionDir)\Libraries\CHSL\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Libraries\DirectXTK\include;$(SolutionDir)Libraries\CHSL\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
     </ClCompile>
@@ -226,7 +226,7 @@ echo Copying complete!</Command>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions);FOX_COMPILE</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)\Libraries\DirectXTK\include;$(SolutionDir)\Libraries\CHSL\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Libraries\DirectXTK\include;$(SolutionDir)Libraries\CHSL\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
     </ClCompile>
@@ -254,7 +254,7 @@ echo Copying complete!</Command>
       <PreprocessorDefinitions>RELEASE;NDEBUG;_CONSOLE;%(PreprocessorDefinitions);FOX_COMPILE</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)\Libraries\DirectXTK\include;$(SolutionDir)\Libraries\CHSL\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Libraries\DirectXTK\include;$(SolutionDir)Libraries\CHSL\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
     </ClCompile>
@@ -283,7 +283,7 @@ echo Copying complete!</Command>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions);FOX_COMPILE</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)\Libraries\DirectXTK\include;$(SolutionDir)\Libraries\CHSL\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Libraries\DirectXTK\include;$(SolutionDir)Libraries\CHSL\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
     </ClCompile>
@@ -321,10 +321,6 @@ echo Copying complete!</Command>
     <ClCompile Include="src\IndexBuffer.cpp" />
     <ClCompile Include="src\Input.cpp" />
     <ClCompile Include="src\InputLayout.cpp" />
-    <ClCompile Include="Libraries\imgui\imgui.cpp" />
-    <ClCompile Include="Libraries\imgui\imgui_draw.cpp" />
-    <ClCompile Include="Libraries\imgui\imgui_tables.cpp" />
-    <ClCompile Include="Libraries\imgui\imgui_widgets.cpp" />
     <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\PixelShader.cpp" />
     <ClCompile Include="src\PrimitiveTopology.cpp" />
@@ -354,12 +350,6 @@ echo Copying complete!</Command>
     <ClInclude Include="src\IndexBuffer.h" />
     <ClInclude Include="src\Input.h" />
     <ClInclude Include="src\InputLayout.h" />
-    <ClInclude Include="Libraries\imgui\imconfig.h" />
-    <ClInclude Include="Libraries\imgui\imgui.h" />
-    <ClInclude Include="Libraries\imgui\imgui_internal.h" />
-    <ClInclude Include="Libraries\imgui\imstb_rectpack.h" />
-    <ClInclude Include="Libraries\imgui\imstb_textedit.h" />
-    <ClInclude Include="Libraries\imgui\imstb_truetype.h" />
     <ClInclude Include="src\PixelShader.h" />
     <ClInclude Include="src\PrimitiveTopology.h" />
     <ClInclude Include="src\SamplerState.h" />

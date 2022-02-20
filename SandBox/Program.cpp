@@ -6,10 +6,6 @@
 #include <SandFox\Graphics.h>
 #include <SandFox\Input.h>
 
-// Loads D3D11 Library for the whole project
-#pragma comment(lib, "d3d11.lib")
-#pragma comment(lib, "D3DCompiler.lib")
-
 
 int WINAPI WinMain(
 	_In_		HINSTANCE	hInstance,
