@@ -79,7 +79,7 @@ namespace SandFox
 	// --------------- Implementation
 
 	template<class T>
-	inline Drawable<T>::Drawable(Transform transform)
+	Drawable<T>::Drawable(Transform transform)
 		:
 		_Drawable(transform),
 		m_staticInit(false)
@@ -107,7 +107,7 @@ namespace SandFox
 	}
 
 	template<class T>
-	inline unsigned int Drawable<T>::BindStatic() const
+	unsigned int Drawable<T>::BindStatic() const
 	{
 		if (s_currentTypeIndex != s_typeIndex)
 		{
@@ -132,7 +132,7 @@ namespace SandFox
 	}
 
 	template<class T>
-	inline void Drawable<T>::AddStaticBind(IBindable* bindable)
+	void Drawable<T>::AddStaticBind(IBindable* bindable)
 	{
 		if (m_staticInit)
 		{
@@ -141,7 +141,7 @@ namespace SandFox
 	}
 
 	template<class T>
-	inline void Drawable<T>::AddStaticIndexBuffer(Bind::IndexBuffer* indexBuffer)
+	void Drawable<T>::AddStaticIndexBuffer(Bind::IndexBuffer* indexBuffer)
 	{
 		if (m_staticInit)
 		{

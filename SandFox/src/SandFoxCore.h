@@ -2,6 +2,9 @@
 
 #ifdef FOX_COMPILE
 #define FOX_API __declspec(dllexport)
+#pragma warning( push )
+#pragma warning( disable : 4251 )
+#pragma warning( disable : 4275 )
 #else
 #define FOX_API __declspec(dllimport)
 #endif

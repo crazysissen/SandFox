@@ -1,4 +1,4 @@
-#include "core.h"
+#include "pch.h"
 
 #include "Input.h"
 #include "Window.h"
@@ -98,7 +98,7 @@ void SandFox::Input::CoreUpdateState()
 		m_frameChars = new wchar_t[m_frameCharCapacity];
 	}
 
-	m_frameCharCount = m_charQueue.size();
+	m_frameCharCount = (int)m_charQueue.size();
 
 	for (int i = 0; !m_charQueue.empty(); i++)
 	{

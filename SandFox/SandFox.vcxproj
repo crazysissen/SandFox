@@ -103,31 +103,37 @@
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)\bin\$(ProjectName)-$(Platform)-$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)\bin-int\$(ProjectName)-$(Platform)-$(Configuration)\</IntDir>
+    <TargetName>$(ProjectName)$(PlatformArchitecture)-d</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)\bin\$(ProjectName)-$(Platform)-$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)\bin-int\$(ProjectName)-$(Platform)-$(Configuration)\</IntDir>
+    <TargetName>$(ProjectName)$(PlatformArchitecture)</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Paranoid|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)\bin\$(ProjectName)-$(Platform)-$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)\bin-int\$(ProjectName)-$(Platform)-$(Configuration)\</IntDir>
+    <TargetName>$(ProjectName)$(PlatformArchitecture)</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)\bin\$(ProjectName)-$(Platform)-$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)\bin-int\$(ProjectName)-$(Platform)-$(Configuration)\</IntDir>
+    <TargetName>$(ProjectName)$(PlatformArchitecture)-d</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)\bin\$(ProjectName)-$(Platform)-$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)\bin-int\$(ProjectName)-$(Platform)-$(Configuration)\</IntDir>
+    <TargetName>$(ProjectName)$(PlatformArchitecture)</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Paranoid|x64'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)\bin\$(ProjectName)-$(Platform)-$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)\bin-int\$(ProjectName)-$(Platform)-$(Configuration)\</IntDir>
+    <TargetName>$(ProjectName)$(PlatformArchitecture)</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -136,18 +142,22 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions);FOX_COMPILE</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>$(ProjectDir)\Libraries\DirectXTK\include;$(ProjectDir)\Libraries\CHSL\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\Libraries\DirectXTK\include;$(SolutionDir)\Libraries\CHSL\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>core.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(ProjectDir)\Libraries\DirectXTK\lib;$(ProjectDir)\Libraries\imgui;$(ProjectDir)\Libraries\CHSL\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)\Libraries\DirectXTK\lib;$(SolutionDir)\Libraries\imgui;$(SolutionDir)\Libraries\CHSL\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>CHSL32-d.lib;DirectXTK32-d.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /y /e /q "$(ProjectDir)Assets" "$(OutDir)Data\"
+      <Command>xcopy /y /exclude:$(ProjectDir)Exclude.txt "$(ProjectDir)src\*.h" "$(SolutionDir)library\SandFox\include\SandFox\"
+xcopy /y "$(ProjectDir)src\Header\*.h" "$(SolutionDir)library\SandFox\include\"
+xcopy /y "$(OutDir)*.lib" "$(SolutionDir)library\SandFox\lib\"
+xcopy /y "$(OutDir)*.dll" "$(SolutionDir)library\SandFox\dll\"
+xcopy /y "$(OutDir)*.pdb" "$(SolutionDir)library\SandFox\lib\"
 echo Copying complete!</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -160,20 +170,23 @@ echo Copying complete!</Command>
       <PreprocessorDefinitions>RELEASE;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions);FOX_COMPILE</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>$(ProjectDir)\Libraries\DirectXTK\include;$(ProjectDir)\Libraries\CHSL\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\Libraries\DirectXTK\include;$(SolutionDir)\Libraries\CHSL\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>core.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(ProjectDir)\Libraries\DirectXTK\lib;$(ProjectDir)\Libraries\imgui;$(ProjectDir)\Libraries\CHSL\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)\Libraries\DirectXTK\lib;$(SolutionDir)\Libraries\imgui;$(SolutionDir)\Libraries\CHSL\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>CHSL32.lib;DirectXTK32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /y /e /q "$(ProjectDir)Assets" "$(OutDir)Data\"
+      <Command>xcopy /y /exclude:$(ProjectDir)Exclude.txt "$(ProjectDir)src\*.h" "$(SolutionDir)library\SandFox\include\SandFox\"
+xcopy /y "$(ProjectDir)src\Header\*.h" "$(SolutionDir)library\SandFox\include\"
+xcopy /y "$(OutDir)*.lib" "$(SolutionDir)library\SandFox\lib\"
+xcopy /y "$(OutDir)*.dll" "$(SolutionDir)library\SandFox\dll\"
 echo Copying complete!</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -186,20 +199,23 @@ echo Copying complete!</Command>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions);FOX_COMPILE</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>$(ProjectDir)\Libraries\DirectXTK\include;$(ProjectDir)\Libraries\CHSL\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\Libraries\DirectXTK\include;$(SolutionDir)\Libraries\CHSL\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>core.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(ProjectDir)\Libraries\DirectXTK\lib;$(ProjectDir)\Libraries\imgui;$(ProjectDir)\Libraries\CHSL\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)\Libraries\DirectXTK\lib;$(SolutionDir)\Libraries\imgui;$(SolutionDir)\Libraries\CHSL\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>CHSL32.lib;DirectXTK32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /y /e /q "$(ProjectDir)Assets" "$(OutDir)Data\"
+      <Command>xcopy /y /exclude:$(ProjectDir)Exclude.txt "$(ProjectDir)src\*.h" "$(SolutionDir)library\SandFox\include\SandFox\"
+xcopy /y "$(ProjectDir)src\Header\*.h" "$(SolutionDir)library\SandFox\include\"
+xcopy /y "$(OutDir)*.lib" "$(SolutionDir)library\SandFox\lib\"
+xcopy /y "$(OutDir)*.dll" "$(SolutionDir)library\SandFox\dll\"
 echo Copying complete!</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -210,18 +226,22 @@ echo Copying complete!</Command>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions);FOX_COMPILE</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>$(ProjectDir)\Libraries\DirectXTK\include;$(ProjectDir)\Libraries\CHSL\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\Libraries\DirectXTK\include;$(SolutionDir)\Libraries\CHSL\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>core.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(ProjectDir)\Libraries\DirectXTK\lib;$(ProjectDir)\Libraries\imgui;$(ProjectDir)\Libraries\CHSL\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)\Libraries\DirectXTK\lib;$(SolutionDir)\Libraries\imgui;$(SolutionDir)\Libraries\CHSL\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>CHSL64-d.lib;DirectXTK64-d.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /y /e /q "$(ProjectDir)Assets" "$(OutDir)Data\"
+      <Command>xcopy /y /exclude:$(ProjectDir)Exclude.txt "$(ProjectDir)src\*.h" "$(SolutionDir)library\SandFox\include\SandFox\"
+xcopy /y "$(ProjectDir)src\Header\*.h" "$(SolutionDir)library\SandFox\include\"
+xcopy /y "$(OutDir)*.lib" "$(SolutionDir)library\SandFox\lib\"
+xcopy /y "$(OutDir)*.dll" "$(SolutionDir)library\SandFox\dll\"
+xcopy /y "$(OutDir)*.pdb" "$(SolutionDir)library\SandFox\lib\"
 echo Copying complete!</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -234,20 +254,23 @@ echo Copying complete!</Command>
       <PreprocessorDefinitions>RELEASE;NDEBUG;_CONSOLE;%(PreprocessorDefinitions);FOX_COMPILE</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>$(ProjectDir)\Libraries\DirectXTK\include;$(ProjectDir)\Libraries\CHSL\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\Libraries\DirectXTK\include;$(SolutionDir)\Libraries\CHSL\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>core.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(ProjectDir)\Libraries\DirectXTK\lib;$(ProjectDir)\Libraries\imgui;$(ProjectDir)\Libraries\CHSL\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)\Libraries\DirectXTK\lib;$(SolutionDir)\Libraries\imgui;$(SolutionDir)\Libraries\CHSL\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>CHSL64.lib;DirectXTK64.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /y /e /q "$(ProjectDir)Assets" "$(OutDir)Data\"
+      <Command>xcopy /y /exclude:$(ProjectDir)Exclude.txt "$(ProjectDir)src\*.h" "$(SolutionDir)library\SandFox\include\SandFox\"
+xcopy /y "$(ProjectDir)src\Header\*.h" "$(SolutionDir)library\SandFox\include\"
+xcopy /y "$(OutDir)*.lib" "$(SolutionDir)library\SandFox\lib\"
+xcopy /y "$(OutDir)*.dll" "$(SolutionDir)library\SandFox\dll\"
 echo Copying complete!</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -260,27 +283,30 @@ echo Copying complete!</Command>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions);FOX_COMPILE</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>$(ProjectDir)\Libraries\DirectXTK\include;$(ProjectDir)\Libraries\CHSL\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\Libraries\DirectXTK\include;$(SolutionDir)\Libraries\CHSL\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>core.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(ProjectDir)\Libraries\DirectXTK\lib;$(ProjectDir)\Libraries\imgui;$(ProjectDir)\Libraries\CHSL\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)\Libraries\DirectXTK\lib;$(SolutionDir)\Libraries\imgui;$(SolutionDir)\Libraries\CHSL\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>CHSL64.lib;DirectXTK64.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /y /e /q "$(ProjectDir)Assets" "$(OutDir)Data\"
+      <Command>xcopy /y /exclude:$(ProjectDir)Exclude.txt "$(ProjectDir)src\*.h" "$(SolutionDir)library\SandFox\include\SandFox\"
+xcopy /y "$(ProjectDir)src\Header\*.h" "$(SolutionDir)library\SandFox\include\"
+xcopy /y "$(OutDir)*.lib" "$(SolutionDir)library\SandFox\lib\"
+xcopy /y "$(OutDir)*.dll" "$(SolutionDir)library\SandFox\dll\"
 echo Copying complete!</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\Camera.cpp" />
     <ClCompile Include="src\ConstantBuffer.cpp" />
-    <ClCompile Include="src\core.cpp">
+    <ClCompile Include="src\pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Paranoid|Win32'">Create</PrecompiledHeader>
@@ -316,11 +342,11 @@ echo Copying complete!</Command>
     <ClCompile Include="src\Window.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="SandFox.h" />
+    <ClInclude Include="src\Header\SandFox.h" />
     <ClInclude Include="src\Bindables.h" />
     <ClInclude Include="src\Camera.h" />
     <ClInclude Include="src\ConstantBuffer.h" />
-    <ClInclude Include="src\core.h" />
+    <ClInclude Include="src\pch.h" />
     <ClInclude Include="src\CubeInterpolated.h" />
     <ClInclude Include="src\Drawable.h" />
     <ClInclude Include="src\Graphics.h" />
@@ -346,6 +372,9 @@ echo Copying complete!</Command>
     <ClInclude Include="src\VertexBuffer.h" />
     <ClInclude Include="src\VertexShader.h" />
     <ClInclude Include="src\Window.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="Exclude.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -7,7 +7,7 @@
     <ClCompile Include="src\Camera.cpp">
       <Filter>Source\Camera</Filter>
     </ClCompile>
-    <ClCompile Include="src\core.cpp">
+    <ClCompile Include="src\pch.cpp">
       <Filter>Source\Core</Filter>
     </ClCompile>
     <ClCompile Include="src\ConstantBuffer.cpp">
@@ -90,7 +90,7 @@
     <ClInclude Include="src\Camera.h">
       <Filter>Source\Camera</Filter>
     </ClInclude>
-    <ClInclude Include="src\core.h">
+    <ClInclude Include="src\pch.h">
       <Filter>Source\Core</Filter>
     </ClInclude>
     <ClInclude Include="src\ConstantBuffer.h">
@@ -171,7 +171,7 @@
     <ClInclude Include="Libraries\imgui\imstb_textedit.h">
       <Filter>%2a Libraries\imgui</Filter>
     </ClInclude>
-    <ClInclude Include="SandFox.h">
+    <ClInclude Include="src\Header\SandFox.h">
       <Filter>Source\SandFox</Filter>
     </ClInclude>
     <ClInclude Include="src\SandFoxCore.h">
@@ -269,5 +269,8 @@
     <Filter Include="Source\SandFox">
       <UniqueIdentifier>{6ffe8657-5cc3-4032-8a85-6867158be31d}</UniqueIdentifier>
     </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="Exclude.txt" />
   </ItemGroup>
 </Project>
