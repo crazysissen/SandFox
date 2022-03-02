@@ -58,8 +58,8 @@ SandFox::Prim::TexturePlane::TexturePlane(Transform t, wstring textureName)
 			0, 2, 3
 		};
 
-		AddStaticBind(new SandFox::Bind::PixelShader(L"PSPhongTextured", blob));
-		AddStaticBind(new SandFox::Bind::VertexShader(L"VSStandard", blob));
+		AddStaticBind(new SandFox::Bind::PixelShader(Graphics::Get().ShaderPath(L"PSPhongTextured"), blob));
+		AddStaticBind(new SandFox::Bind::VertexShader(Graphics::Get().ShaderPath(L"VSStandard"), blob));
 		AddStaticBind(new SandFox::Bind::InputLayout(inputElements, 3, blob));
 		AddStaticBind(new SandFox::Bind::PrimitiveTopology());
 

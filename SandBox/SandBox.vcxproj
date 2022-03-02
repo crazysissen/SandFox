@@ -105,8 +105,11 @@
       <AdditionalLibraryDirectories>$(SolutionDir)library\SandFox\lib;$(SolutionDir)Libraries\CHSL\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>CHSL32-d.lib;SandFox32-d.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent />
     <PostBuildEvent>
-      <Command>xcopy /y "$(SolutionDir)library\SandFox\dll\SandFox$(PlatformArchitecture)-d.dll" "$(OutDir)"</Command>
+      <Command>xcopy /y "$(SolutionDir)library\SandFox\dll\SandFox$(PlatformArchitecture)-d.dll" "$(OutDir)"
+xcopy /y /q /s /i "$(SolutionDir)library\SandFox\Shaders" "$(OutDir)Assets\Shaders"
+xcopy /y /q /s /i "$(ProjectDir)Assets\" "$(OutDir)Assets\"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -129,7 +132,9 @@
       <AdditionalDependencies>CHSL32.lib;SandFox32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /y "$(SolutionDir)library\SandFox\dll\SandFox$(PlatformArchitecture).dll" "$(OutDir)"</Command>
+      <Command>xcopy /y "$(SolutionDir)library\SandFox\dll\SandFox$(PlatformArchitecture).dll" "$(OutDir)"
+xcopy /y /q /s /i "$(SolutionDir)library\SandFox\Shaders" "$(OutDir)Assets\Shaders"
+xcopy /y /q /s /i "$(ProjectDir)Assets/" "$(OutDir)Assets/"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -147,8 +152,11 @@
       <AdditionalLibraryDirectories>$(SolutionDir)library\SandFox\lib;$(SolutionDir)Libraries\CHSL\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>CHSL64-d.lib;SandFox64-d.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent />
     <PostBuildEvent>
-      <Command>xcopy /y "$(SolutionDir)library\SandFox\dll\SandFox$(PlatformArchitecture)-d.dll" "$(OutDir)"</Command>
+      <Command>xcopy /y "$(SolutionDir)library\SandFox\dll\SandFox$(PlatformArchitecture)-d.dll" "$(OutDir)"
+xcopy /y /q /s /i "$(SolutionDir)library\SandFox\Shaders" "$(OutDir)Assets\Shaders"
+xcopy /y /q /s /i "$(ProjectDir)Assets\" "$(OutDir)Assets\"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -171,7 +179,9 @@
       <AdditionalDependencies>CHSL64.lib;SandFox64.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /y "$(SolutionDir)library\SandFox\dll\SandFox$(PlatformArchitecture).dll" "$(OutDir)"</Command>
+      <Command>xcopy /y "$(SolutionDir)library\SandFox\dll\SandFox$(PlatformArchitecture).dll" "$(OutDir)"
+xcopy /y /q /s /i "$(SolutionDir)library\SandFox\Shaders" "$(OutDir)Assets\Shaders"
+xcopy /y /q /s /i "$(ProjectDir)Assets/" "$(OutDir)Assets/"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

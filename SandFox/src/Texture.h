@@ -16,6 +16,7 @@ namespace SandFox
 		virtual ~Texture();
 
 		void Load(std::wstring name /*std::wstring name*/);
+		void Load(unsigned char* data, int width, int height, bool immutable = true, int stride = 4, DXGI_FORMAT format = DXGI_FORMAT_R8G8B8A8_UNORM);
 
 		ComPtr<ID3D11ShaderResourceView>& GetResourceView();
 

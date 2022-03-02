@@ -46,8 +46,8 @@ SandFox::Prim::TestCube::TestCube(Vec3 position, Vec3 rotation, Vec3 size)
 		ComPtr<ID3DBlob> pBlob;
 
 		AddStaticBind(new SandFox::Bind::VertexBuffer(vertices, 8));
-		AddStaticBind(new SandFox::Bind::PixelShader(L"PSBasicOpaque", pBlob));
-		AddStaticBind(new SandFox::Bind::VertexShader(L"VSColor", pBlob));
+		AddStaticBind(new SandFox::Bind::PixelShader(Graphics::Get().ShaderPath(L"PSBasicOpaque"), pBlob));
+		AddStaticBind(new SandFox::Bind::VertexShader(Graphics::Get().ShaderPath(L"VSColor"), pBlob));
 		AddStaticBind(new SandFox::Bind::InputLayout(inputElements, 2, pBlob));
 		AddStaticBind(new SandFox::Bind::PrimitiveTopology());
 		AddStaticIndexBuffer(new SandFox::Bind::IndexBuffer(indices, 36));

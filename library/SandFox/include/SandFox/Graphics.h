@@ -3,6 +3,8 @@
 #include "SandFoxCore.h"
 #include "Camera.h"
 
+#include <string>
+
 namespace SandFox
 {
 
@@ -28,6 +30,7 @@ namespace SandFox
 
 		float GetAspectRatio();
 
+		void SetShaderDirectory(std::wstring shaderDir);
 		void InitCamera(cs::Vec3 pos, cs::Vec3 rot, float fov);
 		void UpdateCameraMatrix();
 		std::shared_ptr<Camera> GetCamera();
@@ -35,6 +38,8 @@ namespace SandFox
 
 		ComPtr<ID3D11Device>& GetDevice();
 		ComPtr<ID3D11DeviceContext>& GetContext();
+
+		std::wstring ShaderPath(std::wstring shaderName);
 
 	public:
 		static Graphics& Get();
@@ -64,21 +69,7 @@ namespace SandFox
 		dx::XMMATRIX m_cameraMatrix;
 		float m_aspectRatio;
 
-		// Textures
-		//ComPtr<ID3D11Texture2D> pOffscreenTexture;
-		//ComPtr<ID3D11ShaderResourceView> pOffscreenSRV;
-		//ComPtr<ID3D11RenderTargetView> pOffscreenRTV;
-		//
-		//ComPtr<ID3D11Texture2D> pOffscreenTexture2;
-		//ComPtr<ID3D11ShaderResourceView> pOffscreenSRV2;
-		//ComPtr<ID3D11RenderTargetView> pOffscreenRTV2;
-		//
-		//ComPtr<ID3D11Texture2D> pOffscreenTexture3;
-		//ComPtr<ID3D11ShaderResourceView> pOffscreenSRV3;
-		//ComPtr<ID3D11RenderTargetView> pOffscreenRTV3;
-
-		// Post-processing
-		//PPFX* pPpfx;
+		std::wstring m_shaderDir;
 	};
 
 }

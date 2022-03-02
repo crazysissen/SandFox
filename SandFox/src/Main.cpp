@@ -6,6 +6,7 @@
 #include "CubeInterpolated.h"
 #include "TexturePlane.h"
 #include "Bindables.h"
+#include "Model.h"
 
 #include <dxgidebug.h>
 //#include <WICTextureLoader.h>
@@ -58,46 +59,18 @@ int WinMainSafe(
 	char*		lpCmdLine,
 	int			nCmdShow)
 {
-//	window::initClass(hInstance);
-//	window::initWindow(window::c_width, window::c_height, "Hello Triangle");
-//
-//#if (_WIN32_WINNT >= 0x0A00)
-//	wrl::Wrappers::RoInitializeWrapper init(RO_INIT_MULTITHREADED);
-//	if (FAILED(init))
-//	{
-//		EXC("Could not initialize WRL system.");
-//	}
-//#else
-//	EXC_COMCHECK(CoInitializeEx(nullptr, COINIT_MULTITHREADED));
-//#endif
-//
-//	g_graphics = new Graphics();
-//	g_graphics->Init();
-//	g_graphics->InitCamera({ 0, 0, -3 }, { 0, 0, 0 }, cs::c_pi * 0.5f);
-//
-//	Start();
-//
-//	window::showWindow();
-//
-//
-//
-//	// Main message pump and game loop
-//
-//	cs::Timer timer;
-//
-//	while (true)
-//	{
-//		// Exit code optional evaluates to true if it contains a value
-//		if (const std::optional<int> exitCode = window::processMessages())
-//		{
-//			DeInit();
-//			return *exitCode;
-//		}
-//
-//		float dTime = timer.Lap();
-//		Update(dTime);
-//		Draw(dTime);
-//	}
+	#if (_WIN32_WINNT >= 0x0A00)
+		wrl::Wrappers::RoInitializeWrapper init(RO_INIT_MULTITHREADED);
+		if (FAILED(init))
+		{
+			EXC("Could not initialize WRL system.");
+		}
+	#else
+		EXC_COMCHECK(CoInitializeEx(nullptr, COINIT_MULTITHREADED));
+	#endif
+
+	//SandFox::Mesh m;
+	//m.Load()
 
 	return 0;
 }

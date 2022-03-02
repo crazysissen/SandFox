@@ -962,6 +962,10 @@ namespace cs
 	typedef _Vec3<float> Vec3;
 	typedef _Vec3<double> Vec3d;
 
+	typedef _Vec4<int> Point4;
+	typedef _Vec4<unsigned int> UPoint4;
+	typedef _Vec4<float> Vec4;
+	typedef _Vec4<double> Vec4d;
 
 }
 
@@ -971,11 +975,18 @@ namespace cs
 #ifdef CHSL_LINEAR
 
 using cs::Point;
+using cs::UPoint;
 using cs::Vec2;
 using cs::Vec2d;
 
 using cs::Point3;
+using cs::UPoint3;
 using cs::Vec3;
 using cs::Vec3d;
+
+using cs::Point4;
+using cs::UPoint4;
+using cs::Vec4;
+using cs::Vec4d;
 
 #endif

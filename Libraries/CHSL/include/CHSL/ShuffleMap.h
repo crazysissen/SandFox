@@ -16,9 +16,9 @@ namespace cs
 		uint identifier;
 
 		bool operator==(const ShuffleMapStruct& lVal) const { return identifier == lVal.identifier; }
-		bool operator!=(const ShuffleMapStruct& lVal) const { return key != lVal.key; }
-		bool operator>(const ShuffleMapStruct& lVal) const { return key > lVal.key; }
-		bool operator<(const ShuffleMapStruct& lVal) const { return key < lVal.key; }
+		bool operator!=(const ShuffleMapStruct& lVal) const { return key != lVal.key || identifier != lVal.identifier; }
+		bool operator>(const ShuffleMapStruct& lVal) const { return key > lVal.key || (key == lVal.key && identifier > lVal.identifier); }
+		bool operator<(const ShuffleMapStruct& lVal) const { return key < lVal.key || (key == lVal.key && identifier < lVal.identifier); }
 	};
 
 
@@ -51,6 +51,7 @@ namespace cs
 	private:
 		RBTree<ShuffleMapStruct<T_key, T_val>, false> m_tree;
 		uint m_idCounter;
+
 
 	};
 

@@ -12,6 +12,8 @@
 #include "Plane.h"
 #include "IRaycastTarget.h"
 
+#include "List.h"
+#include "Queue.h"
 #include "Random.h"
 #include "Math.h"
 #include "GeneralEnums.h"
@@ -29,6 +31,3 @@
 #include "NoiseWorley.h"
 
 #include "Debug.h"
-
-using std::string;
-using std::wstring;

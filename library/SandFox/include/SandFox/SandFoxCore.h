@@ -1,7 +1,11 @@
 #pragma once
 
 #ifdef FOX_COMPILE
+#ifdef FOX_RUN_DEBUG
+#define FOX_API 
+#else
 #define FOX_API __declspec(dllexport)
+#endif
 #else
 #define FOX_API __declspec(dllimport)
 #endif

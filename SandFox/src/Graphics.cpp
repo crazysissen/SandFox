@@ -31,7 +31,9 @@ SandFox::Graphics::Graphics()
 
 	m_camera(nullptr),
 	m_cameraMatrix(),
-	m_aspectRatio()
+	m_aspectRatio(),
+
+	m_shaderDir(L"")
 {
 	s_graphics = this;
 }
@@ -365,6 +367,11 @@ float SandFox::Graphics::GetAspectRatio()
 	return m_aspectRatio;
 }
 
+void SandFox::Graphics::SetShaderDirectory(std::wstring shaderDir)
+{
+	m_shaderDir = shaderDir + L'\\';
+}
+
 void SandFox::Graphics::InitCamera(Vec3 pos, Vec3 rot, float fov)
 {
 	m_camera = std::make_shared<Camera>(pos, rot, fov, c_nearClip, c_farClip);
@@ -398,6 +405,11 @@ ComPtr<ID3D11Device>& SandFox::Graphics::GetDevice()
 ComPtr<ID3D11DeviceContext>& SandFox::Graphics::GetContext()
 {
 	return m_context;
+}
+
+std::wstring SandFox::Graphics::ShaderPath(std::wstring shaderName)
+{
+	return m_shaderDir + shaderName;
 }
 
 SandFox::Graphics& SandFox::Graphics::Get()
