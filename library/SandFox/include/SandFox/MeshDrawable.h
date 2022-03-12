@@ -12,6 +12,18 @@ namespace SandFox
 
 		class FOX_API MeshDrawable
 		{
+		public:
+			MeshDrawable(Transform transform = Transform());
+			MeshDrawable(Transform transform, const Mesh& mesh);
+			~MeshDrawable();
+
+			void Load(const Mesh& mesh);
+
+			Transform GetTransform();
+			void SetTransform(Transform t);
+
+			void Draw();
+
 		private:
 			class SubmeshDrawable : public Drawable<SubmeshDrawable>
 			{
@@ -22,15 +34,6 @@ namespace SandFox
 				Mesh* m_mesh;
 				int m_index;
 			};
-
-		public:
-			MeshDrawable(Transform transform, const Mesh& mesh);
-			~MeshDrawable();
-
-			Transform GetTransform();
-			void SetTransform(Transform t);
-
-			void Draw();
 
 		private:
 			Mesh m_mesh;

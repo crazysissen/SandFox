@@ -12,10 +12,13 @@ namespace SandFox
 		{
 		public:
 			// MUST BE PRECEDED BY VERTEX SHADER CREATION (pBlob must contain vertex shader data)
-			InputLayout(const D3D11_INPUT_ELEMENT_DESC elementDescriptors[], unsigned int elementCount, ComPtr<ID3DBlob>& pBlob);
+			InputLayout();
+			InputLayout(const D3D11_INPUT_ELEMENT_DESC elementDescriptors[], unsigned int elementCount, ComPtr<ID3DBlob>& blob);
 			InputLayout(const InputLayout&) = delete;
 			InputLayout(InputLayout&&) = delete;
 			virtual ~InputLayout();
+
+			void Load(const D3D11_INPUT_ELEMENT_DESC elementDescriptors[], unsigned int elementCount, ComPtr<ID3DBlob>& blob);
 
 			void Bind() override;
 

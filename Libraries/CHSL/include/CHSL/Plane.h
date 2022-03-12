@@ -10,6 +10,7 @@ namespace cs
 	class Plane : public IRaycastTarget
 	{
 	public:
+		Plane();
 		Plane(Vec3 origin, Vec3 normal);
 		Plane(Vec3 origin, Vec3 v1, Vec3 v2);
 		Plane(const Plane&);
@@ -24,6 +25,9 @@ namespace cs
 
 		void SetOrigin(const Vec3& origin);
 		void SetNormal(const Vec3& normal);
+
+		bool IsBelow(const Vec3& vector) const;
+		bool IsAbove(const Vec3& vector) const;
 
 		bool Equivalent(const Plane& plane) const;
 		bool Contains(const Vec3& vector) const;

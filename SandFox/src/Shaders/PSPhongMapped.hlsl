@@ -1,5 +1,7 @@
 
-#define LIGHT_CAPACITY 6
+#include "H_PhongAlg.hlsli"
+
+#define LIGHT_CAPACITY 16
 
 
 
@@ -12,17 +14,7 @@ struct PSIn
     float2 uv : TEXCOORD;
 };
 
-// Light struct
-struct Light
-{
-    float3 position;
-    float intensity;
-
-    float3 diffuse;
-    float3 specular;
-};
-
-cbuffer SceneInfo : register(b1)
+cbuffer SceneInfo : register(b10)
 {
     float3 viewerPosition;
     float3 ambient;
@@ -33,35 +25,10 @@ cbuffer SceneInfo : register(b1)
 
 // Textures and sample information
 SamplerState samplerState : register(s4);
-Texture2D ambientTexture : register(t5);
-Texture2D diffuseTexture : register(t6);
-Texture2D specularTexture : register(t7);
-Texture2D exponentTexture : register(t8);
-
-
-
-float3 phong(Light l, float3 position, float3 N, float3 mDiffuse, float3 mSpecular, float mExponent)
-{
-    float3 L = l.position - position; // Direction towards light
-    float distInv = 1.0f / length(L);
-    L *= distInv;
-
-    float nDotL = dot(N, L);
-
-    if (nDotL < 0.0f)
-    {
-        return float3(0.0f, 0.0f, 0.0f);
-    }
-
-    float3 R = 2 * N * nDotL - L; // Direction of reflected light
-    float3 V = normalize(viewerPosition - position); // Direction towards viewer
-    float rDotV = dot(R, V);
-
-    float3 diffuse = mDiffuse * l.diffuse * nDotL;
-    float3 specular = max(mSpecular * l.specular * pow(rDotV, mExponent), float3(0, 0, 0));
-
-    return l.intensity * (diffuse + specular) * distInv * distInv;
-}
+Texture2D tAmbient : register(t5);
+Texture2D tDiffuse : register(t6);
+Texture2D tSpecular : register(t7);
+Texture2D tExponent : register(t8);
 
 
 
@@ -71,18 +38,23 @@ float4 main(PSIn input) : SV_TARGET
     float3 position = input.position.xyz;
     float3 normal = normalize(input.normal.xyz);
 
-    float3 ambientSample = ambientTexture.Sample(samplerState, input.uv).xyz;
+    float3 ambientSample = tAmbient.Sample(samplerState, input.uv).xyz;
+    float3 diffuseSample = tDiffuse.Sample(samplerState, input.uv).xyz;
+    float3 specularSample = tSpecular.Sample(samplerState, input.uv).xyz;
+    float exponentSample = tExponent.Sample(samplerState, input.uv).x;
+
     float3 color = ambient * ambientSample;
 
     for (int i = 0; i < lightCount; i++)
     {
         color += phong(
             lights[i], 
+            viewerPosition,
             position, 
             normal, 
-            diffuseTexture.Sample(samplerState, input.uv).xyz, 
-            specularTexture.Sample(samplerState, input.uv).xyz,
-            exponentTexture.Sample(samplerState, input.uv).x
+            diffuseSample,
+            specularSample,
+            exponentSample
         );
     }
 

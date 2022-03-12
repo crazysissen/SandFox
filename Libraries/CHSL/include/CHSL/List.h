@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Debug.h"
+
 namespace cs
 {
 
@@ -160,11 +162,11 @@ namespace cs
     }
 
     template<typename T>
-    T& List<T>::operator[](int index) const
+    inline T& List<T>::operator[](int index) const
     {
         if (index < 0 || index >= m_size)
         {
-            throw std::out_of_range("Vector.operator[]()");
+            throw cs::ExceptionGeneral(__FILE__, __FUNCTION__, __LINE__, "Cannot access member outside bounds of List.");
         }
 
         return m_elements[index];
@@ -199,7 +201,7 @@ namespace cs
     {
         if (index < 0 || index >= m_size)
         {
-            throw std::out_of_range("Vector.at()");
+            throw cs::ExceptionGeneral(__FILE__, __FUNCTION__, __LINE__, "Cannot access member outside bounds of List.");
         }
 
         return m_elements[index];
@@ -210,7 +212,7 @@ namespace cs
     {
         if (m_size == 0)
         {
-            throw std::out_of_range("Vector.front()");
+            throw cs::ExceptionGeneral(__FILE__, __FUNCTION__, __LINE__, "Cannot access front member of empty List.");
         }
 
         return m_elements[0];
@@ -221,7 +223,7 @@ namespace cs
     {
         if (m_size == 0)
         {
-            throw std::out_of_range("Vector.back()");
+            throw cs::ExceptionGeneral(__FILE__, __FUNCTION__, __LINE__, "Cannot access rear member of empty list.");
         }
 
         return m_elements[m_size - 1];

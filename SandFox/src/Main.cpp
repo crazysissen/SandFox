@@ -9,49 +9,10 @@
 #include "Model.h"
 
 #include <dxgidebug.h>
-//#include <WICTextureLoader.h>
 
 // Loads D3D11 Library for the whole project
 #pragma comment(lib, "d3d11.lib")
 #pragma comment(lib, "D3DCompiler.lib")
-
-void Start()
-{
-
-}
-
-void Update(float dTime)
-{
-
-}
-
-void Draw(float dTime)
-{
-	//g_graphics->FrameBegin(cs::Color(0x000020));
-	//g_graphics->UpdateCameraMatrix();
-
-
-
-	//g_graphics->FrameFinalize();
-}
-
-void DeInit()
-{
-
-
-	// Drawables
-	//_Drawable::ReleaseStatics();
-
-	//// DXGI debugger
-	//std::vector<std::string> messages = cs::dxgiInfo::getMessages();
-	//for (std::string& m : messages)
-	//	std::cout << m << '\n';
-	//cs::dxgiInfo::deInit();
-
-	//// Graphics system
-	//g_graphics->DeInit();
-	//delete g_graphics;
-}
 
 int WinMainSafe(
 	HINSTANCE	hInstance,
@@ -69,8 +30,7 @@ int WinMainSafe(
 		EXC_COMCHECK(CoInitializeEx(nullptr, COINIT_MULTITHREADED));
 	#endif
 
-	//SandFox::Mesh m;
-	//m.Load()
+	cs::dxgiInfo::init();
 
 	return 0;
 }

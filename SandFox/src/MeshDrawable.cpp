@@ -3,6 +3,13 @@
 
 #include "Bindables.h"
 
+SandFox::Prim::MeshDrawable::MeshDrawable(Transform transform)
+	:
+	m_transform(transform),
+	m_mesh()
+{
+}
+
 SandFox::Prim::MeshDrawable::MeshDrawable(Transform transform, const Mesh& mesh)
 	:
 	m_transform(transform),
@@ -19,6 +26,22 @@ SandFox::Prim::MeshDrawable::~MeshDrawable()
 	for (SubmeshDrawable* s : m_submeshes)
 	{
 		delete s;
+	}
+}
+
+void SandFox::Prim::MeshDrawable::Load(const Mesh& mesh)
+{
+	for (int i = 0; i < m_submeshes.Size(); i++)
+	{
+		delete m_submeshes[i];
+	}
+
+	m_submeshes.Clear();
+	m_mesh = mesh;
+
+	for (int i = 0; i < m_mesh.submeshCount; i++)
+	{
+		m_submeshes.Add(new SubmeshDrawable(m_transform, &m_mesh, i));
 	}
 }
 
@@ -61,10 +84,12 @@ SandFox::Prim::MeshDrawable::SubmeshDrawable::SubmeshDrawable(Transform t, Mesh*
 			{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
 		};
 
-		AddStaticBind(new SandFox::Bind::PixelShader(Graphics::Get().ShaderPath(L"PSPhongMapped"), blob));
+		AddStaticBind(Shader::Get(ShaderTypePhongMapped));
+
+		/*AddStaticBind(new SandFox::Bind::PixelShader(Graphics::Get().ShaderPath(L"PSPhongMapped"), blob));
 		AddStaticBind(new SandFox::Bind::VertexShader(Graphics::Get().ShaderPath(L"VSStandard"), blob));
 		AddStaticBind(new SandFox::Bind::InputLayout(inputElements, 3, blob));
-		AddStaticBind(new SandFox::Bind::PrimitiveTopology());
+		AddStaticBind(new SandFox::Bind::PrimitiveTopology());*/
 	}
 
 	MeshSubmesh& s = m->submeshes[index];

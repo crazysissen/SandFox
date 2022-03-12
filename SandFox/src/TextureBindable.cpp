@@ -1,8 +1,9 @@
 #include "pch.h"
 
 #include "TextureBindable.h"
+#include "Graphics.h"
 
-SandFox::Bind::TextureBindable::TextureBindable(const TextureBindable & copy)
+SandFox::Bind::TextureBindable::TextureBindable(const TextureBindable& copy)
 	:
 	m_texture(copy.m_texture),
 	m_registerIndex(copy.m_registerIndex)

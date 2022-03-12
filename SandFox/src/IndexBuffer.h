@@ -5,7 +5,8 @@
 
 // Uses short indices, 0 -> 65 536
 #ifndef uindex
-#define uindex unsigned short
+#define uindex unsigned int
+#define uindex_format DXGI_FORMAT_R32_UINT
 #endif
 
 namespace SandFox

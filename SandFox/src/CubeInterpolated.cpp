@@ -9,7 +9,7 @@ SandFox::Prim::TestCube::TestCube(Vec3 position, Vec3 rotation, Vec3 size)
 {
 	if (StaticInitialization())
 	{
-		ushort indices[]
+		uindex indices[]
 		{
 			0, 2, 1,	2, 3, 1,
 			1, 3, 5,	3, 7, 5,

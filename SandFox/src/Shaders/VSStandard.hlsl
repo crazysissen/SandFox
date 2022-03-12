@@ -32,7 +32,7 @@ VSOut main(VSIn input)
 	o.clipPosition = mul(position, projection);
 	o.position = position.xyz;
 	o.normal = normal;
-	o.uv = input.uv;
+    o.uv = float2(input.uv.x, 1 - input.uv.y);
 
 	return o;
 }

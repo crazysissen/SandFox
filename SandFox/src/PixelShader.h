@@ -13,8 +13,11 @@ namespace SandFox
 		class FOX_API PixelShader : public IBindable
 		{
 		public:
-			PixelShader(std::wstring shaderName, ComPtr<ID3DBlob>& pBlob);
+			PixelShader();
+			PixelShader(const std::wstring& shaderName, ComPtr<ID3DBlob>& pBlob);
 			virtual ~PixelShader();
+
+			void Load(const std::wstring& shaderName, ComPtr<ID3DBlob>& pBlob);
 
 			void Bind() override;
 

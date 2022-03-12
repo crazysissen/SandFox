@@ -49,7 +49,7 @@ int ReadIndices(char* start, int length, int maxNumbers, uindex* buffer) // <-- 
 	int breaks[] = { -1, length, length, length, length, length, length, length, length, length, length, length, length, -1 };
 	int breakIndex = 1;
 
-	for (int i = 0; i < length; i++)
+	for (int i = 0; i < length && breakIndex <= maxNumbers; i++)
 	{
 		bool isDelimeter = (start[i] < '0');
 
@@ -58,7 +58,7 @@ int ReadIndices(char* start, int length, int maxNumbers, uindex* buffer) // <-- 
 	}
 
 	int numbers = breakIndex ^ ((maxNumbers ^ breakIndex) & -(maxNumbers < breakIndex));
-	breaks[numbers]++;
+	breaks[numbers] += breakIndex <= maxNumbers;
 
 	for (int i = 0; i < numbers; i++)
 	{
@@ -99,10 +99,10 @@ bool LoadOBJ(SandFox::Mesh& m, const wchar_t* path)
 	{
 		string name;
 
-		cs::Color ambient;
-		cs::Color diffuse;
-		cs::Color specular;
-		cs::Color emissive;
+		cs::Color ambient = cs::Color(-1.0f, 0.0f, 0.0f);
+		cs::Color diffuse = cs::Color(-1.0f, 0.0f, 0.0f);
+		cs::Color specular = cs::Color(-1.0f, 0.0f, 0.0f);
+		cs::Color emissive = cs::Color(0.0f, 0.0f, 0.0f);
 		float exponent = 1.0f;
 
 		int ambientMap = -1;
@@ -450,7 +450,7 @@ bool LoadOBJ(SandFox::Mesh& m, const wchar_t* path)
 
 	for (int i = 0; i < textureStrings.Size() && i < m.textureCount; i++)
 	{
-		m.textures[i].Load(wstring(textureStrings[i].begin(), textureStrings[i].end()));
+		m.textures[i].Load(dir + wstring(textureStrings[i].begin(), textureStrings[i].end()));
 	}
 
 
@@ -489,6 +489,38 @@ bool LoadOBJ(SandFox::Mesh& m, const wchar_t* path)
 	{
 		m.materials[i].name = materialPrimers[i].name;
 
+		if (materialPrimers[i].ambientMap == -1 && materialPrimers[i].ambient.r == -1.0f)
+		{
+			if (materialPrimers[i].diffuseMap != -1)
+			{
+				materialPrimers[i].ambientMap = materialPrimers[i].diffuseMap;
+			}
+			else if (materialPrimers[i].diffuse.r != -1.0f)
+			{
+				materialPrimers[i].ambient = materialPrimers[i].diffuse;
+			}
+			else
+			{
+				materialPrimers[i].ambient = cs::Color(1.0f, 1.0f, 1.0f);
+			}
+		}
+
+		if (materialPrimers[i].specularMap == -1 && materialPrimers[i].specular.r == -1.0f)
+		{
+			if (materialPrimers[i].diffuseMap != -1)
+			{
+				materialPrimers[i].specularMap = materialPrimers[i].diffuseMap;
+			}
+			else if (materialPrimers[i].diffuse.r != -1.0f)
+			{
+				materialPrimers[i].specular = materialPrimers[i].diffuse;
+			}
+			else
+			{
+				materialPrimers[i].specular = cs::Color(1.0f, 1.0f, 1.0f);
+			}
+		}
+
 		loadTextureColor(m.materials[i].ambientMapIndex, materialPrimers[i].ambientMap, materialPrimers[i].ambient);
 		loadTextureColor(m.materials[i].diffuseMapIndex, materialPrimers[i].diffuseMap, materialPrimers[i].diffuse);
 		loadTextureColor(m.materials[i].specularMapIndex, materialPrimers[i].specularMap, materialPrimers[i].specular);
@@ -521,9 +553,9 @@ bool LoadOBJ(SandFox::Mesh& m, const wchar_t* path)
 			m.vertices[currentVertex + 1] = { vertices[s.faces[j].indices[3]], normals[s.faces[j].indices[5]], uvs[s.faces[j].indices[4]] };
 			m.vertices[currentVertex + 2] = { vertices[s.faces[j].indices[6]], normals[s.faces[j].indices[8]], uvs[s.faces[j].indices[7]] };
 
-			m.submeshes[i].indices[currentVertex] = currentVertex;
-			m.submeshes[i].indices[currentVertex + 1] = currentVertex + 1;
-			m.submeshes[i].indices[currentVertex + 2] = currentVertex + 2;
+			m.submeshes[i].indices[j * 3] = currentVertex;
+			m.submeshes[i].indices[j * 3 + 1] = currentVertex + 1;
+			m.submeshes[i].indices[j * 3 + 2] = currentVertex + 2;
 
 			currentVertex += 3;
 		}
@@ -589,7 +621,10 @@ SandFox::Mesh& SandFox::Mesh::operator=(const Mesh& rhs)
 	materialCount = rhs.materialCount;
 	textureCount = rhs.textureCount;
 
-	(*referenceCounter)++;
+	if (referenceCounter)
+	{
+		(*referenceCounter)++;
+	}
 
 	return *this;
 }

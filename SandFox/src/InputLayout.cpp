@@ -1,21 +1,35 @@
 #include "pch.h"
 
 #include "InputLayout.h"
+#include "Graphics.h"
+
+SandFox::Bind::InputLayout::InputLayout()
+	:
+	m_inputLayout(nullptr)
+{
+}
 
 // Must follow Vertex Shader!
-SandFox::Bind::InputLayout::InputLayout(const D3D11_INPUT_ELEMENT_DESC elementDescriptors[], unsigned int elementCount, ComPtr<ID3DBlob>& pBlob) // Must follow Vertex Shader!
+SandFox::Bind::InputLayout::InputLayout(const D3D11_INPUT_ELEMENT_DESC elementDescriptors[], unsigned int elementCount, ComPtr<ID3DBlob>& blob) // Must follow Vertex Shader!
+	:
+	m_inputLayout(nullptr)
 {
-	EXC_COMCHECKINFO(Graphics::Get().GetDevice()->CreateInputLayout(
-		elementDescriptors,
-		elementCount,
-		pBlob->GetBufferPointer(),
-		pBlob->GetBufferSize(),
-		&m_inputLayout
-	));
+	Load(elementDescriptors, elementCount, blob);
 }
 
 SandFox::Bind::InputLayout::~InputLayout()
 {
+}
+
+void SandFox::Bind::InputLayout::Load(const D3D11_INPUT_ELEMENT_DESC elementDescriptors[], unsigned int elementCount, ComPtr<ID3DBlob>& blob)
+{
+	EXC_COMCHECKINFO(Graphics::Get().GetDevice()->CreateInputLayout(
+		elementDescriptors,
+		elementCount,
+		blob->GetBufferPointer(),
+		blob->GetBufferSize(),
+		&m_inputLayout
+	));
 }
 
 void SandFox::Bind::InputLayout::Bind()

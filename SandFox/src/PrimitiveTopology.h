@@ -13,6 +13,8 @@ namespace SandFox
 		public:
 			PrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY topology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
+			void Load(D3D_PRIMITIVE_TOPOLOGY topology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
 			void Bind() override;
 
 		private:

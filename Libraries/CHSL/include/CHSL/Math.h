@@ -17,9 +17,9 @@ namespace cs
 	int iclamp(int val, int min, int max);
 
 	int iwrap(int val, int min, int max);
+	float fwrap(float val, float max);
 	float fwrap(float val, float min, float max);
 
 	int iabs(int val);
-
 
 }

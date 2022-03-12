@@ -13,8 +13,11 @@ namespace SandFox
 		class FOX_API VertexShader : public IBindable
 		{
 		public:
-			VertexShader(std::wstring shaderName, ComPtr<ID3DBlob>& pBlob);
+			VertexShader();
+			VertexShader(const std::wstring& shaderName, ComPtr<ID3DBlob>& blob);
 			virtual ~VertexShader();
+
+			void Load(const std::wstring& shaderName, ComPtr<ID3DBlob>& blob);
 
 			void Bind() override;
 

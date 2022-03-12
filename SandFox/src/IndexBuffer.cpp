@@ -1,6 +1,7 @@
 #include "pch.h"
 
 #include "IndexBuffer.h"
+#include "Graphics.h"
 
 SandFox::Bind::IndexBuffer::IndexBuffer(const uindex indices[], unsigned int indexCount, bool immutable)
 	:
@@ -26,7 +27,7 @@ SandFox::Bind::IndexBuffer::~IndexBuffer()
 
 void SandFox::Bind::IndexBuffer::Bind()
 {
-	EXC_COMINFO(Graphics::Get().GetContext()->IASetIndexBuffer(m_indexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0u));
+	EXC_COMINFO(Graphics::Get().GetContext()->IASetIndexBuffer(m_indexBuffer.Get(), uindex_format, 0u));
 }
 
 uint SandFox::Bind::IndexBuffer::GetCount() const

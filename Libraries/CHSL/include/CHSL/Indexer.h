@@ -4,6 +4,7 @@
 
 #include "CHSLTypedef.h"
 #include "Math.h"
+#include "Quadtree.h"
 
 namespace cs
 {

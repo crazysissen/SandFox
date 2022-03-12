@@ -14,10 +14,7 @@ namespace SandFox
 		class FOX_API TexturePlane : public Drawable<TexturePlane>
 		{
 		public:
-			TexturePlane(Transform t, std::wstring textureName);
-
-		private:
-
+			TexturePlane(Transform t, std::wstring textureName, cs::Point tiling = { 1, 1 });
 		};
 
 	}

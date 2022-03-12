@@ -2,9 +2,16 @@
 
 #include <d3dcompiler.h>
 #include <dxgidebug.h>
+#include <cstring>
+
+#include "imgui.h"
+#include "imgui_impl_dx11.h"
+#include "imgui_impl_win32.h"
 
 #include "Graphics.h"
 #include "Window.h"
+#include "Shader.h"
+#include "ConstantBuffer.h"
 
 
 
@@ -15,17 +22,26 @@ SandFox::Graphics* SandFox::Graphics::s_graphics = nullptr;
 SandFox::Graphics::Graphics()
 	:
 	m_initialized(false),
+	m_imgui(false),
 
 	m_device(nullptr),
 	m_swapChain(nullptr),
 	m_context(nullptr),
 
-	m_backBuffer(nullptr),
-	m_backBufferSRV(nullptr),
-	m_backBufferRTV(nullptr),
+	m_backBuffers(nullptr),
+	m_backBufferCount(0),
+	m_backBufferUAV(),
+	m_lightingPass(),
+
+	m_deferredSamplerState(),
+	m_deferredClientInfo(nullptr),
+	m_sceneInfoBuffer(nullptr),
+	m_sceneInfo(),
 
 	m_depthStencilTexture(nullptr),
 	m_depthStencilView(nullptr),
+
+	m_technique(GraphicsTechniqueImmediate),
 
 	m_debug(nullptr),
 
@@ -35,7 +51,7 @@ SandFox::Graphics::Graphics()
 
 	m_shaderDir(L"")
 {
-	s_graphics = this;
+	s_graphics = s_graphics == nullptr ? this : s_graphics;
 }
 
 SandFox::Graphics::~Graphics()
@@ -43,7 +59,7 @@ SandFox::Graphics::~Graphics()
 	s_graphics = nullptr;
 }
 
-void SandFox::Graphics::Init()
+void SandFox::Graphics::Init(std::wstring shaderDir, GraphicsTechnique technique)
 {
 	if (m_initialized)
 	{
@@ -53,11 +69,7 @@ void SandFox::Graphics::Init()
 
 	m_initialized = true;
 
-
-
-
-
-	// --- Initialize COM debug logger
+	m_shaderDir = shaderDir + L'\\';
 
 	cs::dxgiInfo::init();
 
@@ -65,9 +77,43 @@ void SandFox::Graphics::Init()
 
 
 
-	uint sampleCount = 1u, sampleQuality = 0;
-
 	// --- Device, swap chain, rendering context, and front/back buffers
+
+	uint deviceFlags = 0;
+
+#ifndef RELEASE
+	deviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
+#endif
+	
+	uint sampleCount = 1u;
+	uint sampleQuality = 0;
+
+	int featureLevelCount = 4;
+	D3D_FEATURE_LEVEL featureLevels[] =
+	{
+		D3D_FEATURE_LEVEL_11_0,
+		D3D_FEATURE_LEVEL_11_1,
+		D3D_FEATURE_LEVEL_10_1,
+		D3D_FEATURE_LEVEL_10_0
+	};
+
+
+
+
+
+	// --- Scene info
+
+	m_sceneInfo.cameraPos = { 0, 0, 0 };
+	m_sceneInfo.ambient = { 0, 0, 0 };
+	m_sceneInfo.lightCount = 0;
+
+
+	
+
+
+	// Device, swap chain, and context
+
+	m_technique = technique;
 
 	DXGI_SWAP_CHAIN_DESC scd = {};
 	scd.BufferDesc.Width = Window::GetW();
@@ -79,45 +125,115 @@ void SandFox::Graphics::Init()
 	scd.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
 	scd.SampleDesc.Count = sampleCount;
 	scd.SampleDesc.Quality = sampleQuality;
-	scd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 	scd.BufferCount = 1;
 	scd.OutputWindow = Window::GetHwnd() /*(HWND)67676*/;
 	scd.Windowed = true;
 	scd.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
 	scd.Flags = 0;
 
-	uint deviceFlags = 0;
-
-#ifndef RELEASE
-	deviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
-#endif
-
-	D3D_FEATURE_LEVEL featureLevels[] =
+	if (m_technique == GraphicsTechniqueImmediate)
 	{
-		D3D_FEATURE_LEVEL_11_0,
-		D3D_FEATURE_LEVEL_11_1,
-		D3D_FEATURE_LEVEL_10_1,
-		D3D_FEATURE_LEVEL_10_0
-	};
-	
-	EXC_COMCHECKINFO(D3D11CreateDeviceAndSwapChain(
-		nullptr, // Let system pick graphics card/interface
-		D3D_DRIVER_TYPE_HARDWARE,
-		nullptr,
-		deviceFlags,
-		featureLevels,
-		4,
-		D3D11_SDK_VERSION,
-		&scd,
-		&m_swapChain,
-		&m_device,
-		nullptr,
-		&m_context
-	));
 
-	m_backBuffer = nullptr;
-	EXC_COMCHECKINFO(m_swapChain->GetBuffer(0, _uuidof(ID3D11Texture2D), &m_backBuffer));
-	EXC_COMCHECKINFO(m_device->CreateRenderTargetView(m_backBuffer.Get(), nullptr, &m_backBufferRTV));
+		scd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+
+		EXC_COMCHECKINFO(D3D11CreateDeviceAndSwapChain(
+			nullptr, // Let system pick graphics card/interface
+			D3D_DRIVER_TYPE_HARDWARE,
+			nullptr,
+			deviceFlags,
+			featureLevels,
+			featureLevelCount,
+			D3D11_SDK_VERSION,
+			&scd,
+			&m_swapChain,
+			&m_device,
+			nullptr,
+			&m_context
+		));
+		
+
+
+		m_backBufferCount = 1;
+		m_backBuffers = new RenderTexture();
+		ID3D11Texture2D* backBufferTexture;
+		EXC_COMCHECKINFO(m_swapChain->GetBuffer(0, _uuidof(ID3D11Texture2D), (void**)&backBufferTexture));
+		m_backBuffers[0].Load(backBufferTexture, nullptr, nullptr);
+		m_backBuffers[0].CreateRenderTarget(DXGI_FORMAT_B8G8R8A8_UNORM);
+
+		m_sceneInfoBuffer = new Bind::ConstBufferP<SceneInfo>(m_sceneInfo, c_registerSceneInfo, false);
+
+	}
+	else
+	{
+
+		scd.BufferUsage = DXGI_USAGE_UNORDERED_ACCESS;
+
+		EXC_COMCHECKINFO(D3D11CreateDeviceAndSwapChain(
+			nullptr, // Let system pick graphics card/interface
+			D3D_DRIVER_TYPE_HARDWARE,
+			nullptr,
+			deviceFlags,
+			featureLevels,
+			featureLevelCount,
+			D3D11_SDK_VERSION,
+			&scd,
+			&m_swapChain,
+			&m_device,
+			nullptr,
+			&m_context
+		));
+
+		//m_device->CreateDeferredContext(0, &m_context);
+
+
+
+		m_backBufferCount = c_maxRenderTargets + 1;
+		m_backBuffers = new RenderTexture[m_backBufferCount];
+		
+		ID3D11Texture2D* bbTexture;
+		EXC_COMCHECKINFO(m_swapChain->GetBuffer(0, _uuidof(ID3D11Texture2D), (void**)&bbTexture));
+
+		m_backBuffers[0].Load(bbTexture, nullptr, nullptr);
+		//m_backBuffers[0].CreateRenderTarget(DXGI_FORMAT_B8G8R8A8_UNORM);
+
+		m_backBufferUAV.Load(&m_backBuffers[0]);
+
+		m_backBuffers[1].Load(cs::ColorA(0, 0, 0, 0), Window::GetW(), Window::GetH(), DXGI_FORMAT_R32G32B32A32_FLOAT);
+		m_backBuffers[2].Load(cs::ColorA(0, 0, 0, 0), Window::GetW(), Window::GetH(), DXGI_FORMAT_R32G32B32A32_FLOAT);
+
+		for (int i = 3; i < 6; i++)
+			m_backBuffers[i].Load(cs::ColorA(0, 0, 0, 0), Window::GetW(), Window::GetH(), DXGI_FORMAT_R8G8B8A8_UNORM);
+
+		for (int i = 6; i < 8; i++)
+			m_backBuffers[i].Load(cs::ColorA(0, 0, 0, 0), Window::GetW(), Window::GetH(), DXGI_FORMAT_R32_FLOAT);
+	
+
+
+		ClientInfo ci
+		{
+			(uint)Window::GetW(),
+			(uint)Window::GetH(),
+			1.0f / (Window::GetW() - 1),
+			1.0f / (Window::GetH() - 1)
+		};
+
+		m_deferredSamplerState.Load(8, D3D11_FILTER_MIN_MAG_MIP_POINT);
+		m_sceneInfoBuffer = new Bind::ConstBufferC<SceneInfo>(m_sceneInfo, c_registerSceneInfo, false);
+		m_deferredClientInfo = new Bind::ConstBufferC<ClientInfo>(ci, c_registerClientInfo, false);
+
+		m_lightingPass.Load(ShaderPath(L"D_CSPhong"));
+
+	}
+
+
+
+
+
+	// Shader systems
+
+	Shader::LoadPresets(m_technique);
+
+
 
 
 
@@ -133,7 +249,7 @@ void SandFox::Graphics::Init()
 
 	//DxgiGetDebugInterface(__uuidof(IDXGIInfoQueue), &debug);
 
-#ifdef _SAFE
+#ifdef inSAFE
 	m_device->QueryInterface(__uuidof(ID3D11Debug), (void**)(&m_debug));
 	m_debug->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
 #endif
@@ -198,14 +314,21 @@ void SandFox::Graphics::Init()
 
 	// --- Bind render target
 
-	if (c_usePPFX)
-	{
-		//EXC_COMINFO(m_context->OMSetRenderTargets(1u, pOffscreenRTV/*m_backBufferRTV*/.GetAddressOf(), g_dsv.Get()));
-	}
-	else
-	{
-		EXC_COMINFO(m_context->OMSetRenderTargets(1u, m_backBufferRTV.GetAddressOf(), m_depthStencilView.Get()));
-	}
+	//if (m_technique == GraphicsTechniqueImmediate)
+	//{
+	//	if (c_usePPFX)
+	//	{
+	//		//EXC_COMINFO(m_context->OMSetRenderTargets(1u, pOffscreenRTV/*m_backBufferRTV*/.GetAddressOf(), g_dsv.Get()));
+	//	}
+	//	else
+	//	{
+	//		EXC_COMINFO(m_context->OMSetRenderTargets(1u, m_backBuffers[0].GetRenderTarget().GetAddressOf(), m_depthStencilView.Get()));
+	//	}
+	//}
+	//else
+	//{
+	//	/*EXC_COMINFO(*/m_context->OMSetRenderTargets(1u, m_backBuffers[0].GetRenderTarget().GetAddressOf(), m_depthStencilView.Get()));
+	//}
 
 
 
@@ -250,104 +373,112 @@ void SandFox::Graphics::Init()
 
 	EXC_COMINFO(m_context->RSSetState(rss.Get()));
 
-
-
-
-
-	// --- Imgui
-
-	//ImGui_ImplDX11_Init(m_device.Get(), m_context.Get());
-
-
-
-
-
-	// --- Offscreen render texture
-
-	// Create
-	/*D3D11_TEXTURE2D_DESC ortDesc = {};
-	m_backBuffer->GetDesc(&ortDesc);
-	ortDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
-	ortDesc.Width = window::getW();
-	ortDesc.Height = window::getH();
-	ortDesc.ArraySize = 1u;
-	ortDesc.MipLevels = 1u;
-	ortDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
-	ortDesc.Usage = D3D11_USAGE_DEFAULT;
-	ortDesc.CPUAccessFlags = 0;
-	ortDesc.SampleDesc.Count = sampleCount;
-	ortDesc.SampleDesc.Quality = sampleQuality;
-	ortDesc.MiscFlags = 0u;
-
-	D3D11_RENDER_TARGET_VIEW_DESC rtvDesc = {};
-	rtvDesc.Format = ortDesc.Format;
-	rtvDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DMS;
-	rtvDesc.Texture2D.MipSlice = 0;
-
-	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-	srvDesc.Format = ortDesc.Format;
-	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DMS;
-	srvDesc.Texture2D.MostDetailedMip = 0;
-	srvDesc.Texture2D.MipLevels = 1;
-
-	EXC_COMCHECKINFO(m_device->CreateTexture2D(&ortDesc, nullptr, pOffscreenTexture.GetAddressOf()));
-	EXC_COMCHECKINFO(m_device->CreateShaderResourceView(pOffscreenTexture.Get(), &srvDesc, pOffscreenSRV.ReleaseAndGetAddressOf()));
-	EXC_COMCHECKINFO(m_device->CreateRenderTargetView(pOffscreenTexture.Get(), &rtvDesc, pOffscreenRTV.ReleaseAndGetAddressOf()));
-
-	EXC_COMCHECKINFO(m_device->CreateTexture2D(&ortDesc, nullptr, pOffscreenTexture2.GetAddressOf()));
-	EXC_COMCHECKINFO(m_device->CreateShaderResourceView(pOffscreenTexture2.Get(), &srvDesc, pOffscreenSRV2.ReleaseAndGetAddressOf()));
-	EXC_COMCHECKINFO(m_device->CreateRenderTargetView(pOffscreenTexture2.Get(), &rtvDesc, pOffscreenRTV2.ReleaseAndGetAddressOf()));
-
-	EXC_COMCHECKINFO(m_device->CreateTexture2D(&ortDesc, nullptr, pOffscreenTexture3.GetAddressOf()));
-	EXC_COMCHECKINFO(m_device->CreateShaderResourceView(pOffscreenTexture3.Get(), &srvDesc, pOffscreenSRV3.ReleaseAndGetAddressOf()));
-	EXC_COMCHECKINFO(m_device->CreateRenderTargetView(pOffscreenTexture3.Get(), &rtvDesc, pOffscreenRTV3.ReleaseAndGetAddressOf()));*/
-
-
-
-
-
-	// --- Post Processing Effects
-
-	//pBasicPostProcess = new DirectX::BasicPostProcess(m_device.Get());
-	//pDualPostProcess = new DirectX::DualPostProcess(m_device.Get());
-
-	//pPpfx = new PPFX(L"PSPPFXSample");
 }
 
 void SandFox::Graphics::DeInit()
 {
+	m_initialized = false;
+
+	Shader::UnloadPresets();
+
 	// --- Imgui
 
-	//ImGui_ImplDX11_Shutdown();
+	if (m_imgui)
+	{
+		ImGui_ImplDX11_Shutdown();
+	}
+}
+
+void SandFox::Graphics::InitImgui()
+{
+	//imgui
+
+	m_imgui = false;
+	ImGui_ImplDX11_Init(m_device.Get(), m_context.Get());
+}
+
+void SandFox::Graphics::SetLights(Light* lights, int count)
+{
+	if (count >= c_maxLights)
+	{
+		EXC(string("Cannot load more than [") + std::to_string(c_maxLights) + "] lights. Given: [" + std::to_string(count) + "]");
+	}
+
+	std::memcpy(m_sceneInfo.lights, lights, count * sizeof(Light));
+	m_sceneInfo.lightCount = count;
+}
+
+void SandFox::Graphics::SetLightAmbient(const cs::Color& color, float intensity)
+{
+	m_sceneInfo.ambient = (Vec3)color * intensity;
 }
 
 void SandFox::Graphics::FrameBegin(const cs::Color& color)
 {
-	const float colorArray[] = { color.r, color.g, color.b, 1.0f };
+	UpdateCamera();
 
-	m_context->ClearRenderTargetView(m_backBufferRTV.Get(), colorArray);
 	m_context->ClearDepthStencilView(m_depthStencilView.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0u);
 
-	if (c_usePPFX)
+	((Bind::ConstBuffer<SceneInfo>*)m_sceneInfoBuffer)->Update(m_sceneInfo);
+	m_sceneInfoBuffer->Bind();
+
+	if (m_technique == GraphicsTechniqueImmediate)
 	{
-		//EXC_COMINFO(m_context->ClearRenderTargetView(pOffscreenRTV.Get(), colorArray));
-		//EXC_COMINFO(m_context->ClearRenderTargetView(pOffscreenRTV2.Get(), colorArray));
-		////EXC_COMINFO( m_context->ClearRenderTargetView(pOffscreenRTV3.Get(), colorArray) );
-
-		//ID3D11ShaderResourceView* const pSRV[5] = { NULL, NULL, NULL, NULL, NULL };
-		//m_context->PSSetShaderResources(0, 5, pSRV);
-
-
-		//EXC_COMINFO(m_context->OMSetRenderTargets(1u, pOffscreenRTV.GetAddressOf(), g_dsv.Get()));
-
-		//return;
+		m_backBuffers[0].Clear(color);
+		EXC_COMINFO(m_context->OMSetRenderTargets(1u, m_backBuffers[0].GetRenderTarget().GetAddressOf(), m_depthStencilView.Get()));
 	}
+	else
+	{
+		//m_backBuffers[0].Clear(color);
 
-	EXC_COMINFO(m_context->OMSetRenderTargets(1u, m_backBufferRTV.GetAddressOf(), m_depthStencilView.Get()));
+		m_backBuffers[1].Clear({ 0, 0, 0, 255 });
+		m_backBuffers[2].Clear({ 0, 0, 0, 255 });
+
+		m_backBuffers[3].Clear({ color });
+		m_backBuffers[4].Clear({ 0, 0, 0, 255 });
+		m_backBuffers[5].Clear({ 0, 0, 0, 255 });
+						
+		m_backBuffers[6].Clear({ 0, 0, 0, 255 });
+		m_backBuffers[7].Clear({ 0, 0, 0, 255 });
+
+
+		ID3D11RenderTargetView* rtvs[c_maxRenderTargets];
+		for (int i = 0; i < m_backBufferCount - 1; i++)
+		{
+			rtvs[i] = m_backBuffers[i + 1].GetRenderTarget().Get();
+		}
+
+		EXC_COMINFO(m_context->OMSetRenderTargets(m_backBufferCount - 1, rtvs, m_depthStencilView.Get()));
+	}
 }
 
 void SandFox::Graphics::FrameFinalize()
 {
+	if (m_technique == GraphicsTechniqueDeferred)
+	{
+		// Clear render targets and reassign them as shader resources for the compute shader
+		m_context->OMSetRenderTargets(0, nullptr, nullptr);
+
+		for (int i = 1; i < m_backBufferCount; i++)
+		{
+			EXC_COMINFO(m_context->CSSetShaderResources(i, 1u, m_backBuffers[i].GetResourceView().GetAddressOf()));
+		}
+
+		// Bind the new render target as a UAV
+		m_context->CSSetUnorderedAccessViews(0u, 1u, m_backBufferUAV.GetUAV().GetAddressOf(), nullptr);
+
+		// Bind the client info 
+		m_deferredClientInfo->Bind();
+
+		// Run the lighting pass
+		m_lightingPass.Dispatch(Window::GetW(), Window::GetH());
+
+		// Unbind shader resources before next frame
+		ID3D11ShaderResourceView* empty[c_maxRenderTargets] = { nullptr };
+		m_context->CSSetShaderResources(1, m_backBufferCount - 1, empty);
+		m_context->CSSetSamplers(8, 1, m_deferredSamplerState.GetSamplerState().GetAddressOf());
+	}
+
 	m_swapChain->Present(1u, 0);
 }
 
@@ -367,11 +498,6 @@ float SandFox::Graphics::GetAspectRatio()
 	return m_aspectRatio;
 }
 
-void SandFox::Graphics::SetShaderDirectory(std::wstring shaderDir)
-{
-	m_shaderDir = shaderDir + L'\\';
-}
-
 void SandFox::Graphics::InitCamera(Vec3 pos, Vec3 rot, float fov)
 {
 	m_camera = std::make_shared<Camera>(pos, rot, fov, c_nearClip, c_farClip);
@@ -387,9 +513,10 @@ std::shared_ptr<SandFox::Camera> SandFox::Graphics::GetCamera()
 	return m_camera;
 }
 
-void SandFox::Graphics::UpdateCameraMatrix()
+void SandFox::Graphics::UpdateCamera()
 {
 	m_cameraMatrix = m_camera->GetMatrix();
+	m_sceneInfo.cameraPos = m_camera->position;
 }
 
 const dx::XMMATRIX& SandFox::Graphics::GetCameraMatrix()
@@ -417,3 +544,41 @@ SandFox::Graphics& SandFox::Graphics::Get()
 	return *s_graphics;
 }
 
+SandFox::Graphics::Light SandFox::Graphics::Light::Directional(const cs::Vec3& direction, float intensity, const cs::Color& color)
+{
+	return Light
+	{
+		{ 0, 0, 0 },
+		LightTypeDirectional,
+		direction.Normalized(),
+		0.0f,
+		color,
+		intensity
+	};
+}
+
+SandFox::Graphics::Light SandFox::Graphics::Light::Point(const cs::Vec3& position, float intensity, const cs::Color& color)
+{
+	return Light
+	{
+		position,
+		LightTypePoint,
+		{ 0, 0, 0 },
+		0.0f,
+		color,
+		intensity
+	};
+}
+
+SandFox::Graphics::Light SandFox::Graphics::Light::Spot(const cs::Vec3& position, const cs::Vec3& direction, float spread, float intensity, const cs::Color& color)
+{
+	return Light
+	{
+		position,
+		LightTypeSpot,
+		direction.Normalized(),
+		cosf(spread * 0.5f),
+		color,
+		intensity
+	};
+}

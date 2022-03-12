@@ -3,7 +3,7 @@
 #include "TexturePlane.h"
 #include "Bindables.h"
 
-SandFox::Prim::TexturePlane::TexturePlane(Transform t, wstring textureName)
+SandFox::Prim::TexturePlane::TexturePlane(Transform t, wstring textureName, cs::Point tiling)
 	:
 	Drawable(t)
 {
@@ -21,10 +21,10 @@ SandFox::Prim::TexturePlane::TexturePlane(Transform t, wstring textureName)
 		struct MaterialInfo
 		{
 			Vec3 ambient;
-			PAD1(1);
+			PAD(1, 0);
 
 			Vec3 diffuse;
-			PAD2(1);
+			PAD(1, 1);
 
 			Vec3 specular;
 			float shininess;
@@ -35,6 +35,16 @@ SandFox::Prim::TexturePlane::TexturePlane(Transform t, wstring textureName)
 			{ 1.0f, 1.0f, 1.0f }, 0,
 			{ 1, 1, 1 },
 			64
+		};
+
+		struct TextureInfo
+		{
+			cs::Vec2 uvScale;
+			PAD(8, 0);
+		}
+		textureInfo =
+		{
+			{ (float)tiling.x, (float)tiling.y }
 		};
 
 		D3D11_INPUT_ELEMENT_DESC inputElements[] =
@@ -65,13 +75,14 @@ SandFox::Prim::TexturePlane::TexturePlane(Transform t, wstring textureName)
 
 		// Light data blablabla.
 
-		AddStaticBind(new SandFox::Bind::SamplerState(5u, D3D11_FILTER_MIN_MAG_MIP_POINT));
+		AddStaticBind(new SandFox::Bind::SamplerState(5u, D3D11_FILTER_MIN_MAG_MIP_POINT, D3D11_TEXTURE_ADDRESS_WRAP));
 		AddStaticBind(new SandFox::Bind::TextureBindable(textureName, 4u));
 
 		AddStaticBind(new SandFox::Bind::VertexBuffer(vertices, 4));
 		AddStaticIndexBuffer(new SandFox::Bind::IndexBuffer(indices, 6));
 
 		AddStaticBind(new SandFox::Bind::ConstBufferP<MaterialInfo>(materialInfo, 2));
+		AddStaticBind(new SandFox::Bind::ConstBufferP<TextureInfo>(textureInfo, 3));
 	}
 
 	AddBind(new SandFox::Bind::STConstBuffer(*this));

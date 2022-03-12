@@ -17,7 +17,7 @@ namespace SandFox
 			{
 				dx::XMMATRIX world;
 				dx::XMMATRIX projection;
-				PAD(16);
+				PAD(16, 0);
 			};
 
 		public:

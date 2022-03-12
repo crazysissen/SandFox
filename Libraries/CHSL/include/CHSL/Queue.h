@@ -152,7 +152,7 @@ namespace cs
 	{
 		if (index < 0 || index >= m_size)
 		{
-			EXC("Queue index out of bounds.");
+			throw cs::ExceptionGeneral(__FILE__, __FUNCTION__, __LINE__, "Queue index out of bounds.");
 		}
 
 		return m_elements[index];
@@ -163,7 +163,7 @@ namespace cs
 	{
 		if (m_size == 0)
 		{
-			EXC("Cannot reference last member of an empty queue.");
+			throw cs::ExceptionGeneral(__FILE__, __FUNCTION__, __LINE__, "Cannot reference last member of an empty queue.");
 		}
 
 		return m_elements[m_last];
@@ -174,7 +174,7 @@ namespace cs
 	{
 		if (m_size == 0)
 		{
-			EXC("Cannot peek member of an empty queue.");
+			throw cs::ExceptionGeneral(__FILE__, __FUNCTION__, __LINE__, "Cannot peek member of an empty queue.");
 		}
 
 		return m_elements[m_first];
@@ -208,7 +208,7 @@ namespace cs
 	{
 		if (m_size == 0)
 		{
-			EXC("Cannot pop member off empty queue.");
+			throw cs::ExceptionGeneral(__FILE__, __FUNCTION__, __LINE__, "Cannot pop member off empty queue.");
 		}
 
 		m_size--;

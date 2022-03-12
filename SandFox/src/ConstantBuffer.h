@@ -13,9 +13,11 @@ namespace SandFox
 		class ConstBuffer : public IBindable
 		{
 		public:
+			ConstBuffer();
 			ConstBuffer(const T& constants, unsigned int bufferIndex = 0, bool immutable = false);
 			virtual ~ConstBuffer();
 
+			void Load(const T& constants, unsigned int bufferIndex = 0, bool immutable = false);
 			void Update(const T& constants);
 
 		protected:
@@ -27,6 +29,7 @@ namespace SandFox
 		class ConstBufferV : public ConstBuffer<T>
 		{
 		public:
+			ConstBufferV();
 			ConstBufferV(const T& constants, unsigned int bufferIndex = 0, bool immutable = false);
 
 			void Bind() override;
@@ -40,7 +43,22 @@ namespace SandFox
 		class ConstBufferP : public ConstBuffer<T>
 		{
 		public:
+			ConstBufferP();
 			ConstBufferP(const T& constants, unsigned int bufferIndex = 0, bool immutable = false);
+
+			void Bind() override;
+
+		protected:
+			using ConstBuffer<T>::m_constantBuffer;
+			using ConstBuffer<T>::m_index;
+		};
+
+		template<typename T>
+		class ConstBufferC : public ConstBuffer<T>
+		{
+		public:
+			ConstBufferC();
+			ConstBufferC(const T& constants, unsigned int bufferIndex = 0, bool immutable = false);
 
 			void Bind() override;
 
@@ -51,13 +69,37 @@ namespace SandFox
 
 
 
+
+
 		// ---------------------- Definitions
+
+		template<typename T>
+		inline ConstBuffer<T>::ConstBuffer()
+			:
+			m_index(0),
+			m_constantBuffer(nullptr)
+		{
+		}
 
 		template<typename T>
 		inline ConstBuffer<T>::ConstBuffer(const T& constants, unsigned int bufferIndex, bool immutable)
 			:
-			m_index(bufferIndex)
+			m_index(0),
+			m_constantBuffer(nullptr)
 		{
+			Load(constants, bufferIndex, immutable);
+		}
+
+		template<typename T>
+		inline ConstBuffer<T>::~ConstBuffer()
+		{
+		}
+
+		template<typename T>
+		inline void ConstBuffer<T>::Load(const T& constants, unsigned int bufferIndex, bool immutable)
+		{
+			m_index = bufferIndex;
+
 			D3D11_BUFFER_DESC bDesc = {};
 			bDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 			bDesc.Usage = immutable ? D3D11_USAGE_IMMUTABLE : D3D11_USAGE_DYNAMIC;
@@ -73,11 +115,6 @@ namespace SandFox
 		}
 
 		template<typename T>
-		inline ConstBuffer<T>::~ConstBuffer()
-		{
-		}
-
-		template<typename T>
 		inline void ConstBuffer<T>::Update(const T& constants)
 		{
 			D3D11_MAPPED_SUBRESOURCE msr = {};
@@ -87,6 +124,13 @@ namespace SandFox
 			memcpy(msr.pData, &constants, sizeof(constants));
 
 			EXC_COMINFO(Graphics::Get().GetContext()->Unmap(m_constantBuffer.Get(), 0u));
+		}
+
+		template<typename T>
+		inline ConstBufferV<T>::ConstBufferV()
+			:
+			ConstBuffer<T>()
+		{
 		}
 
 		template<typename T>
@@ -103,6 +147,13 @@ namespace SandFox
 		}
 
 		template<typename T>
+		inline ConstBufferP<T>::ConstBufferP()
+			:
+			ConstBuffer<T>()
+		{
+		}
+
+		template<typename T>
 		inline ConstBufferP<T>::ConstBufferP(const T& constants, unsigned int bufferIndex, bool immutable)
 			:
 			ConstBuffer<T>(constants, bufferIndex, immutable)
@@ -115,5 +166,25 @@ namespace SandFox
 			EXC_COMINFO(Graphics::Get().GetContext()->PSSetConstantBuffers(m_index, 1u, m_constantBuffer.GetAddressOf()));
 		}
 
-	}
+		template<typename T>
+		inline ConstBufferC<T>::ConstBufferC()
+			:
+			ConstBuffer<T>()
+		{
+		}
+
+		template<typename T>
+		inline ConstBufferC<T>::ConstBufferC(const T& constants, unsigned int bufferIndex, bool immutable)
+			:
+			ConstBuffer<T>(constants, bufferIndex, immutable)
+		{
+		}
+
+		template<typename T>
+		inline void ConstBufferC<T>::Bind()
+		{
+			EXC_COMINFO(Graphics::Get().GetContext()->CSSetConstantBuffers(m_index, 1u, m_constantBuffer.GetAddressOf()));
+		}
+
+}
 }

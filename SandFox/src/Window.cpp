@@ -31,7 +31,7 @@ SandFox::Window::~Window()
 
 LRESULT WINAPI SandFox::Window::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-	if (s_window->m_externWndProc)
+	if (s_window != nullptr && s_window->m_externWndProc)
 	{
 		if (s_window->m_externWndProc(hWnd, msg, wParam, lParam))
 		{
