@@ -22,7 +22,7 @@ namespace SandFox
 		_Drawable(const _Drawable&) = delete;
 		virtual ~_Drawable();
 
-		void Draw() const;
+		virtual void Draw();
 		void AddBind(IBindable* bindable);
 		void AddIndexBuffer(Bind::IndexBuffer* indexBuffer);
 
@@ -66,11 +66,12 @@ namespace SandFox
 
 		bool StaticInitialization();
 
-	private:
+	protected:
 		using _Drawable::m_index;
 		using _Drawable::m_bindables;
 		using _Drawable::m_indexBuffer;
 
+	private:
 		bool m_staticInit;
 	};
 

@@ -16,7 +16,7 @@ struct VSOut
 };
 
 // Transform info
-cbuffer CBuf
+cbuffer CBuf : register(b0)
 {
 	matrix world;
 	matrix projection;

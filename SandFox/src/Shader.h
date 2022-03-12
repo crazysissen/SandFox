@@ -11,6 +11,7 @@ namespace SandFox
 	{
 		ShaderTypePhong,
 		ShaderTypePhongMapped,
+		ShaderTypeParticleBasic,
 		
 		ShaderTypeCount // <-- Keep last
 	};
@@ -24,6 +25,7 @@ namespace SandFox
 		void LoadVS(const std::wstring& path, ComPtr<ID3DBlob>& blob);
 		void LoadIL(const D3D11_INPUT_ELEMENT_DESC elementDescriptors[], unsigned int elementCount, ComPtr<ID3DBlob>& pBlob);
 		void LoadPT(D3D_PRIMITIVE_TOPOLOGY topology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		void LoadGS(const std::wstring& path, ComPtr<ID3DBlob>& blob);
 
 		void Bind() override;
 
@@ -38,9 +40,11 @@ namespace SandFox
 
 	private:
 		Bind::PixelShader		m_ps;
+		Bind::GeometryShader	m_gs;
 		Bind::VertexShader		m_vs;
 		Bind::InputLayout		m_il;
 		Bind::PrimitiveTopology m_pt;
+
 	};
 
 }

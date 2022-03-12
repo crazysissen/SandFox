@@ -6,7 +6,7 @@ SandFox::Bind::TConstBuffer::TConstBuffer(_Drawable& refParent)
 	:
 	m_refParent(refParent)
 {
-	m_constBuffer = std::make_unique<ConstBufferV<dx::XMMATRIX>>(dx::XMMatrixIdentity());
+	m_constBuffer = std::make_unique<ConstBufferV<dx::XMMATRIX>>(dx::XMMatrixIdentity(), 0u, false);
 }
 
 void SandFox::Bind::TConstBuffer::Bind()

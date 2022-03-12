@@ -36,6 +36,11 @@ void SandFox::Shader::LoadPT(D3D_PRIMITIVE_TOPOLOGY topology)
 	m_pt.Load(topology);
 }
 
+void SandFox::Shader::LoadGS(const std::wstring& path, ComPtr<ID3DBlob>& blob)
+{
+	m_gs.Load(path, blob);
+}
+
 void SandFox::Shader::Bind()
 {
 	m_ps.Bind();
@@ -51,17 +56,25 @@ SandFox::Shader* SandFox::Shader::Get(ShaderType preset)
 
 void SandFox::Shader::LoadPresets(GraphicsTechnique technique)
 {
+	D3D11_INPUT_ELEMENT_DESC iePhong[] =
+	{
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+	};
+
+	D3D11_INPUT_ELEMENT_DESC ieParticle[] =
+	{
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "SIZE", 0, DXGI_FORMAT_R32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+	};
+
+	ComPtr<ID3DBlob> blob;
+
+
+
 	if (technique == GraphicsTechniqueImmediate)
 	{
-		ComPtr<ID3DBlob> blob;
-
-		D3D11_INPUT_ELEMENT_DESC iePhong[] =
-		{
-			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-			{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-			{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
-		};
-
 		s_presets[(int)ShaderTypePhong] = new Shader();
 		s_presets[(int)ShaderTypePhong]->LoadPS(Graphics::Get().ShaderPath(L"PSPhongTextured"), blob);
 		s_presets[(int)ShaderTypePhong]->LoadVS(Graphics::Get().ShaderPath(L"VSStandard"), blob);
@@ -73,18 +86,16 @@ void SandFox::Shader::LoadPresets(GraphicsTechnique technique)
 		s_presets[(int)ShaderTypePhongMapped]->LoadVS(Graphics::Get().ShaderPath(L"VSStandard"), blob);
 		s_presets[(int)ShaderTypePhongMapped]->LoadIL(iePhong, 3, blob);
 		s_presets[(int)ShaderTypePhongMapped]->LoadPT();
+
+		s_presets[(int)ShaderTypeParticleBasic] = new Shader();
+		s_presets[(int)ShaderTypeParticleBasic]->LoadPS(Graphics::Get().ShaderPath(L"P_PSBillboard"), blob);
+		s_presets[(int)ShaderTypeParticleBasic]->LoadGS(Graphics::Get().ShaderPath(L"P_GSBillboard"), blob);
+		s_presets[(int)ShaderTypeParticleBasic]->LoadVS(Graphics::Get().ShaderPath(L"P_VSBillboard"), blob);
+		s_presets[(int)ShaderTypeParticleBasic]->LoadIL(ieParticle, 2, blob);
+		s_presets[(int)ShaderTypeParticleBasic]->LoadPT(D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
 	}
 	else
 	{
-		ComPtr<ID3DBlob> blob;
-
-		D3D11_INPUT_ELEMENT_DESC iePhong[] =
-		{
-			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-			{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-			{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
-		};
-
 		s_presets[(int)ShaderTypePhong] = new Shader();
 		s_presets[(int)ShaderTypePhong]->LoadPS(Graphics::Get().ShaderPath(L"D_PSPhongTextured"), blob);
 		s_presets[(int)ShaderTypePhong]->LoadVS(Graphics::Get().ShaderPath(L"VSStandard"), blob);
@@ -96,6 +107,13 @@ void SandFox::Shader::LoadPresets(GraphicsTechnique technique)
 		s_presets[(int)ShaderTypePhongMapped]->LoadVS(Graphics::Get().ShaderPath(L"VSStandard"), blob);
 		s_presets[(int)ShaderTypePhongMapped]->LoadIL(iePhong, 3, blob);
 		s_presets[(int)ShaderTypePhongMapped]->LoadPT();
+
+		s_presets[(int)ShaderTypeParticleBasic] = new Shader();
+		s_presets[(int)ShaderTypeParticleBasic]->LoadPS(Graphics::Get().ShaderPath(L"D_P_PSBillboard"), blob);
+		s_presets[(int)ShaderTypeParticleBasic]->LoadGS(Graphics::Get().ShaderPath(L"P_GSBillboard"), blob);
+		s_presets[(int)ShaderTypeParticleBasic]->LoadVS(Graphics::Get().ShaderPath(L"P_VSBillboard"), blob);
+		s_presets[(int)ShaderTypeParticleBasic]->LoadIL(ieParticle, 2, blob);
+		s_presets[(int)ShaderTypeParticleBasic]->LoadPT(D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
 	}
 }
 

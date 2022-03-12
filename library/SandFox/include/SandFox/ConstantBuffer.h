@@ -67,6 +67,20 @@ namespace SandFox
 			using ConstBuffer<T>::m_index;
 		};
 
+		template<typename T>
+		class ConstBufferG: public ConstBuffer<T>
+		{
+		public:
+			ConstBufferG();
+			ConstBufferG(const T& constants, unsigned int bufferIndex = 0, bool immutable = false);
+
+			void Bind() override;
+
+		protected:
+			using ConstBuffer<T>::m_constantBuffer;
+			using ConstBuffer<T>::m_index;
+		};
+
 
 
 
@@ -186,5 +200,25 @@ namespace SandFox
 			EXC_COMINFO(Graphics::Get().GetContext()->CSSetConstantBuffers(m_index, 1u, m_constantBuffer.GetAddressOf()));
 		}
 
-}
+		template<typename T>
+		inline ConstBufferG<T>::ConstBufferG()
+			:
+			ConstBuffer<T>()
+		{
+		}
+
+		template<typename T>
+		inline ConstBufferG<T>::ConstBufferG(const T& constants, unsigned int bufferIndex, bool immutable)
+			:
+			ConstBuffer<T>(constants, bufferIndex, immutable)
+		{
+		}
+
+		template<typename T>
+		inline void ConstBufferG<T>::Bind()
+		{
+			EXC_COMINFO(Graphics::Get().GetContext()->GSSetConstantBuffers(m_index, 1u, m_constantBuffer.GetAddressOf()));
+		}
+
+	}
 }

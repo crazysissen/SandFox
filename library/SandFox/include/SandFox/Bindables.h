@@ -11,5 +11,7 @@
 #include "SplitTransformConstantBuffer.h"
 #include "VertexBuffer.h"
 #include "VertexShader.h"
+#include "ComputeShader.h"
+#include "GeometryShader.h"
 
 #include "Shader.h"

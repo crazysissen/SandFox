@@ -103,6 +103,15 @@
     <ClCompile Include="src\imgui_widgets.cpp">
       <Filter>Source\%2a Libraries\Imgui</Filter>
     </ClCompile>
+    <ClCompile Include="src\GeometryShader.cpp">
+      <Filter>Source\%2a Graphics\%2a Bindable\GeometryShader</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Particles.cpp">
+      <Filter>Source\%2a Graphics\%2a Drawable\Particles</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Buffer.cpp">
+      <Filter>Source\%2a Graphics\%2a Bindable\Buffer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Graphics.h">
@@ -218,6 +227,15 @@
     </ClInclude>
     <ClInclude Include="src\imstb_truetype.h">
       <Filter>Source\%2a Libraries\Imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GeometryShader.h">
+      <Filter>Source\%2a Graphics\%2a Bindable\GeometryShader</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Particles.h">
+      <Filter>Source\%2a Graphics\%2a Drawable\Particles</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Buffer.h">
+      <Filter>Source\%2a Graphics\%2a Bindable\Buffer</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -341,6 +359,15 @@
     <Filter Include="Source\%2a Libraries\Imgui">
       <UniqueIdentifier>{ecb817c3-eb98-497c-ab7c-099113bfd82c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\%2a Graphics\%2a Drawable\Particles">
+      <UniqueIdentifier>{49b2e336-3f90-4370-b934-404d540cf04e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\%2a Graphics\%2a Bindable\GeometryShader">
+      <UniqueIdentifier>{5b597d15-766f-409a-b16a-7abcb890359b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\%2a Graphics\%2a Bindable\Buffer">
+      <UniqueIdentifier>{27cd12a9-6ff6-41d6-88d0-cc9bdf15b365}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="Exclude.txt" />
@@ -368,6 +395,21 @@
       <Filter>Shaders</Filter>
     </FxCompile>
     <FxCompile Include="src\Shaders\D_PSPhongTextured.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="src\Shaders\P_GSBillboard.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="src\Shaders\P_CSParticleBasic.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="src\Shaders\P_VSBillboard.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="src\Shaders\P_PSBillboard.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="src\Shaders\D_P_PSBillboard.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
   </ItemGroup>
