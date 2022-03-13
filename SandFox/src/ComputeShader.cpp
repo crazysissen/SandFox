@@ -34,4 +34,5 @@ void SandFox::ComputeShader::Dispatch(unsigned int x, unsigned int y, unsigned i
 {
 	Graphics::Get().GetContext()->CSSetShader(m_computeShader.Get(), nullptr, 0u);
 	Graphics::Get().GetContext()->Dispatch(x, y, z);
+	Graphics::Get().GetContext()->CSSetShader(nullptr, nullptr, 0u);
 }

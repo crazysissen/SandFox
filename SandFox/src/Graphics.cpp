@@ -419,7 +419,7 @@ void SandFox::Graphics::FrameBegin(const cs::Color& color)
 
 	m_context->ClearDepthStencilView(m_depthStencilView.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0u);
 
-	((Bind::ConstBuffer<SceneInfo>*)m_sceneInfoBuffer)->Update(m_sceneInfo);
+	((Bind::ConstBuffer<SceneInfo>*)m_sceneInfoBuffer)->Write(m_sceneInfo);
 	m_sceneInfoBuffer->Bind();
 
 	if (m_technique == GraphicsTechniqueImmediate)

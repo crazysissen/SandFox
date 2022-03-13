@@ -303,7 +303,6 @@ echo Copying complete!</Command>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\GeometryShader.cpp" />
-    <ClCompile Include="src\Particles.cpp" />
     <ClCompile Include="src\ComputeShader.cpp" />
     <ClCompile Include="src\imgui.cpp" />
     <ClCompile Include="src\imgui_demo.cpp" />
@@ -338,7 +337,7 @@ echo Copying complete!</Command>
     <ClCompile Include="src\SamplerState.cpp" />
     <ClCompile Include="src\Buffer.cpp" />
     <ClInclude Include="src\GeometryShader.h" />
-    <ClInclude Include="src\Particles.h" />
+    <ClInclude Include="src\ParticleStream.h" />
     <ClInclude Include="src\ComputeShader.h" />
     <ClInclude Include="src\imconfig.h" />
     <ClInclude Include="src\imgui.h" />

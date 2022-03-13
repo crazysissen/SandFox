@@ -14,7 +14,7 @@ void SandFox::Bind::TConstBuffer::Bind()
 	DirectX::XMMATRIX transformationMatrix = m_refParent.GetTransformationMatrix();
 	DirectX::XMMATRIX viewMatrix = Graphics::Get().GetCameraMatrix();
 
-	m_constBuffer->Update
+	m_constBuffer->Write
 	(
 		dx::XMMatrixTranspose // <- flips matrix cpu-side to make gpu calculations more efficient
 		(

@@ -66,11 +66,12 @@ namespace SandFox
 
 		bool StaticInitialization();
 
-	private:
+	protected:
 		using _Drawable::m_index;
 		using _Drawable::m_bindables;
 		using _Drawable::m_indexBuffer;
 
+	private:
 		bool m_staticInit;
 	};
 

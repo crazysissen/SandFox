@@ -25,7 +25,7 @@ SandFox::_Drawable::~_Drawable()
 	delete(m_bindables);
 }
 
-void SandFox::_Drawable::Draw() const
+void SandFox::_Drawable::Draw()
 {
 	int indexCount = BindStatic();
 

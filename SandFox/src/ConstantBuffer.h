@@ -18,7 +18,7 @@ namespace SandFox
 			virtual ~ConstBuffer();
 
 			void Load(const T& constants, unsigned int bufferIndex = 0, bool immutable = false);
-			void Update(const T& constants);
+			void Write(const T& constants);
 
 		protected:
 			ComPtr<ID3D11Buffer> m_constantBuffer;
@@ -129,7 +129,7 @@ namespace SandFox
 		}
 
 		template<typename T>
-		inline void ConstBuffer<T>::Update(const T& constants)
+		inline void ConstBuffer<T>::Write(const T& constants)
 		{
 			D3D11_MAPPED_SUBRESOURCE msr = {};
 
