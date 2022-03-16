@@ -10,6 +10,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
 illum 2
+map_Ka SuzanneAmbientUV.png
 map_Kd SuzanneUV.png
 map_Ks SuzanneSpecularUV.png
 map_Ns SuzanneExponentUV.png

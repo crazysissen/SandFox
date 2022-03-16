@@ -16,8 +16,11 @@ namespace SandFox
 		public:
 			TextureBindable(unsigned int registerIndex = 10u);
 			TextureBindable(const Texture& texture, unsigned int registerIndex = 10u);
-			TextureBindable(std::wstring name, unsigned int registerIndex = 10u);
+			TextureBindable(const std::wstring& name, unsigned int registerIndex = 10u);
 			TextureBindable(const TextureBindable& copy);
+
+			void Load(const Texture& texture);
+			void Load(const std::wstring& name);
 
 			void Bind() override;
 

@@ -51,11 +51,6 @@ namespace SandFox
 	public:
 		using _Drawable::m_transform;
 
-		static int s_typeIndex;
-		static int s_currentTypeIndex;
-		static std::vector<IBindable*>* s_staticBindables;
-		static SandFox::Bind::IndexBuffer* s_staticIndexBuffer;
-
 		Drawable(Transform transform = {});
 		virtual ~Drawable();
 
@@ -67,6 +62,11 @@ namespace SandFox
 		bool StaticInitialization();
 
 	protected:
+		static int s_typeIndex;
+		static int s_currentTypeIndex;
+		static std::vector<IBindable*>* s_staticBindables;
+		static SandFox::Bind::IndexBuffer* s_staticIndexBuffer;
+
 		using _Drawable::m_index;
 		using _Drawable::m_bindables;
 		using _Drawable::m_indexBuffer;

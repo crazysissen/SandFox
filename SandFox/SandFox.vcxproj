@@ -159,6 +159,10 @@ xcopy /y /q /i "$(OutDir)*.dll" "$(SolutionDir)library\SandFox\dll\"
 xcopy /y /q /i /s "$(OutDir)*.cso" "$(SolutionDir)library\SandFox\shaders\"
 echo Copying complete!</Command>
     </PostBuildEvent>
+    <PreBuildEvent>
+      <Command>
+      </Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DebugSafe|Win32'">
     <ClCompile>
@@ -186,6 +190,10 @@ xcopy /y /q /i "$(OutDir)*.dll" "$(SolutionDir)library\SandFox\dll\"
 xcopy /y /q /i /s "$(OutDir)*.cso" "$(SolutionDir)library\SandFox\shaders\"
 echo Copying complete!</Command>
     </PostBuildEvent>
+    <PreBuildEvent>
+      <Command>
+      </Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -216,6 +224,10 @@ xcopy /y /q /i "$(OutDir)*.dll" "$(SolutionDir)library\SandFox\dll\"
 xcopy /y /q /i /s "$(OutDir)*.cso" "$(SolutionDir)library\SandFox\shaders\"
 echo Copying complete!</Command>
     </PostBuildEvent>
+    <PreBuildEvent>
+      <Command>
+      </Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -243,6 +255,10 @@ xcopy /y /q /i "$(OutDir)*.dll" "$(SolutionDir)library\SandFox\dll\"
 xcopy /y /q /i /s "$(OutDir)*.cso" "$(SolutionDir)library\SandFox\shaders\"
 echo Copying complete!</Command>
     </PostBuildEvent>
+    <PreBuildEvent>
+      <Command>
+      </Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DebugSafe|x64'">
     <ClCompile>
@@ -270,6 +286,10 @@ xcopy /y /q /i "$(OutDir)*.dll" "$(SolutionDir)library\SandFox\dll\"
 xcopy /y /q /i /s "$(OutDir)*.cso" "$(SolutionDir)library\SandFox\shaders\"
 echo Copying complete!</Command>
     </PostBuildEvent>
+    <PreBuildEvent>
+      <Command>
+      </Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -300,8 +320,13 @@ xcopy /y /q /i "$(OutDir)*.dll" "$(SolutionDir)library\SandFox\dll\"
 xcopy /y /q /i /s "$(OutDir)*.cso" "$(SolutionDir)library\SandFox\shaders\"
 echo Copying complete!</Command>
     </PostBuildEvent>
+    <PreBuildEvent>
+      <Command>
+      </Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\ParticleStream.cpp" />
     <ClCompile Include="src\GeometryShader.cpp" />
     <ClCompile Include="src\ComputeShader.cpp" />
     <ClCompile Include="src\imgui.cpp" />
@@ -464,6 +489,12 @@ echo Copying complete!</Command>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='DebugSafe|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='DebugSafe|Win32'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='DebugSafe|x64'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
     </FxCompile>
     <FxCompile Include="src\Shaders\P_PSBillboard.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>

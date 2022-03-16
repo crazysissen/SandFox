@@ -1764,7 +1764,7 @@ void ImDrawListSplitter::Merge(ImDrawList* draw_list)
     draw_list->CmdBuffer.resize(draw_list->CmdBuffer.Size + new_cmd_buffer_count);
     draw_list->IdxBuffer.resize(draw_list->IdxBuffer.Size + new_idx_buffer_count);
 
-    // Write commands and indices in order (they are fairly small structures, we don't copy vertices only indices)
+    // Update commands and indices in order (they are fairly small structures, we don't copy vertices only indices)
     ImDrawCmd* cmd_write = draw_list->CmdBuffer.Data + draw_list->CmdBuffer.Size - new_cmd_buffer_count;
     ImDrawIdx* idx_write = draw_list->IdxBuffer.Data + draw_list->IdxBuffer.Size - new_idx_buffer_count;
     for (int i = 1; i < _Count; i++)
@@ -2722,7 +2722,7 @@ static void ImFontAtlasBuildRenderLinesTexData(ImFontAtlas* atlas)
         unsigned int pad_left = (r->Width - line_width) / 2;
         unsigned int pad_right = r->Width - (pad_left + line_width);
 
-        // Write each slice
+        // Update each slice
         IM_ASSERT(pad_left + line_width + pad_right == r->Width && y < r->Height); // Make sure we're inside the texture bounds before we start writing pixels
         if (atlas->TexPixelsAlpha8 != NULL)
         {

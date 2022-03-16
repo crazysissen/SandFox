@@ -336,7 +336,7 @@ void SandFox::Graphics::Init(std::wstring shaderDir, GraphicsTechnique technique
 
 	// --- Configure viewport
 
-	D3D11_VIEWPORT vp;
+	D3D11_VIEWPORT vp = {};
 	vp.Width = (float)Window::GetW();
 	vp.Height = (float)Window::GetH();
 	vp.MinDepth = 0;
@@ -355,7 +355,7 @@ void SandFox::Graphics::Init(std::wstring shaderDir, GraphicsTechnique technique
 
 	// --- Rasterizer
 
-	D3D11_RASTERIZER_DESC rsd;
+	D3D11_RASTERIZER_DESC rsd = {};
 	rsd.AntialiasedLineEnable = false; // 
 	rsd.CullMode = D3D11_CULL_BACK;
 	rsd.DepthBias = 0;
@@ -372,6 +372,44 @@ void SandFox::Graphics::Init(std::wstring shaderDir, GraphicsTechnique technique
 	EXC_COMCHECKINFO(m_device->CreateRasterizerState(&rsd, &rss));
 
 	EXC_COMINFO(m_context->RSSetState(rss.Get()));
+
+
+
+
+
+	// --- Blend state
+
+	D3D11_RENDER_TARGET_BLEND_DESC rtbd = {};
+	rtbd.BlendEnable = true;
+	rtbd.SrcBlend = D3D11_BLEND_SRC_ALPHA;
+	rtbd.DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+	rtbd.BlendOp = D3D11_BLEND_OP_ADD;
+	rtbd.SrcBlendAlpha = D3D11_BLEND_ONE;
+	rtbd.DestBlendAlpha = D3D11_BLEND_ZERO;
+	rtbd.BlendOpAlpha = D3D11_BLEND_OP_ADD;
+	rtbd.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+
+	D3D11_BLEND_DESC bd = {};
+
+	uint sampleMask = 0xffffffff;
+
+	if (technique == GraphicsTechniqueImmediate)
+	{
+		bd.RenderTarget[0] = rtbd;
+	}
+	else
+	{
+		bd.RenderTarget[2] = rtbd;
+		bd.RenderTarget[3] = rtbd;
+		bd.RenderTarget[4] = rtbd;
+		bd.RenderTarget[5] = rtbd;
+	}
+
+	ComPtr<ID3D11BlendState> bss;
+
+	EXC_COMCHECKINFO(m_device->CreateBlendState(&bd, &bss));
+
+	EXC_COMINFO(m_context->OMSetBlendState(bss.Get(), nullptr, sampleMask));
 
 }
 
@@ -479,7 +517,7 @@ void SandFox::Graphics::FrameFinalize()
 		m_context->CSSetSamplers(8, 1, m_deferredSamplerState.GetSamplerState().GetAddressOf());
 	}
 
-	m_swapChain->Present(1u, 0);
+	EXC_COMCHECKINFO(m_swapChain->Present(1u, 0));
 }
 
 void SandFox::Graphics::PostProcess()

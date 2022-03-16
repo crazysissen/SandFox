@@ -2,7 +2,6 @@
 
 #include "SandFoxCore.h"
 
-#include <queue>
 #include <bitset>
 
 namespace SandFox
@@ -53,6 +52,7 @@ namespace SandFox
 		virtual ~Input();
 
 		void CoreUpdateState();
+
 		void CoreUpdateMousePosition(Point p);
 
 		void CoreQueueKeyboard(PressEvent e);
@@ -73,9 +73,9 @@ namespace SandFox
 		Point m_mp;
 		Point m_mpDiff;
 
-		std::queue<PressEvent> m_keyboardQueue;
-		std::queue<PressEvent> m_mouseQueue;
-		std::queue<wchar_t> m_charQueue;
+		cs::Queue<PressEvent> m_keyboardQueue;
+		cs::Queue<PressEvent> m_mouseQueue;
+		cs::Queue<wchar_t> m_charQueue;
 
 		wchar_t* m_frameChars;
 		int m_frameCharCount;

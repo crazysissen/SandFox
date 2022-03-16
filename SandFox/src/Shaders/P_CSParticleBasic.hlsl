@@ -20,18 +20,19 @@ struct ParticleData
 
 
 
-cbuffer ComputeInfo : register(b0)
+RWStructuredBuffer<Particle> particles : register(u0);
+StructuredBuffer<ParticleData> particleData : register(t1);
+
+cbuffer ComputeInfo : register(b2)
 {
     float deltaTime;
+    float maxLifetime;
 };
 
-cbuffer NoiseInfo : register(b1)
+cbuffer NoiseInfo : register(b3)
 {
     float4 noise[4];
 }
-
-StructuredBuffer<ParticleData> particleData;
-RWStructuredBuffer<Particle> particles;
 
 
 
@@ -48,7 +49,7 @@ void main( uint3 id : SV_DispatchThreadID )
         d.velocity +
         d.acceleration * d.lifetime;
 
-    newVelocity *= pow(d.dampening, d.lifetime);
+    newVelocity *= pow(abs(1.0f - d.dampening), d.lifetime);
 
     Particle p = particles[id.x];
     p.position += newVelocity * deltaTime;

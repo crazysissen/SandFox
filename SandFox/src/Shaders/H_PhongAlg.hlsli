@@ -28,23 +28,25 @@ float3 phong(Light l, float3 viewerPosition, float3 position, float3 normal, flo
     // Scalar by angle of incidence, where 1.0f is straight-on, and <=0.0f is parallell or behind 
     float incidence = dot(normal, towardsLight);
 
+    float3 phongValue = float3(0, 0, 0);
+
     // Return no light for backsides of objects, or parts outside the spread of a spotlight
-    if (incidence < 0.0f || (l.type == 2 && dot(-l.direction, towardsLight) < l.spreadDotLimit))
+    if (!(incidence < 0.0f || (l.type == 2 && dot(-l.direction, towardsLight) < l.spreadDotLimit)))
     {
-        return float3(0, 0, 0);
+        // Direction of reflected light
+        float3 reflection = 2 * normal * incidence - towardsLight;
+
+        // Direction towards viewer
+        float3 towardsViewer = normalize(viewerPosition - position);
+
+        // Scalar indicating how close the reflected light is to hitting the camera
+        float specularBase = dot(reflection, towardsViewer);
+
+        float3 diffuse = mDiffuse * l.color * incidence;
+        float3 specular = max(mSpecular * l.color * pow(specularBase, mExponent), float3(0, 0, 0));
+
+        phongValue =  l.intensity * (diffuse + specular) * distScalar;
     }
 
-    // Direction of reflected light
-    float3 reflection = 2 * normal * incidence - towardsLight; 
-
-    // Direction towards viewer
-    float3 towardsViewer = normalize(viewerPosition - position); 
-
-    // Scalar indicating how close the reflected light is to hitting the camera
-    float specularBase = dot(reflection, towardsViewer);
-
-    float3 diffuse = mDiffuse * l.color * incidence;
-    float3 specular = max(mSpecular * l.color * pow(specularBase, mExponent), float3(0, 0, 0));
-
-    return l.intensity * (diffuse + specular) * distScalar;
+    return phongValue;
 }

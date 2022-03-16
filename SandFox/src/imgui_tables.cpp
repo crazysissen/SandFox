@@ -2764,7 +2764,7 @@ void ImGui::TableSortSpecsBuild(ImGuiTable* table)
         table->IsSortSpecsDirty = false; // Mark as not dirty for us
     }
 
-    // Write output
+    // Update output
     ImGuiTableColumnSortSpecs* sort_specs = (table->SortSpecsCount == 0) ? NULL : (table->SortSpecsCount == 1) ? &table->SortSpecsSingle : table->SortSpecsMulti.Data;
     if (dirty && sort_specs != NULL)
         for (int column_n = 0; column_n < table->ColumnsCount; column_n++)

@@ -19,6 +19,7 @@ namespace SandFox
 		virtual void Resize(int count);
 		virtual void Write(void* data, int size) = 0;
 		virtual void Bind() = 0;
+		virtual void Unbind() = 0;
 
 	protected:
 		int m_bufferIndex;
@@ -41,6 +42,7 @@ namespace SandFox
 		void Resize(int count) override;
 		void Write(void* data, int size) override;
 		void Bind() override;
+		void Unbind() override;
 
 	private:
 		ComPtr<ID3D11Buffer> m_stageBuffer;
@@ -54,11 +56,12 @@ namespace SandFox
 		StructuredBufferSRV(void* data, int count, int structureSize, int bufferIndex);
 
 		void Load(void* data, int count, int structureSize, int bufferIndex);
-		void LoadSRV();
+		void LoadSRV(int count, int structureSize);
 
 		void Resize(int count) override;
 		void Write(void* data, int size) override;
 		void Bind() override;
+		void Unbind() override;
 
 	private:
 		ComPtr<ID3D11ShaderResourceView> m_srv;

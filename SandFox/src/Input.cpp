@@ -48,10 +48,9 @@ void SandFox::Input::CoreUpdateState()
 	m_keyDown.reset();
 	m_keyUp.reset();
 
-	while (!m_keyboardQueue.empty())
+	while (!m_keyboardQueue.Empty())
 	{
-		PressEvent e = m_keyboardQueue.front();
-		m_keyboardQueue.pop();
+		PressEvent e = m_keyboardQueue.Pop();
 
 		switch (e.type)
 		{
@@ -67,10 +66,9 @@ void SandFox::Input::CoreUpdateState()
 		}
 	}
 
-	while (!m_mouseQueue.empty())
+	while (!m_mouseQueue.Empty())
 	{
-		PressEvent e = m_mouseQueue.front();
-		m_mouseQueue.pop();
+		PressEvent e = m_mouseQueue.Pop();
 
 		switch (e.type)
 		{
@@ -86,24 +84,23 @@ void SandFox::Input::CoreUpdateState()
 		}
 	}
 
-	if (m_charQueue.size() > m_frameCharCapacity)
+	if (m_charQueue.Size() > m_frameCharCapacity)
 	{
 		do
 		{
 			m_frameCharCapacity *= 2;
 		} 
-		while (m_charQueue.size() > m_frameCharCapacity);
+		while (m_charQueue.Size() > m_frameCharCapacity);
 
 		delete[] m_frameChars;
 		m_frameChars = new wchar_t[m_frameCharCapacity];
 	}
 
-	m_frameCharCount = (int)m_charQueue.size();
+	m_frameCharCount = (int)m_charQueue.Size();
 
-	for (int i = 0; !m_charQueue.empty(); i++)
+	for (int i = 0; !m_charQueue.Empty(); i++)
 	{
-		wchar_t c = m_charQueue.front();
-		m_charQueue.pop();
+		wchar_t c = m_charQueue.Pop();
 
 		m_frameChars[i] = c;
 	}
@@ -122,17 +119,17 @@ void SandFox::Input::CoreUpdateMousePosition(Point p)
 
 void SandFox::Input::CoreQueueKeyboard(PressEvent e)
 {
-	m_keyboardQueue.push(e);
+	m_keyboardQueue.Push(e);
 }
 
 void SandFox::Input::CoreQueueMouse(PressEvent e)
 {
-	m_mouseQueue.push(e);
+	m_mouseQueue.Push(e);
 }
 
 void SandFox::Input::CoreQueueChar(wchar_t c)
 {
-	m_charQueue.push(c);
+	m_charQueue.Push(c);
 }
 
 bool SandFox::Input::KeyPressed(byte keyCode)

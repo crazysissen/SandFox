@@ -5,20 +5,22 @@
 
 
 
-SandFox::Bind::StructuredBuffer::StructuredBuffer()
+SandFox::StructuredBuffer::StructuredBuffer()
 	:
-	m_buffer(nullptr)
+	m_buffer(nullptr),
+	m_bufferIndex(0)
 {
 }
 
-SandFox::Bind::StructuredBuffer::StructuredBuffer(void* data, int count, int structureSize, int bufferIndex, bool dynamic, D3D11_BIND_FLAG bindFlags)
+SandFox::StructuredBuffer::StructuredBuffer(void* data, int count, int structureSize, int bufferIndex, bool dynamic, D3D11_BIND_FLAG bindFlags)
 	:
-	m_buffer(nullptr)
+	m_buffer(nullptr),
+	m_bufferIndex(0)
 {
 	LoadBuffer(data, count, structureSize, bufferIndex, dynamic, bindFlags);
 }
 
-void SandFox::Bind::StructuredBuffer::LoadBuffer(void* data, int count, int structureSize, int bufferIndex, bool dynamic, D3D11_BIND_FLAG bindFlags)
+void SandFox::StructuredBuffer::LoadBuffer(void* data, int count, int structureSize, int bufferIndex, bool dynamic, D3D11_BIND_FLAG bindFlags)
 {
 	m_bufferIndex = bufferIndex;
 
@@ -26,17 +28,17 @@ void SandFox::Bind::StructuredBuffer::LoadBuffer(void* data, int count, int stru
 	bd.BindFlags = bindFlags;
 	bd.Usage = dynamic ? D3D11_USAGE_DYNAMIC : D3D11_USAGE_DEFAULT;
 	bd.CPUAccessFlags = dynamic ? D3D11_CPU_ACCESS_WRITE : D3D11_CPU_ACCESS_READ;
-	bd.MiscFlags = 0u;
+	bd.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
 	bd.ByteWidth = count * structureSize;
 	bd.StructureByteStride = structureSize;
 
 	D3D11_SUBRESOURCE_DATA srd = {};
 	srd.pSysMem = data;
 
-	EXC_COMCHECKINFO(Graphics::Get().GetDevice()->CreateBuffer(&bd, &srd, &m_buffer));
+	EXC_COMCHECKINFO(Graphics::Get().GetDevice()->CreateBuffer(&bd, (data == nullptr) ? nullptr : &srd, &m_buffer));
 }
 
-void SandFox::Bind::StructuredBuffer::Resize(int count)
+void SandFox::StructuredBuffer::Resize(int count)
 {
 	D3D11_BUFFER_DESC bd = {};
 	m_buffer->GetDesc(&bd);
@@ -61,44 +63,50 @@ void SandFox::Bind::StructuredBuffer::Resize(int count)
 	m_buffer = newBuffer;
 }
 
-ComPtr<ID3D11Buffer> SandFox::Bind::StructuredBuffer::GetBuffer()
+ComPtr<ID3D11Buffer> SandFox::StructuredBuffer::GetBuffer()
 {
 	return m_buffer;
 }
 
 
 
-SandFox::Bind::StructuredBufferUAV::StructuredBufferUAV()
+SandFox::StructuredBufferUAV::StructuredBufferUAV()
 	:
 	StructuredBuffer(),
 	m_uav(nullptr)
 {
 }
 
-SandFox::Bind::StructuredBufferUAV::StructuredBufferUAV(void* data, int count, int structureSize, int bufferIndex)
+SandFox::StructuredBufferUAV::StructuredBufferUAV(void* data, int count, int structureSize, int bufferIndex)
 	:
 	StructuredBuffer(data, count, structureSize, bufferIndex, false, D3D11_BIND_UNORDERED_ACCESS)
 {
 	LoadUAV(count, structureSize);
 }
 
-void SandFox::Bind::StructuredBufferUAV::Bind()
+void SandFox::StructuredBufferUAV::Bind()
 {
 	EXC_COMINFO(Graphics::Get().GetContext()->CSSetUnorderedAccessViews(m_bufferIndex, 1u, m_uav.GetAddressOf(), nullptr));
 }
 
-void SandFox::Bind::StructuredBufferUAV::Load(void* data, int count, int structureSize, int bufferIndex)
+void SandFox::StructuredBufferUAV::Unbind()
+{
+	ID3D11UnorderedAccessView* nullArray[] = { nullptr };
+	EXC_COMINFO(Graphics::Get().GetContext()->CSSetUnorderedAccessViews(m_bufferIndex, 1u, nullArray, nullptr));
+}
+
+void SandFox::StructuredBufferUAV::Load(void* data, int count, int structureSize, int bufferIndex)
 {
 	StructuredBuffer::LoadBuffer(data, count, structureSize, bufferIndex, false, D3D11_BIND_UNORDERED_ACCESS);
 	LoadUAV(count, structureSize);
 }
 
-void SandFox::Bind::StructuredBufferUAV::LoadUAV(int count, int structureSize)
+void SandFox::StructuredBufferUAV::LoadUAV(int count, int structureSize)
 {
 	D3D11_UNORDERED_ACCESS_VIEW_DESC desc = {};
 	desc.Format = DXGI_FORMAT_UNKNOWN;
 	desc.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;
-	desc.Buffer = { 0, (uint)count, 0 };
+	desc.Buffer = { 0, (uint)count, 0 }; 
 
 	EXC_COMCHECKINFO(Graphics::Get().GetDevice()->CreateUnorderedAccessView(GetBuffer().Get(), &desc, &m_uav));
 
@@ -110,13 +118,10 @@ void SandFox::Bind::StructuredBufferUAV::LoadUAV(int count, int structureSize)
 	bd.ByteWidth = count * structureSize;
 	bd.StructureByteStride = structureSize;
 
-	D3D11_SUBRESOURCE_DATA srd = {};
-	srd.pSysMem = nullptr;
-
-	EXC_COMCHECKINFO(Graphics::Get().GetDevice()->CreateBuffer(&bd, &srd, &m_stageBuffer));
+	EXC_COMCHECKINFO(Graphics::Get().GetDevice()->CreateBuffer(&bd, nullptr, &m_stageBuffer));
 }
 
-void SandFox::Bind::StructuredBufferUAV::Resize(int count)
+void SandFox::StructuredBufferUAV::Resize(int count)
 {
 	StructuredBuffer::Resize(count);
 
@@ -142,7 +147,7 @@ void SandFox::Bind::StructuredBufferUAV::Resize(int count)
 	EXC_COMCHECKINFO(Graphics::Get().GetDevice()->CreateBuffer(&bd, nullptr, &m_stageBuffer));
 }
 
-void SandFox::Bind::StructuredBufferUAV::Read(void* destination, int size)
+void SandFox::StructuredBufferUAV::Read(void* destination, int size)
 {
 	EXC_COMINFO(Graphics::Get().GetContext()->CopyResource(m_stageBuffer.Get(), GetBuffer().Get()));
 
@@ -154,7 +159,7 @@ void SandFox::Bind::StructuredBufferUAV::Read(void* destination, int size)
 	EXC_COMINFO(Graphics::Get().GetContext()->Unmap(m_stageBuffer.Get(), 0));
 }
 
-void SandFox::Bind::StructuredBufferUAV::Write(void* data, int size)
+void SandFox::StructuredBufferUAV::Write(void* data, int size)
 {
 	D3D11_MAPPED_SUBRESOURCE msr = {};
 	EXC_COMCHECKINFO(Graphics::Get().GetContext()->Map(m_stageBuffer.Get(), 0, D3D11_MAP_WRITE, 0, &msr));
@@ -167,41 +172,52 @@ void SandFox::Bind::StructuredBufferUAV::Write(void* data, int size)
 
 
 
-SandFox::Bind::StructuredBufferSRV::StructuredBufferSRV()
+SandFox::StructuredBufferSRV::StructuredBufferSRV()
 	:
 	StructuredBuffer(),
 	m_srv(nullptr)
 {
 }
 
-SandFox::Bind::StructuredBufferSRV::StructuredBufferSRV(void* data, int count, int structureSize, int bufferIndex)
+SandFox::StructuredBufferSRV::StructuredBufferSRV(void* data, int count, int structureSize, int bufferIndex)
 	:
 	StructuredBuffer(data, count, structureSize, bufferIndex, true, D3D11_BIND_SHADER_RESOURCE)
 {
-	LoadSRV();
+	LoadSRV(count, structureSize);
 }
 
-void SandFox::Bind::StructuredBufferSRV::Bind()
+void SandFox::StructuredBufferSRV::Bind()
 {
 	EXC_COMINFO(Graphics::Get().GetContext()->CSSetShaderResources(m_bufferIndex, 1u, m_srv.GetAddressOf()));
 }
 
-void SandFox::Bind::StructuredBufferSRV::Load(void* data, int count, int structureSize, int bufferIndex)
+void SandFox::StructuredBufferSRV::Unbind()
 {
-	StructuredBuffer::LoadBuffer(data, count, structureSize, bufferIndex, true, D3D11_BIND_SHADER_RESOURCE);
-	LoadSRV();
+	ID3D11ShaderResourceView* nullArray[] = { nullptr };
+	EXC_COMINFO(Graphics::Get().GetContext()->CSSetShaderResources(m_bufferIndex, 1u, nullArray));
 }
 
-void SandFox::Bind::StructuredBufferSRV::LoadSRV()
+void SandFox::StructuredBufferSRV::Load(void* data, int count, int structureSize, int bufferIndex)
+{
+	StructuredBuffer::LoadBuffer(data, count, structureSize, bufferIndex, true, D3D11_BIND_SHADER_RESOURCE);
+	LoadSRV(count, structureSize);
+}
+
+void SandFox::StructuredBufferSRV::LoadSRV(int count, int structureSize)
 {
 	D3D11_SHADER_RESOURCE_VIEW_DESC srvd;
 	srvd.Format = DXGI_FORMAT_UNKNOWN;;
 	srvd.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
 
+	srvd.Buffer.FirstElement = 0u;
+	srvd.Buffer.ElementOffset = 0u;
+	srvd.Buffer.NumElements = count;
+	srvd.Buffer.ElementWidth = structureSize;
+
 	EXC_COMCHECKINFO(Graphics::Get().GetDevice()->CreateShaderResourceView(GetBuffer().Get(), &srvd, &m_srv));
 }
 
-void SandFox::Bind::StructuredBufferSRV::Resize(int count)
+void SandFox::StructuredBufferSRV::Resize(int count)
 {
 	StructuredBuffer::Resize(count);
 
@@ -211,11 +227,16 @@ void SandFox::Bind::StructuredBufferSRV::Resize(int count)
 	EXC_COMCHECKINFO(Graphics::Get().GetDevice()->CreateShaderResourceView(GetBuffer().Get(), &srvd, &m_srv));
 }
 
-void SandFox::Bind::StructuredBufferSRV::Write(void* data, int size)
+void SandFox::StructuredBufferSRV::Write(void* data, int size)
 {
+	if (size == 0)
+	{
+		return;
+	}
+
 	D3D11_MAPPED_SUBRESOURCE msr = {};
 
-	EXC_COMINFO(Graphics::Get().GetContext()->Map(GetBuffer().Get(), 0u, D3D11_MAP_WRITE, 0u, &msr));
+	EXC_COMCHECKINFO(Graphics::Get().GetContext()->Map(GetBuffer().Get(), 0u, D3D11_MAP_WRITE_DISCARD, 0u, &msr));
 
 	memcpy(msr.pData, data, size);
 	

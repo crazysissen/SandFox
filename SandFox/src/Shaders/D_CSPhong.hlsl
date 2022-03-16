@@ -39,7 +39,7 @@ cbuffer ClientInfo : register(b11)
 [numthreads(1, 1, 1)]
 void main(uint3 id : SV_DispatchThreadID)
 {
-    float2 uv = float2(id.x * (1.0f / 1279), id.y * (1.0f / 719));
+    float2 uv = float2(id.x * screenInverse.x, id.y * screenInverse.y);
 
     float3 position = tPosition.SampleLevel(samplerState, uv, 0).xyz;
     float3 normal = tNormal.SampleLevel(samplerState, uv, 0).xyz;

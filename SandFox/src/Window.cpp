@@ -93,11 +93,6 @@ LRESULT WINAPI SandFox::Window::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPAR
 		break;
 
 	case WM_MOUSEMOVE:
-		//Point mPos = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
-		//if (input::getMouseLocked() && input::mouseLockedPosition() == mPos)
-		//{
-		//	break;
-		//}
 		Input::Get().CoreUpdateMousePosition({ GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) });
 		break;
 	}

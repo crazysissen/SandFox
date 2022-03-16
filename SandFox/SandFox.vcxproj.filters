@@ -109,6 +109,9 @@
     <ClCompile Include="src\Buffer.cpp">
       <Filter>Source\%2a Graphics\%2a Bindable\Buffer</Filter>
     </ClCompile>
+    <ClCompile Include="src\ParticleStream.cpp">
+      <Filter>Source\%2a Graphics\ParticleStream</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Graphics.h">
@@ -229,7 +232,7 @@
       <Filter>Source\%2a Graphics\%2a Bindable\GeometryShader</Filter>
     </ClInclude>
     <ClInclude Include="src\ParticleStream.h">
-      <Filter>Source\%2a Graphics\%2a Drawable\ParticleStream</Filter>
+      <Filter>Source\%2a Graphics\ParticleStream</Filter>
     </ClInclude>
     <ClInclude Include="src\Buffer.h">
       <Filter>Source\%2a Graphics\%2a Bindable\Buffer</Filter>
@@ -362,7 +365,7 @@
     <Filter Include="Source\%2a Graphics\%2a Bindable\Buffer">
       <UniqueIdentifier>{27cd12a9-6ff6-41d6-88d0-cc9bdf15b365}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\%2a Graphics\%2a Drawable\ParticleStream">
+    <Filter Include="Source\%2a Graphics\ParticleStream">
       <UniqueIdentifier>{49b2e336-3f90-4370-b934-404d540cf04e}</UniqueIdentifier>
     </Filter>
   </ItemGroup>

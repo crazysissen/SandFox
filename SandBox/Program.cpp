@@ -8,6 +8,7 @@
 #include <SandFox\CubeInterpolated.h>
 #include <SandFox\MeshDrawable.h>
 #include <SandFox\Mesh.h>
+#include <SandFox\ParticleStream.h>
 
 #include <SandFox\imgui.h>
 
@@ -62,7 +63,7 @@ Mat3 HandleInput()
 	{
 		look = (cs::Vec2)sx::Input::MousePositionDiff() * c_lookSpeed;
 		c->rotation = cs::Vec3(
-			cs::fclamp(c->rotation.x - look.y, -cs::c_pi, cs::c_pi),
+			cs::fclamp(c->rotation.x - look.y, -cs::c_pi * 0.5f, cs::c_pi * 0.5f),
 			cs::fwrap(c->rotation.y - look.x, -cs::c_pi, cs::c_pi),
 			0
 		);
@@ -82,14 +83,15 @@ void Window()
 }
 
 
-int WINAPI SafeWinMain(
-	_In_		HINSTANCE	hInstance,
-	_In_opt_	HINSTANCE	hPrevInstance,
-	_In_		char* lpCmdLine,
-	_In_		int			nCmdShow)
+int SafeWinMain(
+	HINSTANCE	hInstance,
+	HINSTANCE	hPrevInstance,
+	char*		lpCmdLine,
+	int			nCmdShow)
 {
 	// DXGI debugger
 	cs::dxgiInfo::init();
+
 
 
 
@@ -97,7 +99,6 @@ int WINAPI SafeWinMain(
 
 	sx::Window window;
 	sx::Graphics graphics;
-	sx::Input input;
 	cs::Random r;
 
 	window.InitClass(hInstance);
@@ -106,8 +107,7 @@ int WINAPI SafeWinMain(
 	graphics.Init(L"Assets\\Shaders", sx::GraphicsTechniqueImmediate);
 	graphics.InitCamera({ 0, 0, 0 }, { 0, 0, 0 }, cs::c_pi * 0.5f);
 
-	input.MouseLocked(false);
-	//input.MouseVisible(false);
+	sx::Input::MouseLocked(false);
 
 	window.Show();
 
@@ -119,13 +119,13 @@ int WINAPI SafeWinMain(
 
 	sx::Graphics::Light lights[lightCount] =
 	{
-		sx::Graphics::Light::Directional({ -0.1f, -1.0f, 0.1f }, 1.2f, cs::Color(0xFFFFF0)),
+		sx::Graphics::Light::Directional({ -0.1f, -1.0f, 0.1f }, 0.9f, cs::Color(0xFFFFF0)),
 		//sx::Graphics::Light::Point({ 0, 0, 0 }, 50.0f),
-		sx::Graphics::Light::Spot({ 0, 0, 0 }, { 0, 0, 1 }, 0.5f, 100.0f)
+		sx::Graphics::Light::Spot({ 0, 0, 0 }, { 0, 0, 1 }, 0.6f, 20.0f)
 	};
 	
 	graphics.SetLights(lights, lightCount);
-	graphics.SetLightAmbient(cs::Color(0x060620), 0.8f);
+	graphics.SetLightAmbient(cs::Color(0xFFFFFF), 0.2f);
 
 
 
@@ -156,11 +156,44 @@ int WINAPI SafeWinMain(
 
 
 
+	// Particles
+
+	struct PData
+	{
+		float noiseScalar[4]	= { 0.0f };
+		cs::Vec3 velocity		= { 0, 0, 0 };
+		float dampening			= 0.0f;
+		cs::Vec3 acceleration	= { 0, 0, 0 };
+	};
+
+	struct NoiseInfo
+	{
+		cs::Vec4 noise[4];
+	}
+	noiseInfo;
+
+	cs::NoiseSimplex noise[4 * 3] =
+	{ 
+		cs::NoiseSimplex(r.GetUnsigned(100000)), cs::NoiseSimplex(r.GetUnsigned(100000)), cs::NoiseSimplex(r.GetUnsigned(100000)),
+		cs::NoiseSimplex(r.GetUnsigned(100000)), cs::NoiseSimplex(r.GetUnsigned(100000)), cs::NoiseSimplex(r.GetUnsigned(100000)),
+		cs::NoiseSimplex(r.GetUnsigned(100000)), cs::NoiseSimplex(r.GetUnsigned(100000)), cs::NoiseSimplex(r.GetUnsigned(100000)),
+		cs::NoiseSimplex(r.GetUnsigned(100000)), cs::NoiseSimplex(r.GetUnsigned(100000)), cs::NoiseSimplex(r.GetUnsigned(100000))
+	};
+
+	sx::ParticleStream particles(sx::Transform(), L"Assets/Textures/Particle.png", L"P_CSParticleBasic", sizeof(PData), 1000, 5);
+	sx::Bind::ConstBufferC<NoiseInfo> noiseInfoBuffer(noiseInfo, 3, false);
+
+	float noiseTimer = 0.0f;
+	float particleTimer = 0.0f;
+	float particleTargetTime = 0.1f;
+
+
+
 	// Main message pump and game loop
 
 	cs::Timer timer;
 
-	for (uint i = 0;; i++)
+	for (uint frame = 0;; frame++)
 	{
 		// Exit code optional evaluates to true if it contains a value
 		if (const std::optional<int> exitCode = window.ProcessMessages())
@@ -172,7 +205,7 @@ int WINAPI SafeWinMain(
 		float dTime = timer.Lap();
 
 		// Refresh input
-		input.CoreUpdateState();
+		sx::Input::Get().CoreUpdateState();
 
 		// Update camera and spotlight
 		Mat3 orientation = HandleInput();
@@ -182,9 +215,45 @@ int WINAPI SafeWinMain(
 		lights[1].direction = direction;
 		graphics.SetLights(lights, lightCount);
 
-		
+
+
+		// Update particles
+
+		noiseTimer += dTime;
+		for (int i = 0; i < 4; i++)
+		{
+			noiseInfo.noise[i] = Vec4(
+				noise[i * 3 + 0].Gen1D(noiseTimer),
+				noise[i * 3 + 1].Gen1D(noiseTimer),
+				noise[i * 3 + 2].Gen1D(noiseTimer),
+				0.0f
+			);
+		}
+
+		noiseInfoBuffer.Write(noiseInfo);
+		noiseInfoBuffer.Bind();
+
+		particleTimer += dTime;
+		while (particleTimer > particleTargetTime)
+		{
+			PData pd =
+			{
+				{ r.Getf(0.0f, 1.0f), r.Getf(0.0f, 1.0f), r.Getf(0.0f, 1.0f), r.Getf(0.0f, 1.0f) },
+				{ 0, 1, 0 },
+				0.0f,
+				{ 0, 0, 0 }
+			};
+
+			particles.CreateParticle({ 0, 0, 0 }, 4.0f, &pd);
+			particleTimer -= particleTargetTime;
+		}
+
+		particles.Update(dTime);
+
+
 
 		// Draw the frame
+
 		graphics.FrameBegin(cs::Color(0x301090));
 
 		for (int i = 0; i < 50; i++)
@@ -192,9 +261,12 @@ int WINAPI SafeWinMain(
 		
 		city.Draw();
 		ground.Draw();
+		particles.Draw();
 
 		graphics.FrameFinalize();
 	}
+
+	graphics.DeInit();
 
 	return 0;
 }
@@ -204,12 +276,19 @@ int WINAPI SafeWinMain(
 int WINAPI WinMain(
 	_In_		HINSTANCE	hInstance,
 	_In_opt_	HINSTANCE	hPrevInstance,
-	_In_		char* lpCmdLine,
+	_In_		char*		lpCmdLine,
 	_In_		int			nCmdShow)
 {
 #if _DEBUG
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 #endif
+
+
+
+	// Input system
+
+	sx::Input input;
+
 
 
 

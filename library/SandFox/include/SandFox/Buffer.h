@@ -5,58 +5,66 @@
 
 namespace SandFox
 {
-	namespace Bind
+
+	class FOX_API StructuredBuffer : public IBindable
 	{
+	public:
+		StructuredBuffer();
+		StructuredBuffer(void* data, int count, int structureSize, int bufferIndex, bool dynamic, D3D11_BIND_FLAG bindFlags);
 
-		class StructuredBuffer : public IBindable
-		{
-		public:
-			StructuredBuffer();
-			StructuredBuffer(void* data, int count, int structureSize, int bufferIndex, bool dynamic, D3D11_BIND_FLAG bindFlags);
+		void LoadBuffer(void* data, int count, int structureSize, int bufferIndex, bool dynamic, D3D11_BIND_FLAG bindFlags);
 
-			void Load(void* data, int count, int structureSize, int bufferIndex, bool dynamic, D3D11_BIND_FLAG bindFlags);
+		ComPtr<ID3D11Buffer> GetBuffer();
 
-			void Resize(int size);
-			void Update(void* data, int size);
-			void Read(void* destination, int size);
+		virtual void Resize(int count);
+		virtual void Write(void* data, int size) = 0;
+		virtual void Bind() = 0;
+		virtual void Unbind() = 0;
 
-			ComPtr<ID3D11Buffer> GetBuffer();
+	protected:
+		int m_bufferIndex;
 
-			virtual void Bind() = 0;
-			virtual void LoadView() = 0;
+	private:
+		ComPtr<ID3D11Buffer> m_buffer;
+	};
 
-		protected:
-			int m_bufferIndex;
+	class FOX_API StructuredBufferUAV : public StructuredBuffer
+	{
+	public:
+		StructuredBufferUAV();
+		StructuredBufferUAV(void* data, int count, int structureSize, int bufferIndex);
 
-		private:
-			ComPtr<ID3D11Buffer> m_buffer;
-		};
+		void Load(void* data, int count, int structureSize, int bufferIndex);
+		void LoadUAV(int count, int structureSize);
 
-		class StructuredBufferUAV : public StructuredBuffer
-		{
-		public:
-			StructuredBufferUAV();
-			StructuredBufferUAV(void* data, int count, int structureSize, int bufferIndex, bool dynamic);
-			
-			void Bind() override;
-			void LoadView() override;
+		void Read(void* destination, int size);
 
-		private:
-			ComPtr<ID3D11UnorderedAccessView> m_uav;
-		};
+		void Resize(int count) override;
+		void Write(void* data, int size) override;
+		void Bind() override;
+		void Unbind() override;
 
-		class StructuredBufferSRV : public StructuredBuffer
-		{
-		public:
-			StructuredBufferSRV();
-			StructuredBufferSRV(void* data, int count, int structureSize, int bufferIndex, bool dynamic);
+	private:
+		ComPtr<ID3D11Buffer> m_stageBuffer;
+		ComPtr<ID3D11UnorderedAccessView> m_uav;
+	};
 
-			void Bind() override;
-			void LoadView() override;
+	class FOX_API StructuredBufferSRV : public StructuredBuffer
+	{
+	public:
+		StructuredBufferSRV();
+		StructuredBufferSRV(void* data, int count, int structureSize, int bufferIndex);
 
-		private:
-			ComPtr<ID3D11ShaderResourceView> m_srv;
-		};
+		void Load(void* data, int count, int structureSize, int bufferIndex);
+		void LoadSRV(int count, int structureSize);
 
-	}
+		void Resize(int count) override;
+		void Write(void* data, int size) override;
+		void Bind() override;
+		void Unbind() override;
+
+	private:
+		ComPtr<ID3D11ShaderResourceView> m_srv;
+	};
+
 }

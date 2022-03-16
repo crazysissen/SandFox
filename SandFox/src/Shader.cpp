@@ -47,6 +47,7 @@ void SandFox::Shader::Bind()
 	m_vs.Bind();
 	m_il.Bind();
 	m_pt.Bind();
+	m_gs.Bind();
 }
 
 SandFox::Shader* SandFox::Shader::Get(ShaderType preset)

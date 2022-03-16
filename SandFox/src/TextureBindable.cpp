@@ -10,6 +10,16 @@ SandFox::Bind::TextureBindable::TextureBindable(const TextureBindable& copy)
 {
 }
 
+void SandFox::Bind::TextureBindable::Load(const Texture& texture)
+{
+	m_texture = texture;
+}
+
+void SandFox::Bind::TextureBindable::Load(const std::wstring& name)
+{
+	m_texture.Load(name);
+}
+
 SandFox::Bind::TextureBindable::TextureBindable(const Texture& texture, unsigned int registerIndex)
 	:
 	m_texture(texture),
@@ -25,7 +35,7 @@ SandFox::Bind::TextureBindable::TextureBindable(unsigned int registerIndex)
 	
 }
 
-SandFox::Bind::TextureBindable::TextureBindable(std::wstring name/*std::wstring name*/, unsigned int registerIndex)
+SandFox::Bind::TextureBindable::TextureBindable(const std::wstring& name, unsigned int registerIndex)
 	:
 	m_texture(name),
 	m_registerIndex(registerIndex)
