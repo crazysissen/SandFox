@@ -239,12 +239,12 @@ int SafeWinMain(
 			PData pd =
 			{
 				{ r.Getf(0.0f, 1.0f), r.Getf(0.0f, 1.0f), r.Getf(0.0f, 1.0f), r.Getf(0.0f, 1.0f) },
-				{ 0, 1, 0 },
+				{ r.Getf(-0.2f, 0.2f), r.Getf(0.8f, 1.2f), r.Getf(-0.2f, 0.2f)},
 				0.0f,
 				{ 0, 0, 0 }
 			};
 
-			particles.CreateParticle({ 0, 0, 0 }, 4.0f, &pd);
+			particles.CreateParticle({ 0, 0, 0 }, 2.0f, &pd);
 			particleTimer -= particleTargetTime;
 		}
 
