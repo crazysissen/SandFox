@@ -3,6 +3,8 @@
 
 #include "Window.h"
 
+#include <algorithm>
+
 SandFox::ParticleStream::ParticleStream(const SandFox::Transform& t, const std::wstring& particleTexture, const std::wstring& computeShader, int particleDataSize, int startCapacity, float lifetime)
 	:
 	transform(t),
@@ -14,6 +16,7 @@ SandFox::ParticleStream::ParticleStream(const SandFox::Transform& t, const std::
 	m_vertexBuffer(),
 	m_cameraInfo(),
 	m_scaleInfo(),
+	m_indexBuffer(),
 
 	m_particles(nullptr),
 	m_particleData(nullptr),
@@ -43,6 +46,14 @@ SandFox::ParticleStream::ParticleStream(const SandFox::Transform& t, const std::
 	// Arrays
 	m_particles = new Particle[m_capacity];
 	m_particleData = new byte[m_capacity * m_pDataStructureSize];
+	m_indices = new uindex[m_capacity];
+	for (int i = 0; i < m_capacity; i++)
+	{
+		m_indices[i] = i;
+	}
+
+	// Index buffer
+	m_indexBuffer.Load(m_indices, m_capacity, false);
 
 	// Pixel buffer resources
 	m_cameraInfo.Load({}, 1, false);
@@ -64,19 +75,29 @@ SandFox::ParticleStream::~ParticleStream()
 {
 	delete[] m_particles;
 	delete[] m_particleData;
+	delete[] m_indices;
 }
 
 void SandFox::ParticleStream::Update(float dTime)
 {
 	int start = m_start;
+	int count = m_count;
 
 	// Update lifetimes
-	for (int i = 0; i < m_count; i++)
+	for (int i = 0; i < count; i++)
 	{
 		float& lifetime = (float&)(m_particleData[(i + start) * m_pDataStructureSize + m_pDataSize]);
 
 		lifetime += dTime;
-		//m_start += 1 * (lifetime > m_lifetime);
+
+		if (lifetime > m_lifetime)
+		{
+			m_start++;
+			m_count--;
+
+			//m_start += 1 * (lifetime > m_lifetime);
+			//m_count -= 1 * (lifetime > m_lifetime);
+		}
 	}
 
 	ComputeInfo computeInfo =
@@ -116,21 +137,26 @@ void SandFox::ParticleStream::CreateParticle(const cs::Vec3& position, float siz
 		{
 			Particle* oldParticles = m_particles;
 			byte* oldParticleData = m_particleData;
+			uindex* oldIndices = m_indices;
 
 			int newCapacity = (m_capacity - c_capacityBuffer) * 2 + c_capacityBuffer;
 
 			m_particles = new Particle[newCapacity];
 			m_particleData = new byte[newCapacity * m_pDataStructureSize];
+			m_indices = new uindex[newCapacity];
 
 			std::memcpy(m_particles, oldParticles + m_start, m_count * sizeof(Particle));
 			std::memcpy(m_particleData, oldParticleData + m_start * m_pDataStructureSize, m_count * m_pDataStructureSize);
+			std::memcpy(m_indices, oldIndices + m_start, m_count * sizeof(uindex));
 
 			delete[] oldParticles;
 			delete[] oldParticleData;
+			delete[] oldIndices;
 
 			m_vertexBuffer.Resize(newCapacity);
 			m_particleBuffer.Resize(newCapacity);
 			m_particleDataBuffer.Resize(newCapacity);
+			m_indexBuffer.Resize(newCapacity);
 
 			m_capacity = newCapacity;
 			m_start = 0;
@@ -170,6 +196,11 @@ void SandFox::ParticleStream::SetLifetime(float lifetime)
 
 void SandFox::ParticleStream::Draw()
 {
+	if (m_count == 0)
+	{
+		return;
+	}
+
 	DirectX::XMMATRIX transformationMatrix = transform.GetMatrix();
 	DirectX::XMMATRIX viewMatrix = Graphics::Get().GetCameraMatrix();
 	DirectX::XMMATRIX matrix = dx::XMMatrixTranspose // <- flips matrix cpu-side to make gpu calculations more efficient
@@ -188,7 +219,7 @@ void SandFox::ParticleStream::Draw()
 	{
 		{ averageScreen / Window::GetW(), averageScreen / Window::GetH() }
 	};
-	m_vertexBuffer.Update((void*)m_particles, m_count);
+	m_vertexBuffer.Update((void*)(m_particles + m_start), m_count);
 	m_transformConstantBuffer.Write(matrix);
 	m_cameraInfo.Write(cameraInfo);
 	m_scaleInfo.Write(scaleInfo);
@@ -201,8 +232,26 @@ void SandFox::ParticleStream::Draw()
 	m_cameraInfo.Bind();
 	m_scaleInfo.Bind();
 
-	if (m_count > 0)
+	for (int i = 0; i < m_count; i++)
 	{
-		/*EXC_COMINFO*/(Graphics::Get().GetContext()->Draw(m_count, m_start));
+		m_indices[i] = i;
 	}
+
+	Vec3 cv = Graphics::Get().GetCamera()->position;
+
+	auto predicate = [&](const uindex& a, const uindex& b) -> bool
+	{
+		Vec3 av = m_particles[a + m_start].position - cv;
+		Vec3 bv = m_particles[b + m_start].position - cv;
+
+		return (av.x * av.x + av.y * av.y + av.z * av.z) > (bv.x * bv.x + bv.y * bv.y + bv.z * bv.z);
+	};
+
+	std::sort(m_indices, m_indices + m_count, predicate);
+
+	m_indexBuffer.Update(m_indices, m_count);
+	m_indexBuffer.Bind();
+
+	Graphics::Get().GetContext()->DrawIndexed(m_count, 0u, 0u);
+	//EXC_COMINFO(Graphics::Get().GetContext()->Draw(m_count, m_start));
 }

@@ -44,7 +44,6 @@
 namespace SandFox
 {
 
-
 	enum GraphicsTechnique
 	{
 		GraphicsTechniqueImmediate,

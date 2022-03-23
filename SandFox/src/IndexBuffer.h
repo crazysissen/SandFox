@@ -3,10 +3,10 @@
 #include "SandFoxCore.h"
 #include "IBindable.h"
 
-// Uses short indices, 0 -> 65 536
+// Previously uses short indices, 0 -> 65 536
 #ifndef uindex
 #define uindex unsigned int
-#define uindex_format DXGI_FORMAT_R32_UINT
+#define UINDEX_FORMAT DXGI_FORMAT_R32_UINT
 #endif
 
 namespace SandFox
@@ -17,8 +17,13 @@ namespace SandFox
 		class FOX_API IndexBuffer : public IBindable
 		{
 		public:
+			IndexBuffer();
 			IndexBuffer(const uindex indices[], unsigned int indexCount, bool immutable = true);
 			virtual ~IndexBuffer();
+
+			void Load(const uindex indices[], unsigned int indexCount, bool immutable = true);
+			void Resize(unsigned int count);
+			void Update(const uindex indices[], unsigned int indexCount);
 
 			void Bind() override;
 

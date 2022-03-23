@@ -49,7 +49,6 @@ namespace SandFox
 			cs::Vec3 position;
 			float size;
 		};
-			
 
 	public:
 		ParticleStream(const Transform& t, const std::wstring& particleTexture, const std::wstring& computeShader, int particleDataSize, int startCapacity, float lifetime);
@@ -93,9 +92,11 @@ namespace SandFox
 		Bind::ConstBufferV<dx::XMMATRIX> m_transformConstantBuffer;
 		Bind::ConstBufferV<CameraInfo> m_cameraInfo;
 		Bind::ConstBufferG<ScaleInfo> m_scaleInfo;
+		Bind::IndexBuffer m_indexBuffer;
 
 		Particle* m_particles;
 		byte* m_particleData;
+		uindex* m_indices;
 		int m_capacity;
 		int m_count;
 		int m_start;

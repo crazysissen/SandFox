@@ -37,6 +37,8 @@ SandFox::Input::~Input()
 	delete[] m_frameChars;
 
 	s_input = nullptr;
+
+	ShowCursor(true);
 }
 
 void SandFox::Input::CoreUpdateState()

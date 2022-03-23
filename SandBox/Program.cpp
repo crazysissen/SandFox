@@ -77,11 +77,6 @@ Mat3 HandleInput()
 	return turn * Mat::rotation3X(-c->rotation.x);
 }
 
-void Window()
-{
-
-}
-
 
 int SafeWinMain(
 	HINSTANCE	hInstance,
@@ -152,7 +147,7 @@ int SafeWinMain(
 	cityMesh.Load(L"Assets/Models/Hut.obj");
 	sx::Prim::MeshDrawable city(sx::Transform({ 0, -20, 0 }), cityMesh);
 
-	sx::Prim::TexturePlane ground(sx::Transform({ 0, -20, 0 }, { cs::c_pi * 0.5f, 0, 0 }, { 100, 100, 100 }), L"Assets/Textures/GrassTileable.jpg", { 10, 10 });
+	sx::Prim::TexturePlane ground(sx::Transform({ 0, -20, 0 }, { cs::c_pi * 0.5f, 0, 0 }, { 100, 100, 100 }), L"Assets/Textures/Stone.jpg", { 30, 30 });
 
 
 
@@ -180,12 +175,12 @@ int SafeWinMain(
 		cs::NoiseSimplex(r.GetUnsigned(100000)), cs::NoiseSimplex(r.GetUnsigned(100000)), cs::NoiseSimplex(r.GetUnsigned(100000))
 	};
 
-	sx::ParticleStream particles(sx::Transform(), L"Assets/Textures/Particle.png", L"P_CSParticleBasic", sizeof(PData), 1000, 5);
+	sx::ParticleStream particles(sx::Transform(), L"Assets/Textures/ParticleSofter.png", L"P_CSParticleBasic", sizeof(PData), 4, 8.0f);
 	sx::Bind::ConstBufferC<NoiseInfo> noiseInfoBuffer(noiseInfo, 3, false);
 
 	float noiseTimer = 0.0f;
 	float particleTimer = 0.0f;
-	float particleTargetTime = 0.1f;
+	float particleTargetTime = 0.005f;
 
 
 
@@ -195,6 +190,7 @@ int SafeWinMain(
 
 	for (uint frame = 0;; frame++)
 	{
+#pragma region Core stuff
 		// Exit code optional evaluates to true if it contains a value
 		if (const std::optional<int> exitCode = window.ProcessMessages())
 		{
@@ -206,7 +202,9 @@ int SafeWinMain(
 
 		// Refresh input
 		sx::Input::Get().CoreUpdateState();
+#pragma endregion
 
+#pragma region Input and camera
 		// Update camera and spotlight
 		Mat3 orientation = HandleInput();
 		Vec3 direction = orientation * Vec3(0, 0, 1);
@@ -214,9 +212,9 @@ int SafeWinMain(
 		lights[1].position = graphics.GetCamera()->position;
 		lights[1].direction = direction;
 		graphics.SetLights(lights, lightCount);
+#pragma endregion
 
-
-
+#pragma 
 		// Update particles
 
 		noiseTimer += dTime;
@@ -239,12 +237,12 @@ int SafeWinMain(
 			PData pd =
 			{
 				{ r.Getf(0.0f, 1.0f), r.Getf(0.0f, 1.0f), r.Getf(0.0f, 1.0f), r.Getf(0.0f, 1.0f) },
-				{ r.Getf(-0.2f, 0.2f), r.Getf(0.8f, 1.2f), r.Getf(-0.2f, 0.2f)},
-				0.0f,
-				{ 0, 0, 0 }
+				{ r.Getf(3.0f, 4.0f), r.Getf(-2.0f, 2.0f), r.Getf(-2.0f, 2.0f)},
+				0.2f,
+				{ 0, -3, 0 }
 			};
 
-			particles.CreateParticle({ 0, 0, 0 }, 2.0f, &pd);
+			particles.CreateParticle({ 0, 0, 0 }, r.Getf(1.2f, 1.8f), & pd);
 			particleTimer -= particleTargetTime;
 		}
 
@@ -300,14 +298,17 @@ int WINAPI WinMain(
 	}
 	catch (const cs::Exception& e)
 	{
+		input.MouseVisible(true);
 		MessageBoxA(nullptr, e.what(), e.GetType(), MB_OK | MB_ICONERROR);
 	}
 	catch (const std::exception& e)
 	{
+		input.MouseVisible(true);
 		MessageBoxA(nullptr, e.what(), "Standard Exception", MB_OK | MB_ICONERROR);
 	}
 	catch (...)
 	{
+		input.MouseVisible(true);
 		MessageBoxA(nullptr, "No details", "Unknown Exception", MB_OK | MB_ICONERROR);
 	}
 

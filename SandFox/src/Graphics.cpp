@@ -419,7 +419,9 @@ void SandFox::Graphics::DeInit()
 
 	Shader::UnloadPresets();
 
-	// --- Imgui
+
+
+	// Imgui
 
 	if (m_imgui)
 	{
@@ -429,9 +431,9 @@ void SandFox::Graphics::DeInit()
 
 void SandFox::Graphics::InitImgui()
 {
-	//imgui
+	// Imgui
 
-	m_imgui = false;
+	m_imgui = true;
 	ImGui_ImplDX11_Init(m_device.Get(), m_context.Get());
 }
 
@@ -467,8 +469,6 @@ void SandFox::Graphics::FrameBegin(const cs::Color& color)
 	}
 	else
 	{
-		//m_backBuffers[0].Clear(color);
-
 		m_backBuffers[1].Clear({ 0, 0, 0, 255 });
 		m_backBuffers[2].Clear({ 0, 0, 0, 255 });
 

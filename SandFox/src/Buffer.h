@@ -23,6 +23,7 @@ namespace SandFox
 
 	protected:
 		int m_bufferIndex;
+		int m_stride;
 
 	private:
 		ComPtr<ID3D11Buffer> m_buffer;

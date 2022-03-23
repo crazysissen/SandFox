@@ -20,7 +20,7 @@ void SandFox::Bind::VertexBuffer::Resize(unsigned int vertexCount)
 	m_vertexBuffer->GetDesc(&bd);
 
 	uint originalSize = bd.ByteWidth;
-	uint newSize = vertexCount * bd.StructureByteStride;
+	uint newSize = vertexCount * m_stride;
 	uint copySize = originalSize < newSize ? originalSize : newSize;
 
 	D3D11_BOX sourceBox = { 0, 0, 0, copySize, 1u, 1u };

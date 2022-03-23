@@ -23,6 +23,7 @@ SandFox::StructuredBuffer::StructuredBuffer(void* data, int count, int structure
 void SandFox::StructuredBuffer::LoadBuffer(void* data, int count, int structureSize, int bufferIndex, bool dynamic, D3D11_BIND_FLAG bindFlags)
 {
 	m_bufferIndex = bufferIndex;
+	m_stride = structureSize;
 
 	D3D11_BUFFER_DESC bd = {};
 	bd.BindFlags = bindFlags;
@@ -44,7 +45,7 @@ void SandFox::StructuredBuffer::Resize(int count)
 	m_buffer->GetDesc(&bd);
 
 	uint originalSize = bd.ByteWidth;
-	uint newSize = count * bd.StructureByteStride;
+	uint newSize = count * m_stride;
 	uint copySize = originalSize < newSize ? originalSize : newSize;
 
 	D3D11_BOX sourceBox = { 0, 0, 0, copySize, 1u, 1u };
@@ -141,7 +142,7 @@ void SandFox::StructuredBufferUAV::Resize(int count)
 	D3D11_BUFFER_DESC bd = {};
 	m_stageBuffer->GetDesc(&bd);
 
-	uint newSize = count * bd.StructureByteStride;
+	uint newSize = count * m_stride;
 	bd.ByteWidth = newSize;
 
 	EXC_COMCHECKINFO(Graphics::Get().GetDevice()->CreateBuffer(&bd, nullptr, &m_stageBuffer));
@@ -205,14 +206,12 @@ void SandFox::StructuredBufferSRV::Load(void* data, int count, int structureSize
 
 void SandFox::StructuredBufferSRV::LoadSRV(int count, int structureSize)
 {
-	D3D11_SHADER_RESOURCE_VIEW_DESC srvd;
+	D3D11_SHADER_RESOURCE_VIEW_DESC srvd = {};
 	srvd.Format = DXGI_FORMAT_UNKNOWN;;
 	srvd.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
 
 	srvd.Buffer.FirstElement = 0u;
-	srvd.Buffer.ElementOffset = 0u;
 	srvd.Buffer.NumElements = count;
-	srvd.Buffer.ElementWidth = structureSize;
 
 	EXC_COMCHECKINFO(Graphics::Get().GetDevice()->CreateShaderResourceView(GetBuffer().Get(), &srvd, &m_srv));
 }
@@ -223,6 +222,9 @@ void SandFox::StructuredBufferSRV::Resize(int count)
 
 	D3D11_SHADER_RESOURCE_VIEW_DESC srvd;
 	m_srv->GetDesc(&srvd);
+
+	srvd.Buffer.FirstElement = 0u;
+	srvd.Buffer.NumElements = count;
 
 	EXC_COMCHECKINFO(Graphics::Get().GetDevice()->CreateShaderResourceView(GetBuffer().Get(), &srvd, &m_srv));
 }
