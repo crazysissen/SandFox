@@ -71,7 +71,7 @@
       <Filter>Source\%2a Graphics\%2a Bindable\VertexShader</Filter>
     </ClCompile>
     <ClCompile Include="src\Mesh.cpp">
-      <Filter>Source\%2a Data Structures\Model</Filter>
+      <Filter>Source\%2a Data Structures\Mesh</Filter>
     </ClCompile>
     <ClCompile Include="src\MeshDrawable.cpp">
       <Filter>Source\%2a Graphics\%2a Drawable\Mesh</Filter>
@@ -193,7 +193,7 @@
       <Filter>Source\%2a Core\SandFox</Filter>
     </ClInclude>
     <ClInclude Include="src\Mesh.h">
-      <Filter>Source\%2a Data Structures\Model</Filter>
+      <Filter>Source\%2a Data Structures\Mesh</Filter>
     </ClInclude>
     <ClInclude Include="src\MeshDrawable.h">
       <Filter>Source\%2a Graphics\%2a Drawable\Mesh</Filter>
@@ -284,9 +284,6 @@
     <Filter Include="Source\%2a Data Structures\Texture">
       <UniqueIdentifier>{9963fae5-a128-4db1-b977-72798bd3b3cd}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\%2a Data Structures\Model">
-      <UniqueIdentifier>{6c7e197c-a240-4fef-b7fa-b543f7d014e0}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source\%2a Graphics">
       <UniqueIdentifier>{ae8e74a5-a4bd-4dd7-b0a1-34342768272a}</UniqueIdentifier>
     </Filter>
@@ -367,6 +364,9 @@
     </Filter>
     <Filter Include="Source\%2a Graphics\ParticleStream">
       <UniqueIdentifier>{49b2e336-3f90-4370-b934-404d540cf04e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\%2a Data Structures\Mesh">
+      <UniqueIdentifier>{6c7e197c-a240-4fef-b7fa-b543f7d014e0}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

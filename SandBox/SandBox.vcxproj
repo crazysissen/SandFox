@@ -272,6 +272,11 @@ xcopy /y /q /s /i "$(ProjectDir)Assets\" "$(OutDir)Assets\"</Command>
     <Image Include="Assets\Textures\Square2.jpg" />
     <Image Include="Assets\Textures\Square3.png" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SandFox\SandFox.vcxproj">
+      <Project>{3a3d4b09-29a6-4eab-b7e5-8b4c161e3d97}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

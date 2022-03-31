@@ -154,7 +154,7 @@ void SandFox::Graphics::Init(std::wstring shaderDir, GraphicsTechnique technique
 
 
 		m_backBufferCount = 1;
-		m_backBuffers = new RenderTexture();
+		m_backBuffers = new RenderTexture[1];
 		ID3D11Texture2D* backBufferTexture;
 		EXC_COMCHECKINFO(m_swapChain->GetBuffer(0, _uuidof(ID3D11Texture2D), (void**)&backBufferTexture));
 		m_backBuffers[0].Load(backBufferTexture, nullptr, nullptr);
@@ -419,6 +419,10 @@ void SandFox::Graphics::DeInit()
 
 	Shader::UnloadPresets();
 
+	delete[] m_backBuffers;
+
+	delete m_deferredClientInfo;
+	delete m_sceneInfoBuffer;
 
 
 	// Imgui
@@ -518,6 +522,20 @@ void SandFox::Graphics::FrameFinalize()
 	}
 
 	EXC_COMCHECKINFO(m_swapChain->Present(1u, 0));
+}
+
+void SandFox::Graphics::ChangeDepthStencil(bool enable, bool write)
+{
+	D3D11_DEPTH_STENCIL_DESC dssDesc = {};
+	dssDesc.DepthEnable = enable;
+	dssDesc.DepthWriteMask = write ? D3D11_DEPTH_WRITE_MASK_ALL : D3D11_DEPTH_WRITE_MASK_ZERO;
+	dssDesc.DepthFunc = D3D11_COMPARISON_LESS;
+
+	ComPtr<ID3D11DepthStencilState> pDSState;
+	EXC_COMCHECKINFO(m_device->CreateDepthStencilState(&dssDesc, &pDSState));
+
+	// Bind
+	EXC_COMINFO(m_context->OMSetDepthStencilState(pDSState.Get(), 1u));
 }
 
 void SandFox::Graphics::PostProcess()

@@ -21,7 +21,7 @@ SandFox::ComputeShader::ComputeShader(const std::wstring& shaderPath)
 void SandFox::ComputeShader::Load(const std::wstring& shaderPath)
 {
 	ComPtr<ID3DBlob> pBlob;
-	EXC_COMINFO(D3DReadFileToBlob((shaderPath + L".cso").c_str(), &pBlob));
+	EXC_COMCHECKINFO(D3DReadFileToBlob((shaderPath + L".cso").c_str(), &pBlob));
 	EXC_COMCHECKINFO(Graphics::Get().GetDevice()->CreateComputeShader(
 		pBlob->GetBufferPointer(),
 		pBlob->GetBufferSize(),

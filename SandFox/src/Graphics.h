@@ -116,6 +116,8 @@ namespace SandFox
 		void FrameBegin(const cs::Color& color);
 		void FrameFinalize();
 
+		void ChangeDepthStencil(bool enable, bool write);
+
 		void PostProcess();
 
 		float GetAspectRatio();

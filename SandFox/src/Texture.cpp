@@ -54,7 +54,7 @@ void SandFox::Texture::Load(const std::wstring& name, bool immutable, D3D11_BIND
 {
 	// Load texture using DXTK
 
-	ID3D11Resource* resource;
+	ComPtr<ID3D11Resource> resource;
 
 	EXC_COMCHECKINFO(
 		DirectX::CreateWICTextureFromFileEx(
@@ -71,7 +71,7 @@ void SandFox::Texture::Load(const std::wstring& name, bool immutable, D3D11_BIND
 			nullptr)
 	);
 
-	resource->QueryInterface(IID_ID3D11Texture2D, (void**)&m_texture);
+	resource->QueryInterface(IID_ID3D11Texture2D, (void**)m_texture.GetAddressOf());
 
 	// Create shader resource view
 

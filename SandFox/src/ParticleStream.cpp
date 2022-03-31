@@ -160,6 +160,13 @@ void SandFox::ParticleStream::CreateParticle(const cs::Vec3& position, float siz
 
 			m_capacity = newCapacity;
 			m_start = 0;
+
+			for (int i = 0; i < m_count; i++)
+			{
+				m_indices[i] = i;
+			}
+
+			m_indexBuffer.Update(m_indices, m_count);
 		}
 
 		// Move buffer left 
@@ -232,26 +239,23 @@ void SandFox::ParticleStream::Draw()
 	m_cameraInfo.Bind();
 	m_scaleInfo.Bind();
 
-	for (int i = 0; i < m_count; i++)
-	{
-		m_indices[i] = i;
-	}
-
-	Vec3 cv = Graphics::Get().GetCamera()->position;
-
-	auto predicate = [&](const uindex& a, const uindex& b) -> bool
-	{
-		Vec3 av = m_particles[a + m_start].position - cv;
-		Vec3 bv = m_particles[b + m_start].position - cv;
-
-		return (av.x * av.x + av.y * av.y + av.z * av.z) > (bv.x * bv.x + bv.y * bv.y + bv.z * bv.z);
-	};
-
-	std::sort(m_indices, m_indices + m_count, predicate);
-
-	m_indexBuffer.Update(m_indices, m_count);
 	m_indexBuffer.Bind();
 
 	Graphics::Get().GetContext()->DrawIndexed(m_count, 0u, 0u);
 	//EXC_COMINFO(Graphics::Get().GetContext()->Draw(m_count, m_start));
+
+
+
+		//Vec3 cv = Graphics::Get().GetCamera()->position;
+
+	//auto predicate = [&](const uindex& a, const uindex& b) -> bool
+	//{
+	//	Vec3 av = m_particles[a + m_start].position - cv;
+	//	Vec3 bv = m_particles[b + m_start].position - cv;
+
+	//	return (av.x * av.x + av.y * av.y + av.z * av.z) > (bv.x * bv.x + bv.y * bv.y + bv.z * bv.z);
+	//};
+
+	//std::sort(m_indices, m_indices + m_count, predicate);
+
 }
