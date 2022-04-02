@@ -60,6 +60,11 @@ void SandFox::_Drawable::AddIndexBuffer(SandFox::Bind::IndexBuffer* indexBuffer)
 	AddBind(indexBuffer);
 }
 
+void SandFox::_Drawable::SetShader(Shader* shader)
+{
+	m_shader = shader;
+}
+
 dx::XMMATRIX SandFox::_Drawable::GetTransformationMatrix()
 {
 	return m_transform.GetMatrix();

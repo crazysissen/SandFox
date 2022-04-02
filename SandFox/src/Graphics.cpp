@@ -12,6 +12,7 @@
 #include "Window.h"
 #include "Shader.h"
 #include "ConstantBuffer.h"
+#include "Drawable.h"
 
 
 
@@ -418,6 +419,7 @@ void SandFox::Graphics::DeInit()
 	m_initialized = false;
 
 	Shader::UnloadPresets();
+	_Drawable::ReleaseStatics();
 
 	delete[] m_backBuffers;
 
