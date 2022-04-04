@@ -275,6 +275,8 @@ xcopy /y /q /s /i "$(ProjectDir)Assets\" "$(OutDir)Assets\"</Command>
   <ItemGroup>
     <ProjectReference Include="..\SandFox\SandFox.vcxproj">
       <Project>{3a3d4b09-29a6-4eab-b7e5-8b4c161e3d97}</Project>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+      <Private>false</Private>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -123,129 +123,136 @@ int SafeWinMain(
 			)
 		);
 	}
-//
-//	sx::Mesh cityMesh;
-//	cityMesh.Load(L"Assets/Models/Hut.obj");
-//	sx::Prim::MeshDrawable city(sx::Transform({ 0, -20, 0 }), cityMesh);
-//
-//	sx::Prim::TexturePlane ground(sx::Transform({ 0, -20, 0 }, { cs::c_pi * 0.5f, 0, 0 }, { 100, 100, 100 }), L"Assets/Textures/Stone.jpg", { 30, 30 });
-//
-//
-//
-//	// Particles
-//
-//	struct PData
-//	{
-//		float noiseScalar[4]	= { 0.0f };
-//		cs::Vec3 velocity		= { 0, 0, 0 };
-//		float dampening			= 0.0f;
-//		cs::Vec3 acceleration	= { 0, 0, 0 };
-//	};
-//
-//	struct NoiseInfo
-//	{
-//		cs::Vec4 noise[4];
-//	}
-//	noiseInfo;
-//
-//	cs::NoiseSimplex noise[4 * 3] =
-//	{ 
-//		cs::NoiseSimplex(r.GetUnsigned(100000)), cs::NoiseSimplex(r.GetUnsigned(100000)), cs::NoiseSimplex(r.GetUnsigned(100000)),
-//		cs::NoiseSimplex(r.GetUnsigned(100000)), cs::NoiseSimplex(r.GetUnsigned(100000)), cs::NoiseSimplex(r.GetUnsigned(100000)),
-//		cs::NoiseSimplex(r.GetUnsigned(100000)), cs::NoiseSimplex(r.GetUnsigned(100000)), cs::NoiseSimplex(r.GetUnsigned(100000)),
-//		cs::NoiseSimplex(r.GetUnsigned(100000)), cs::NoiseSimplex(r.GetUnsigned(100000)), cs::NoiseSimplex(r.GetUnsigned(100000))
-//	};
-//
-//	sx::ParticleStream particles(sx::Transform(), L"Assets/Textures/ParticleSofter.png", L"P_CSParticleBasic", sizeof(PData), 4, 5.0f);
-//	sx::Bind::ConstBufferC<NoiseInfo> noiseInfoBuffer(noiseInfo, 3, false);
-//
-//	float noiseTimer = 0.0f;
-//	float particleTimer = 0.0f;
-//	float particleTargetTime = 0.00001f;
-//
-//
-//
-//	// Main message pump and game loop
-//
-//	cs::Timer timer;
-//
-//	for (uint frame = 0;; frame++)
-//	{
-//#pragma region Core stuff
-//		// Exit code optional evaluates to true if it contains a value
-//		if (const std::optional<int> exitCode = window.ProcessMessages())
-//		{
-//			//DeInit();
-//			return *exitCode;
-//		}
-//
-//		float dTime = timer.Lap();
-//
-//		// Refresh input
-//		sx::Input::Get().CoreUpdateState();
-//#pragma endregion
-//
-//#pragma region Input and camera
-//		// Update camera and spotlight
-//		Mat3 orientation = HandleInput();
-//		Vec3 direction = orientation * Vec3(0, 0, 1);
-//
-//		lights[1].position = graphics.GetCamera()->position;
-//		lights[1].direction = direction;
-//		graphics.SetLights(lights, lightCount);
-//#pragma endregion
-//
-//		// Update particles
-//
-//		//noiseTimer += dTime;
-//		//for (int i = 0; i < 4; i++)
-//		//{
-//		//	noiseInfo.noise[i] = Vec4(
-//		//		noise[i * 3 + 0].Gen1D(noiseTimer),
-//		//		noise[i * 3 + 1].Gen1D(noiseTimer),
-//		//		noise[i * 3 + 2].Gen1D(noiseTimer),
-//		//		0.0f
-//		//	);
-//		//}
-//
-//		//noiseInfoBuffer.Write(noiseInfo);
-//		//noiseInfoBuffer.Bind();
-//
-//		//particleTimer += dTime;
-//		//while (particleTimer > particleTargetTime)
-//		//{
-//		//	PData pd =
-//		//	{
-//		//		{ r.Getf(0.0f, 1.0f), r.Getf(0.0f, 1.0f), r.Getf(0.0f, 1.0f), r.Getf(0.0f, 1.0f) },
-//		//		{ r.Getf(12.0f, 14.0f), r.Getf(-4.0f, 4.0f), r.Getf(-4.0f, 4.0f)},
-//		//		0.2f,
-//		//		{ 0, -5, 0 }
-//		//	};
-//
-//		//	particles.CreateParticle({ 0, 0, 0 }, r.Getf(1.2f, 1.8f), & pd);
-//		//	particleTimer -= particleTargetTime;
-//		//}
-//
-//		//particles.Update(dTime);
-//
-//
-//
-//		// Draw the frame
-//
-//		graphics.FrameBegin(cs::Color(0x301090));
-//		//graphics.ChangeDepthStencil(true, true);
-//
-//		for (int i = 0; i < 50; i++)
-//			suzannes[i].Draw();
-//		
-//		city.Draw();
-//		ground.Draw();
-//
-//		//graphics.ChangeDepthStencil(true, false);
-//		//particles.Draw();
-//
-//		graphics.FrameFinalize();
-//	}
+
+	sx::Mesh cityMesh;
+	cityMesh.Load(L"Assets/Models/Hut.obj");
+	sx::Prim::MeshDrawable city(sx::Transform({ 0, -20, 0 }), cityMesh);
+
+	sx::Prim::TexturePlane ground(sx::Transform({ 0, -20, 0 }, { cs::c_pi * 0.5f, 0, 0 }, { 100, 100, 100 }), L"Assets/Textures/Stone.jpg", { 30, 30 });
+
+
+
+	// Particles
+
+	struct PData
+	{
+		float noiseScalar[4]	= { 0.0f };
+		cs::Vec3 velocity		= { 0, 0, 0 };
+		float dampening			= 0.0f;
+		cs::Vec3 acceleration	= { 0, 0, 0 };
+		float size				= 1.0f;				/*PAD(12, 0);*/
+	};
+
+	struct UpdateInfo
+	{
+		cs::Vec4 noise[4];
+		cs::Vec3 cameraPos;		PAD(4, 0);
+	}
+	updateInfo;
+
+	cs::NoiseSimplex noise[4 * 3] =
+	{ 
+		cs::NoiseSimplex(r.GetUnsigned(100000)), cs::NoiseSimplex(r.GetUnsigned(100000)), cs::NoiseSimplex(r.GetUnsigned(100000)),
+		cs::NoiseSimplex(r.GetUnsigned(100000)), cs::NoiseSimplex(r.GetUnsigned(100000)), cs::NoiseSimplex(r.GetUnsigned(100000)),
+		cs::NoiseSimplex(r.GetUnsigned(100000)), cs::NoiseSimplex(r.GetUnsigned(100000)), cs::NoiseSimplex(r.GetUnsigned(100000)),
+		cs::NoiseSimplex(r.GetUnsigned(100000)), cs::NoiseSimplex(r.GetUnsigned(100000)), cs::NoiseSimplex(r.GetUnsigned(100000))
+	};
+
+	sx::ParticleStream particles(sx::Transform(), L"Assets/Textures/ParticleSofter.png", L"P_CSParticleBasic", sizeof(PData), 4, 10.0f);
+	sx::Bind::ConstBufferC<UpdateInfo> noiseInfoBuffer(updateInfo, 3, false);
+
+	float noiseTimer = 0.0f;
+	float particleTimer = 0.0f;
+	float particleTargetTime = 0.00005f;
+
+
+
+	// Main message pump and game loop
+
+	cs::Timer timer;
+	int exitCode = 0;
+
+	for (uint frame = 0;; frame++)
+	{
+#pragma region Core stuff
+		// Exit code optional evaluates to true if it contains a value
+		if (const std::optional<int> optExitCode = window.ProcessMessages())
+		{
+			//DeInit();
+			exitCode = *optExitCode;
+			break;
+		}
+
+		float dTime = timer.Lap();
+
+		// Refresh input
+		sx::Input::Get().CoreUpdateState();
+#pragma endregion
+
+#pragma region Input and camera
+		// Update camera and spotlight
+		Mat3 orientation = HandleInput();
+		Vec3 direction = orientation * Vec3(0, 0, 1);
+
+		lights[1].position = graphics.GetCamera()->position;
+		lights[1].direction = direction;
+		graphics.SetLights(lights, lightCount);
+#pragma endregion
+
+		// Update particles
+
+		noiseTimer += dTime;
+		for (int i = 0; i < 4; i++)
+		{
+			updateInfo.noise[i] = Vec4(
+				noise[i * 3 + 0].Gen1D(noiseTimer),
+				noise[i * 3 + 1].Gen1D(noiseTimer),
+				noise[i * 3 + 2].Gen1D(noiseTimer),
+				0.0f
+			);
+		}
+
+		updateInfo.cameraPos = sx::Graphics::Get().GetCamera()->position;
+
+		noiseInfoBuffer.Write(updateInfo);
+		noiseInfoBuffer.Bind();
+
+		particleTimer += dTime;
+		while (particleTimer > particleTargetTime)
+		{
+			PData pd =
+			{
+				{ r.Getf(-1.0f, 1.0f), r.Getf(-1.0f, 1.0f), r.Getf(-1.0f, 1.0f), r.Getf(-1.0f, 1.0f)},
+				{ r.Getf(-5, 5), r.Getf(2, 4), r.Getf(-5, 5)},
+				0.2f,
+				{ 0, -5, 0 },
+				r.Getf(1.0f, 1.3f)
+			};
+
+			particles.CreateParticle({ r.Getf(-40.0f, 40.0f), 2, r.Getf(-40.0f, 40.0f) }, pd.size, & pd);
+			particleTimer -= particleTargetTime;
+		}
+
+		particles.Update(dTime);
+
+
+
+		// Draw the frame
+
+		graphics.FrameBegin(cs::Color(0x301090));
+		graphics.ChangeDepthStencil(true, true);
+
+		//for (int i = 0; i < 50; i++)
+		//	suzannes[i].Draw();
+		
+		city.Draw();
+		ground.Draw();
+
+		graphics.ChangeDepthStencil(true, false);
+		particles.Draw();
+
+		graphics.FrameFinalize();
+	}
 
 	graphics.DeInit();
 

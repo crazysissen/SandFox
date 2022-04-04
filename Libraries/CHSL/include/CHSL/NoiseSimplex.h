@@ -18,6 +18,7 @@ namespace cs
 		NoiseSimplex();
 		NoiseSimplex(uint seed);
 		NoiseSimplex(byte* permMatrix, bool copy); // Permutation matrix: 512 (0x200) unsigned chars / bytes
+		~NoiseSimplex();
 
 		void PerlinGenMatrix();
 		void PerlinGenMatrix(uint seed);

@@ -1,6 +1,8 @@
 #include "pch.h"
 
 #include "Drawable.h"
+#include "Graphics.h"
+
 
 int SandFox::_Drawable::s_typeIndexCounter = 0;
 std::vector<std::vector<SandFox::IBindable*>*>* SandFox::_Drawable::s_staticBindableVectors = nullptr;
@@ -10,8 +12,7 @@ SandFox::_Drawable::_Drawable(Transform transform)
 	m_bindables(new std::vector<IBindable*>()),
 	m_indexBuffer(nullptr),
 	m_index(0),
-	m_transform(transform),
-	m_empty(false)
+	m_transform(transform)
 {
 }
 
@@ -29,14 +30,12 @@ void SandFox::_Drawable::Draw()
 {
 	int indexCount = BindStatic();
 
-	if (m_empty)
-	{
-		return;
-	}
+	SandFox::Shader* shader = GetShader();
+	shader->Bind();
 
 	if (m_indexBuffer == nullptr && indexCount < 0)
 	{
-		DBOUT("FFS mate don't try to draw a shape without an index buffer.");
+		DBOUT("Tried to draw indexed drawable without index buffer.");
 		return;
 	}
 
@@ -44,6 +43,7 @@ void SandFox::_Drawable::Draw()
 	{
 		b->Bind();
 	}
+
 
 	EXC_COMINFO(Graphics::Get().GetContext()->DrawIndexed(indexCount < 0 ? m_indexBuffer->GetCount() : indexCount, 0u, 0u));
 }

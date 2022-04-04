@@ -161,12 +161,13 @@ void SandFox::ParticleStream::CreateParticle(const cs::Vec3& position, float siz
 			m_capacity = newCapacity;
 			m_start = 0;
 
-			for (int i = 0; i < m_count; i++)
+			for (int i = 0; i < m_capacity; i++)
 			{
 				m_indices[i] = i;
 			}
 
-			m_indexBuffer.Update(m_indices, m_count);
+
+			m_indexBuffer.Update(m_indices, m_capacity);
 		}
 
 		// Move buffer left 

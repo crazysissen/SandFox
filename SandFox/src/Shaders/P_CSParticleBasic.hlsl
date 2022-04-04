@@ -16,6 +16,7 @@ struct ParticleData
     float dampening;
     float3 acceleration;
     float lifetime;
+    float size;
 };
 
 
@@ -29,9 +30,10 @@ cbuffer ComputeInfo : register(b2)
     float maxLifetime;
 };
 
-cbuffer NoiseInfo : register(b3)
+cbuffer UpdateInfo : register(b3)
 {
     float4 noise[4];
+    float3 cameraPosition;
 }
 
 
@@ -50,8 +52,15 @@ void main( uint3 id : SV_DispatchThreadID )
         d.acceleration * d.lifetime;
 
     newVelocity *= pow(abs(1.0f - d.dampening), d.lifetime);
-
+    
     Particle p = particles[id.x];
+    
+    float3 posDiff = p.position - cameraPosition;
+    float lenSq = posDiff.x * posDiff.x + posDiff.y * posDiff.y + posDiff.z * posDiff.z - 4.0f;
+
+    float sizeMod = clamp(lenSq, 0.0f, 1.0f);
+    
+    p.size = d.size * sizeMod;
     p.position += newVelocity * deltaTime;
 
     particles[id.x] = p;

@@ -529,7 +529,7 @@ void SandFox::Graphics::FrameFinalize()
 void SandFox::Graphics::ChangeDepthStencil(bool enable, bool write)
 {
 	D3D11_DEPTH_STENCIL_DESC dssDesc = {};
-	dssDesc.DepthEnable = enable;
+	dssDesc.DepthEnable = enable; 
 	dssDesc.DepthWriteMask = write ? D3D11_DEPTH_WRITE_MASK_ALL : D3D11_DEPTH_WRITE_MASK_ZERO;
 	dssDesc.DepthFunc = D3D11_COMPARISON_LESS;
 

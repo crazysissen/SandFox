@@ -1,8 +1,13 @@
 #pragma once
 
 #include "SandFoxCore.h"
-#include "Graphics.h"
-#include "Bindables.h"
+#include "GraphicsEnums.h"
+
+#include "PrimitiveTopology.h"
+#include "InputLayout.h"
+#include "VertexShader.h"
+#include "GeometryShader.h"
+#include "PixelShader.h"
 
 namespace SandFox
 {
@@ -39,11 +44,11 @@ namespace SandFox
 		static Shader* s_presets[ShaderTypeCount];
 
 	private:
-		Bind::PixelShader		m_ps;
-		Bind::GeometryShader	m_gs;
-		Bind::VertexShader		m_vs;
-		Bind::InputLayout		m_il;
 		Bind::PrimitiveTopology m_pt;
+		Bind::InputLayout		m_il;
+		Bind::VertexShader		m_vs;
+		Bind::GeometryShader	m_gs;
+		Bind::PixelShader		m_ps;
 
 	};
 

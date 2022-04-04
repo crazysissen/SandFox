@@ -68,7 +68,7 @@ SandFox::Prim::TexturePlane::TexturePlane(Transform t, wstring textureName, cs::
 			0, 2, 3
 		};
 
-		AddStaticBind(Shader::Get(ShaderTypePhong));
+		SetStaticShader(Shader::Get(ShaderTypePhong));
 
 		// Light data blablabla.
 

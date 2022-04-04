@@ -1,10 +1,10 @@
 #pragma once
 
 #include "SandFoxCore.h"
-#include "Graphics.h"
 #include "IBindable.h"
 #include "IndexBuffer.h"
 #include "Transform.h"
+#include "Shader.h"
 
 #include <typeinfo>
 #include <vector>
@@ -22,11 +22,17 @@ namespace SandFox
 		_Drawable(const _Drawable&) = delete;
 		virtual ~_Drawable();
 
+		// Main draw function
 		virtual void Draw();
+
+		// Modify bindables
 		void AddBind(IBindable* bindable);
 		void AddIndexBuffer(Bind::IndexBuffer* indexBuffer);
+		void SetShader(Shader* shader = nullptr);
 
+		// Virtual functions for Drawable<> implementation statics
 		virtual unsigned int BindStatic() const = 0;
+		virtual SandFox::Shader* GetShader() const = 0;
 
 		dx::XMMATRIX GetTransformationMatrix();
 
@@ -40,9 +46,9 @@ namespace SandFox
 
 		std::vector<IBindable*>* m_bindables;
 		SandFox::Bind::IndexBuffer* m_indexBuffer;
+		SandFox::Shader* m_shader;
 
 		int m_index;
-		bool m_empty;
 	};
 
 	template<class T>
@@ -55,9 +61,11 @@ namespace SandFox
 		virtual ~Drawable();
 
 		virtual unsigned int BindStatic() const override;
+		virtual SandFox::Shader* GetShader() const override;
 
 		void AddStaticBind(IBindable* bindable);
-		void AddStaticIndexBuffer(SandFox::Bind::IndexBuffer* indexBuffer);
+		void AddStaticIndexBuffer(Bind::IndexBuffer* indexBuffer);
+		void SetStaticShader(Shader* shader);
 
 		bool StaticInitialization();
 
@@ -66,6 +74,7 @@ namespace SandFox
 		static int s_currentTypeIndex;
 		static std::vector<IBindable*>* s_staticBindables;
 		static SandFox::Bind::IndexBuffer* s_staticIndexBuffer;
+		static SandFox::Shader* s_staticShader;
 
 		using _Drawable::m_index;
 		using _Drawable::m_bindables;
@@ -117,6 +126,11 @@ namespace SandFox
 				b->Bind();
 			}
 
+			if (s_staticShader != nullptr)
+			{
+				s_staticShader->Bind();
+			}
+
 			if (s_staticIndexBuffer != nullptr)
 			{
 				s_staticIndexBuffer->Bind();
@@ -130,6 +144,17 @@ namespace SandFox
 		}
 
 		return -1;
+	}
+
+	template<class T>
+	inline SandFox::Shader* Drawable<T>::GetShader() const
+	{
+		if (s_staticShader)
+		{
+			return s_staticShader;
+		}
+
+		return m_shader;
 	}
 
 	template<class T>
@@ -153,6 +178,12 @@ namespace SandFox
 	}
 
 	template<class T>
+	inline void Drawable<T>::SetStaticShader(Shader* shader)
+	{
+		s_staticShader = shader;
+	}
+
+	template<class T>
 	inline bool Drawable<T>::StaticInitialization()
 	{
 		return m_staticInit;
@@ -173,5 +204,8 @@ namespace SandFox
 
 	template<class T>
 	Bind::IndexBuffer* Drawable<T>::s_staticIndexBuffer = nullptr;
+
+	template<class T>
+	SandFox::Shader* Drawable<T>::s_staticShader = nullptr;
 
 }

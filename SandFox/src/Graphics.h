@@ -7,6 +7,8 @@
 #include "SamplerState.h"
 #include "ComputeShader.h"
 
+#include "GraphicsEnums.h"
+
 #include <string>
 
 
@@ -43,19 +45,6 @@
 
 namespace SandFox
 {
-
-	enum GraphicsTechnique
-	{
-		GraphicsTechniqueImmediate,
-		GraphicsTechniqueDeferred
-	};
-
-	enum LightType
-	{
-		LightTypeDirectional,
-		LightTypePoint,
-		LightTypeSpot,
-	};
 
 	class FOX_API Graphics sealed
 	{

@@ -361,6 +361,7 @@ echo Copying complete!</Command>
     <ClCompile Include="src\PrimitiveTopology.cpp" />
     <ClCompile Include="src\SamplerState.cpp" />
     <ClCompile Include="src\Buffer.cpp" />
+    <ClInclude Include="src\GraphicsEnums.h" />
     <ClInclude Include="src\GeometryShader.h" />
     <ClInclude Include="src\ParticleStream.h" />
     <ClInclude Include="src\ComputeShader.h" />

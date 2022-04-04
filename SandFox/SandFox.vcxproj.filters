@@ -237,6 +237,9 @@
     <ClInclude Include="src\Buffer.h">
       <Filter>Source\%2a Graphics\%2a Bindable\Buffer</Filter>
     </ClInclude>
+    <ClInclude Include="src\GraphicsEnums.h">
+      <Filter>Source\%2a Graphics\Graphics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Source">

@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "Shader.h"
 
-
+#include "Graphics.h"
 
 SandFox::Shader* SandFox::Shader::s_presets[ShaderTypeCount];
 
@@ -43,11 +43,11 @@ void SandFox::Shader::LoadGS(const std::wstring& path, ComPtr<ID3DBlob>& blob)
 
 void SandFox::Shader::Bind()
 {
-	m_ps.Bind();
-	m_vs.Bind();
-	m_il.Bind();
 	m_pt.Bind();
-	//m_gs.Bind();
+	m_il.Bind();
+	m_vs.Bind();
+	m_gs.Bind();
+	m_ps.Bind();
 }
 
 SandFox::Shader* SandFox::Shader::Get(ShaderType preset)

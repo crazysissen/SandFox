@@ -122,10 +122,7 @@ namespace cs
         m_size = l_val.m_size;
         m_capacity = l_val.m_capacity;
 
-        if (m_elements != nullptr)
-        {
-            delete[] m_elements;
-        }
+        delete[] m_elements;
 
         m_elements = new T[m_capacity];
         for (int i = 0; i < m_size; ++i)
@@ -148,10 +145,7 @@ namespace cs
         m_size = r_val.m_size;
         m_capacity = r_val.m_capacity;
 
-        if (m_elements != nullptr)
-        {
-            delete[] m_elements;
-        }
+        delete[] m_elements;
 
         m_elements = r_val.m_elements;
 
@@ -321,10 +315,7 @@ namespace cs
         m_size = 0;
         m_capacity = c_dCapacity;
 
-        if (m_elements != nullptr)
-        {
-            delete[] m_elements;
-        }
+        delete[] m_elements;
 
         m_elements = new T[c_dCapacity];
     }

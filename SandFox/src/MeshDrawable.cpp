@@ -84,7 +84,7 @@ SandFox::Prim::MeshDrawable::SubmeshDrawable::SubmeshDrawable(Transform t, Mesh*
 			{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
 		};
 
-		AddStaticBind(Shader::Get(ShaderTypePhongMapped));
+		SetStaticShader(Shader::Get(ShaderTypePhongMapped));
 
 		/*AddStaticBind(new SandFox::Bind::PixelShader(Graphics::Get().ShaderPath(L"PSPhongMapped"), blob));
 		AddStaticBind(new SandFox::Bind::VertexShader(Graphics::Get().ShaderPath(L"VSStandard"), blob));
