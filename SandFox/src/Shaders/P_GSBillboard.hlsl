@@ -1,7 +1,7 @@
 struct GSIn
 {
     float4 pos : SV_POSITION;
-    float distance : DISTANCE;
+    //float distance : DISTANCE;
     float size : SIZE;
 };
 
@@ -14,6 +14,9 @@ struct GSOut
 cbuffer ScaleInfo : register(b0)
 {
     float2 scale;
+    float nearClip;
+    float nearClipFeather;
+    //float nearClipFeatherInv;
 };
 
 [maxvertexcount(6)]
@@ -22,7 +25,15 @@ void main(
 	inout TriangleStream<GSOut> output
 )
 {
-    float fromCenter = 0.5f / input[0].distance * input[0].size;
+    float clipScale = min(nearClipFeather, (input[0].pos.z - nearClip)) / nearClipFeather;
+    
+    if (clipScale < 0.0f)
+    {
+        return;
+    }
+    
+    float fromCenter = 0.5f * clipScale * input[0].size;
+    float2 offset = fromCenter * scale;
 
     GSOut tl = { float4(input[0].pos.x - fromCenter * scale.x, input[0].pos.y + fromCenter * scale.y, input[0].pos.z, input[0].pos.w), float2(0, 0) };
     GSOut tr = { float4(input[0].pos.x + fromCenter * scale.x, input[0].pos.y + fromCenter * scale.y, input[0].pos.z, input[0].pos.w), float2(1, 0) };

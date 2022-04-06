@@ -7,7 +7,7 @@ struct VSIn
 struct VSOut
 {
     float4 clipPosition : SV_POSITION;
-    float distance : DISTANCE;
+    //float distance : DISTANCE;
     float size : SIZE;
 };
 
@@ -26,7 +26,7 @@ VSOut main(VSIn input)
     VSOut o =
     {
         mul(float4(input.pos, 1.0f), clip),
-        distance(input.pos, cameraPosition),
+        //distance(input.pos, cameraPosition),
         input.size
     };
 

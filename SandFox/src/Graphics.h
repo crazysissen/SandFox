@@ -6,6 +6,7 @@
 #include "Texture.h"
 #include "SamplerState.h"
 #include "ComputeShader.h"
+#include "Window.h"
 
 #include "GraphicsEnums.h"
 
@@ -93,7 +94,7 @@ namespace SandFox
 		~Graphics();
 
 		// Initialization/deinitialization logic
-		void Init(std::wstring shaderDir, GraphicsTechnique technique = GraphicsTechniqueImmediate);
+		void Init(Window* window, std::wstring shaderDir, GraphicsTechnique technique = GraphicsTechniqueImmediate);
 		void DeInit();
 
 		void InitImgui();
@@ -110,6 +111,7 @@ namespace SandFox
 		void PostProcess();
 
 		float GetAspectRatio();
+		Window* GetWindow();
 
 		void InitCamera(cs::Vec3 pos, cs::Vec3 rot, float fov);
 		void UpdateCamera();
@@ -137,6 +139,9 @@ namespace SandFox
 
 		bool m_initialized;
 		bool m_imgui;
+
+		// Window information
+		Window* m_window;
 
 		// Device and associate objects
 		ComPtr<ID3D11Device>		m_device;

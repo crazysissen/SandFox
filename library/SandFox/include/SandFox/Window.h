@@ -24,15 +24,13 @@ namespace SandFox
 		// Process the current message stack and optionally return quit message
 		std::optional<int> ProcessMessages();
 
-		// Get handle to window
-		static HWND GetHwnd();
-		// Get application instance
-		static HINSTANCE GetHInstance();
+		HWND GetHwnd();
+		HINSTANCE GetHInstance();
 
 		// Get window raster dimensions
-		static Point GetSize();
-		static int GetW();
-		static int GetH();
+		Point GetSize();
+		int GetW();
+		int GetH();
 
 		// The windows procedure
 		static LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);

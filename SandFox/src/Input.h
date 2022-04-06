@@ -1,11 +1,14 @@
 #pragma once
 
 #include "SandFoxCore.h"
-
 #include <bitset>
+
+
 
 namespace SandFox
 {
+
+	class Window;
 
 	class FOX_API Input
 	{
@@ -36,11 +39,9 @@ namespace SandFox
 		
 		static Point MousePositionDiff();
 		static Point MousePosition();
-		static void MoveMouseTo(Point p);
 		static void MouseVisible(bool show);
 		static void MouseLocked(bool locked);
 		static bool GetMouseLocked();
-		static Point MouseLockedPosition();
 
 		static Input& Get();
 
@@ -49,7 +50,12 @@ namespace SandFox
 		// Core
 
 		Input();
+		Input(Window* window);
 		virtual ~Input();
+
+		void LoadWindow(Window* window);
+		Point WindowLockPosition();
+		void MoveMouseTo(Point p);
 
 		void CoreUpdateState();
 
@@ -68,6 +74,8 @@ namespace SandFox
 		static Input* s_input;
 
 		bool m_mLocked;
+
+		Window* m_window;
 
 		Point m_lastMp;
 		Point m_mp;

@@ -112,6 +112,9 @@
     <ClCompile Include="src\ParticleStream.cpp">
       <Filter>Source\%2a Graphics\ParticleStream</Filter>
     </ClCompile>
+    <ClCompile Include="src\ImGuiHandler.cpp">
+      <Filter>Source\%2a Core\ImGuiHandler</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Graphics.h">
@@ -239,6 +242,9 @@
     </ClInclude>
     <ClInclude Include="src\GraphicsEnums.h">
       <Filter>Source\%2a Graphics\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ImGuiHandler.h">
+      <Filter>Source\%2a Core\ImGuiHandler</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -370,6 +376,9 @@
     </Filter>
     <Filter Include="Source\%2a Data Structures\Mesh">
       <UniqueIdentifier>{6c7e197c-a240-4fef-b7fa-b543f7d014e0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\%2a Core\ImGuiHandler">
+      <UniqueIdentifier>{bcdab947-cd92-41d4-9237-c65ebf6c3835}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

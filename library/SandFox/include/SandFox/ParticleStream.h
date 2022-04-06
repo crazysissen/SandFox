@@ -51,12 +51,13 @@ namespace SandFox
 		};
 
 	public:
-		ParticleStream(const Transform& t, const std::wstring& particleTexture, const std::wstring& computeShader, int particleDataSize, int startCapacity, float lifetime);
+		ParticleStream(const Transform& t, const std::wstring& particleTexture, const std::wstring& computeShader, int particleDataSize, int startCapacity, float lifetime, float nearClip = 0.0f, float nearClipFeather = 0.0f);
 		~ParticleStream();
 
 		void Update(float dTime);
 		void CreateParticle(const cs::Vec3& position, float size, const void* data);
 		void SetLifetime(float lifetime);
+		void SetNearClip(float nearClip, float nearClipFeather);
 
 		void Draw();
 
@@ -73,7 +74,8 @@ namespace SandFox
 		struct ScaleInfo
 		{
 			cs::Vec2 scale;
-			PAD(8, 0);
+			float nearClip;
+			float nearClipFeather;
 		};
 
 		struct ComputeInfo
@@ -103,6 +105,8 @@ namespace SandFox
 		int m_pDataSize;
 		int m_pDataStructureSize;
 		float m_lifetime;
+		float m_nearClip;
+		float m_nearClipFeather;
 
 		ComputeShader m_computeShader;
 		StructuredBufferUAV m_particleBuffer;

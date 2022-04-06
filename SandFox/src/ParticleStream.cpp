@@ -5,7 +5,15 @@
 
 #include <algorithm>
 
-SandFox::ParticleStream::ParticleStream(const SandFox::Transform& t, const std::wstring& particleTexture, const std::wstring& computeShader, int particleDataSize, int startCapacity, float lifetime)
+SandFox::ParticleStream::ParticleStream(
+	const SandFox::Transform& t, 
+	const std::wstring& particleTexture, 
+	const std::wstring& computeShader, 
+	int particleDataSize, 
+	int startCapacity, 
+	float lifetime,
+	float nearClip,
+	float nearClipFeather)
 	:
 	transform(t),
 
@@ -26,6 +34,8 @@ SandFox::ParticleStream::ParticleStream(const SandFox::Transform& t, const std::
 	m_pDataSize(particleDataSize),
 	m_pDataStructureSize(particleDataSize + sizeof(float)),
 	m_lifetime(lifetime),
+	m_nearClip(nearClip),
+	m_nearClipFeather(nearClipFeather),
 
 	m_computeShader(),
 	m_particleBuffer(),
@@ -202,6 +212,12 @@ void SandFox::ParticleStream::SetLifetime(float lifetime)
 	m_lifetime = lifetime;
 }
 
+void SandFox::ParticleStream::SetNearClip(float nearClip, float nearClipFeather)
+{
+	m_nearClip = nearClip;
+	m_nearClipFeather = nearClipFeather;
+}
+
 void SandFox::ParticleStream::Draw()
 {
 	if (m_count == 0)
@@ -217,7 +233,7 @@ void SandFox::ParticleStream::Draw()
 		viewMatrix
 	);
 
-	float averageScreen = (Window::GetH() + Window::GetW()) * 0.5f;
+	float averageScreen = (Graphics::Get().GetWindow()->GetH() + Graphics::Get().GetWindow()->GetW()) * 0.5f;
 
 	CameraInfo cameraInfo =
 	{
@@ -225,7 +241,9 @@ void SandFox::ParticleStream::Draw()
 	};
 	ScaleInfo scaleInfo =
 	{
-		{ averageScreen / Window::GetW(), averageScreen / Window::GetH() }
+		{ averageScreen / Graphics::Get().GetWindow()->GetW(), averageScreen / Graphics::Get().GetWindow()->GetH() },
+		m_nearClip,
+		m_nearClipFeather
 	};
 	m_vertexBuffer.Update((void*)(m_particles + m_start), m_count);
 	m_transformConstantBuffer.Write(matrix);
@@ -243,20 +261,4 @@ void SandFox::ParticleStream::Draw()
 	m_indexBuffer.Bind();
 
 	Graphics::Get().GetContext()->DrawIndexed(m_count, 0u, 0u);
-	//EXC_COMINFO(Graphics::Get().GetContext()->Draw(m_count, m_start));
-
-
-
-		//Vec3 cv = Graphics::Get().GetCamera()->position;
-
-	//auto predicate = [&](const uindex& a, const uindex& b) -> bool
-	//{
-	//	Vec3 av = m_particles[a + m_start].position - cv;
-	//	Vec3 bv = m_particles[b + m_start].position - cv;
-
-	//	return (av.x * av.x + av.y * av.y + av.z * av.z) > (bv.x * bv.x + bv.y * bv.y + bv.z * bv.z);
-	//};
-
-	//std::sort(m_indices, m_indices + m_count, predicate);
-
 }

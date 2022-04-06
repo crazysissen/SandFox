@@ -205,25 +205,25 @@ std::optional<int> SandFox::Window::ProcessMessages()
 
 HWND SandFox::Window::GetHwnd()
 {
-	return s_window->m_hWnd;
+	return m_hWnd;
 }
 
 HINSTANCE__* SandFox::Window::GetHInstance()
 {
-	return s_window->m_hInst;
+	return m_hInst;
 }
 
 Point SandFox::Window::GetSize()
 {
-	return s_window->m_size;
+	return m_size;
 }
 
 int SandFox::Window::GetW()
 {
-	return s_window->m_size.x;
+	return m_size.x;
 }
 
 int SandFox::Window::GetH()
 {
-	return s_window->m_size.y;
+	return m_size.y;
 }

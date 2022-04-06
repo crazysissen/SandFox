@@ -7,11 +7,15 @@
 #include <SandFox\MeshDrawable.h>
 #include <SandFox\Mesh.h>
 #include <SandFox\ParticleStream.h>
+#include <SandFox\ImGuiHandler.h>
 
 #include <SandFox\imgui.h>
 
 
 
+// Input system
+
+sx::Input input;
 
 constexpr float c_moveSpeed = 0.3f;
 constexpr float c_lookSpeed = 0.008f;
@@ -52,10 +56,11 @@ Mat3 HandleInput()
 	Mat3 turn = Mat::rotation3Y(-c->rotation.y);
 	move = turn * (move * c_moveSpeed);
 
-	c->position += move;
+	c->position += move; 
 
 	return turn * Mat::rotation3X(-c->rotation.x);
 }
+
 
 
 int SafeWinMain(
@@ -65,9 +70,8 @@ int SafeWinMain(
 	int			nCmdShow)
 {
 	// DXGI debugger
+
 	cs::dxgiInfo::init();
-
-
 
 
 
@@ -78,10 +82,14 @@ int SafeWinMain(
 	cs::Random r;
 
 	window.InitClass(hInstance);
-	window.InitWindow(1920, 1080, "Hello World");
+	window.InitWindow(1664, 936, "SandBox"); 
 
-	graphics.Init(L"Assets\\Shaders", sx::GraphicsTechniqueImmediate);
+	graphics.Init(&window, L"Assets\\Shaders", sx::GraphicsTechniqueImmediate);
 	graphics.InitCamera({ 0, 0, 0 }, { 0, 0, 0 }, cs::c_pi * 0.5f);
+
+	input.LoadWindow(&window);
+
+	sx::ImGuiHandler imgui(&graphics);
 
 	sx::Input::MouseLocked(false);
 
@@ -158,22 +166,69 @@ int SafeWinMain(
 		cs::NoiseSimplex(r.GetUnsigned(100000)), cs::NoiseSimplex(r.GetUnsigned(100000)), cs::NoiseSimplex(r.GetUnsigned(100000))
 	};
 
-	sx::ParticleStream particles(sx::Transform(), L"Assets/Textures/ParticleSofter.png", L"P_CSParticleBasic", sizeof(PData), 4, 10.0f);
+	sx::ParticleStream particles(
+		sx::Transform(), 
+		L"Assets/Textures/ParticleSofter.png", 
+		L"P_CSParticleBasic", 
+		sizeof(PData), 
+		4, 
+		10.0f,
+		2.0f,
+		1.0f
+	);
 	sx::Bind::ConstBufferC<UpdateInfo> noiseInfoBuffer(updateInfo, 3, false);
 
 	float noiseTimer = 0.0f;
 	float particleTimer = 0.0f;
-	float particleTargetTime = 0.00005f;
+	float particleTargetTime = 0.0001f;
 
 
 
 	// Main message pump and game loop
 
 	cs::Timer timer;
-	int exitCode = 0;
+	float dTime = 0.0f;
+	float dTimeAverage1 = 0.0f;
+	float dTimeAverage5 = 0.0f;
+	float fpsAverage1 = 0.0f;
+	float fpsAverage5 = 0.0f;
 
-	for (uint frame = 0;; frame++)
+	int exitCode = 0;
+	
+	for (int frame = 0;; frame++)
 	{
+#pragma region Performance timing
+
+		static float dTimeAccumulator1 = 0.0f;
+		static float dTimeAccumulator5 = 0.0f;
+		static int frameCounter1 = 0;
+		static int frameCounter5 = 0;
+
+		dTime = timer.Lap();
+
+		dTimeAccumulator1 += dTime;
+		dTimeAccumulator5 += dTime;
+		frameCounter1++;
+		frameCounter5++;
+
+		if (dTimeAccumulator1 > 1.0f)
+		{
+			fpsAverage1 = frameCounter1;
+			dTimeAverage1 = dTimeAccumulator1 / frameCounter1;
+			dTimeAccumulator1 = 0;
+			frameCounter1 = 0;
+		}
+
+		if (dTimeAccumulator5 > 5.0f)
+		{
+			fpsAverage5 = frameCounter5 / 5.0f;
+			dTimeAverage5 = dTimeAccumulator5 / frameCounter5;
+			dTimeAccumulator5 = 0;
+			frameCounter5 = 0;
+		}
+
+#pragma endregion
+
 #pragma region Core stuff
 		// Exit code optional evaluates to true if it contains a value
 		if (const std::optional<int> optExitCode = window.ProcessMessages())
@@ -182,8 +237,6 @@ int SafeWinMain(
 			exitCode = *optExitCode;
 			break;
 		}
-
-		float dTime = timer.Lap();
 
 		// Refresh input
 		sx::Input::Get().CoreUpdateState();
@@ -198,6 +251,8 @@ int SafeWinMain(
 		lights[1].direction = direction;
 		graphics.SetLights(lights, lightCount);
 #pragma endregion
+
+#pragma region Particle updating
 
 		// Update particles
 
@@ -224,23 +279,25 @@ int SafeWinMain(
 			{
 				{ r.Getf(-1.0f, 1.0f), r.Getf(-1.0f, 1.0f), r.Getf(-1.0f, 1.0f), r.Getf(-1.0f, 1.0f)},
 				{ r.Getf(-5, 5), r.Getf(2, 4), r.Getf(-5, 5)},
-				0.2f,
-				{ 0, -5, 0 },
-				r.Getf(1.0f, 1.3f)
+				0.3f,
+				{ 0, -10, 0 }, 
+				r.Getf(0.1f, 0.2f)
 			};
 
-			particles.CreateParticle({ r.Getf(-40.0f, 40.0f), 2, r.Getf(-40.0f, 40.0f) }, pd.size, & pd);
+			particles.CreateParticle({ r.Getf(-60.0f, 60.0f), 10, r.Getf(-60.0f, 60.0f) }, pd.size, & pd);
 			particleTimer -= particleTargetTime;
 		}
 
 		particles.Update(dTime);
+
+#pragma endregion
 
 
 
 		// Draw the frame
 
 		graphics.FrameBegin(cs::Color(0x301090));
-		graphics.ChangeDepthStencil(true, true);
+		graphics.ChangeDepthStencil(true, true); 
 
 		//for (int i = 0; i < 50; i++)
 		//	suzannes[i].Draw();
@@ -250,6 +307,30 @@ int SafeWinMain(
 
 		graphics.ChangeDepthStencil(true, false);
 		particles.Draw();
+
+#pragma region Imgui
+
+		imgui.BeginDraw();
+
+		ImGui::Begin("Info");
+
+		{
+			ImGui::Text("Performance");
+			ImGui::InputFloat("Frame time", &dTime, 0, 0, "%.8f", ImGuiInputTextFlags_ReadOnly);
+			ImGui::InputFloat("Frame time (1s)", &dTimeAverage1, 0, 0, "%.8f", ImGuiInputTextFlags_ReadOnly);
+			ImGui::InputFloat("Frame time (5s)", &dTimeAverage5, 0, 0, "%.8f", ImGuiInputTextFlags_ReadOnly);
+			ImGui::Spacing();
+			ImGui::InputFloat("FPS (1s)", &fpsAverage1, 0, 0, "%.4f", ImGuiInputTextFlags_ReadOnly);
+			ImGui::InputFloat("FPS (5s)", &fpsAverage5, 0, 0, "%.4f", ImGuiInputTextFlags_ReadOnly);
+			ImGui::Spacing();
+			ImGui::InputInt("Frame", &frame, 0, 0, ImGuiInputTextFlags_ReadOnly);
+		}
+		
+		ImGui::End();
+
+		imgui.EndDraw();
+
+#pragma endregion
 
 		graphics.FrameFinalize();
 	}
@@ -272,10 +353,6 @@ int WINAPI WinMain(
 #endif
 
 
-
-	// Input system
-
-	sx::Input input;
 
 
 

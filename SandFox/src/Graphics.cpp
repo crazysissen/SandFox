@@ -60,7 +60,7 @@ SandFox::Graphics::~Graphics()
 	s_graphics = nullptr;
 }
 
-void SandFox::Graphics::Init(std::wstring shaderDir, GraphicsTechnique technique)
+void SandFox::Graphics::Init(Window* window, std::wstring shaderDir, GraphicsTechnique technique)
 {
 	if (m_initialized)
 	{
@@ -69,7 +69,7 @@ void SandFox::Graphics::Init(std::wstring shaderDir, GraphicsTechnique technique
 	}
 
 	m_initialized = true;
-
+	m_window = window;
 	m_shaderDir = shaderDir + L'\\';
 
 	cs::dxgiInfo::init();
@@ -117,8 +117,8 @@ void SandFox::Graphics::Init(std::wstring shaderDir, GraphicsTechnique technique
 	m_technique = technique;
 
 	DXGI_SWAP_CHAIN_DESC scd = {};
-	scd.BufferDesc.Width = Window::GetW();
-	scd.BufferDesc.Height = Window::GetH();
+	scd.BufferDesc.Width = m_window->GetW();
+	scd.BufferDesc.Height = m_window->GetH();
 	scd.BufferDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
 	scd.BufferDesc.RefreshRate.Numerator = 0;
 	scd.BufferDesc.RefreshRate.Denominator = 0;
@@ -127,7 +127,7 @@ void SandFox::Graphics::Init(std::wstring shaderDir, GraphicsTechnique technique
 	scd.SampleDesc.Count = sampleCount;
 	scd.SampleDesc.Quality = sampleQuality;
 	scd.BufferCount = 1;
-	scd.OutputWindow = Window::GetHwnd() /*(HWND)67676*/;
+	scd.OutputWindow = m_window->GetHwnd() /*(HWND)67676*/;
 	scd.Windowed = true;
 	scd.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
 	scd.Flags = 0;
@@ -199,23 +199,23 @@ void SandFox::Graphics::Init(std::wstring shaderDir, GraphicsTechnique technique
 
 		m_backBufferUAV.Load(&m_backBuffers[0]);
 
-		m_backBuffers[1].Load(cs::ColorA(0, 0, 0, 0), Window::GetW(), Window::GetH(), DXGI_FORMAT_R32G32B32A32_FLOAT);
-		m_backBuffers[2].Load(cs::ColorA(0, 0, 0, 0), Window::GetW(), Window::GetH(), DXGI_FORMAT_R32G32B32A32_FLOAT);
+		m_backBuffers[1].Load(cs::ColorA(0, 0, 0, 0), m_window->GetW(), m_window->GetH(), DXGI_FORMAT_R32G32B32A32_FLOAT);
+		m_backBuffers[2].Load(cs::ColorA(0, 0, 0, 0), m_window->GetW(), m_window->GetH(), DXGI_FORMAT_R32G32B32A32_FLOAT);
 
 		for (int i = 3; i < 6; i++)
-			m_backBuffers[i].Load(cs::ColorA(0, 0, 0, 0), Window::GetW(), Window::GetH(), DXGI_FORMAT_R8G8B8A8_UNORM);
+			m_backBuffers[i].Load(cs::ColorA(0, 0, 0, 0), m_window->GetW(), m_window->GetH(), DXGI_FORMAT_R8G8B8A8_UNORM);
 
 		for (int i = 6; i < 8; i++)
-			m_backBuffers[i].Load(cs::ColorA(0, 0, 0, 0), Window::GetW(), Window::GetH(), DXGI_FORMAT_R32_FLOAT);
+			m_backBuffers[i].Load(cs::ColorA(0, 0, 0, 0), m_window->GetW(), m_window->GetH(), DXGI_FORMAT_R32_FLOAT);
 	
 
 
 		ClientInfo ci
 		{
-			(uint)Window::GetW(),
-			(uint)Window::GetH(),
-			1.0f / (Window::GetW() - 1),
-			1.0f / (Window::GetH() - 1)
+			(uint)m_window->GetW(),
+			(uint)m_window->GetH(),
+			1.0f / (m_window->GetW() - 1),
+			1.0f / (m_window->GetH() - 1)
 		};
 
 		m_deferredSamplerState.Load(8, D3D11_FILTER_MIN_MAG_MIP_POINT);
@@ -282,8 +282,8 @@ void SandFox::Graphics::Init(std::wstring shaderDir, GraphicsTechnique technique
 
 	// Create
 	D3D11_TEXTURE2D_DESC dstDesc = {};
-	dstDesc.Width = Window::GetW();
-	dstDesc.Height = Window::GetH();
+	dstDesc.Width = m_window->GetW();
+	dstDesc.Height = m_window->GetH();
 	dstDesc.MipLevels = 1u;
 	dstDesc.ArraySize = 1u;
 	dstDesc.Format = DXGI_FORMAT_D32_FLOAT;
@@ -338,8 +338,8 @@ void SandFox::Graphics::Init(std::wstring shaderDir, GraphicsTechnique technique
 	// --- Configure viewport
 
 	D3D11_VIEWPORT vp = {};
-	vp.Width = (float)Window::GetW();
-	vp.Height = (float)Window::GetH();
+	vp.Width = (float)m_window->GetW();
+	vp.Height = (float)m_window->GetH();
 	vp.MinDepth = 0;
 	vp.MaxDepth = 1;
 	vp.TopLeftX = 0;
@@ -425,14 +425,6 @@ void SandFox::Graphics::DeInit()
 
 	delete m_deferredClientInfo;
 	delete m_sceneInfoBuffer;
-
-
-	// Imgui
-
-	if (m_imgui)
-	{
-		ImGui_ImplDX11_Shutdown();
-	}
 }
 
 void SandFox::Graphics::InitImgui()
@@ -440,7 +432,6 @@ void SandFox::Graphics::InitImgui()
 	// Imgui
 
 	m_imgui = true;
-	ImGui_ImplDX11_Init(m_device.Get(), m_context.Get());
 }
 
 void SandFox::Graphics::SetLights(Light* lights, int count)
@@ -515,7 +506,7 @@ void SandFox::Graphics::FrameFinalize()
 		m_deferredClientInfo->Bind();
 
 		// Run the lighting pass
-		m_lightingPass.Dispatch(Window::GetW(), Window::GetH());
+		m_lightingPass.Dispatch(m_window->GetW(), m_window->GetH());
 
 		// Unbind shader resources before next frame
 		ID3D11ShaderResourceView* empty[c_maxRenderTargets] = { nullptr };
@@ -554,6 +545,11 @@ void SandFox::Graphics::PostProcess()
 float SandFox::Graphics::GetAspectRatio()
 {
 	return m_aspectRatio;
+}
+
+inline SandFox::Window* SandFox::Graphics::GetWindow()
+{
+	return m_window;
 }
 
 void SandFox::Graphics::InitCamera(Vec3 pos, Vec3 rot, float fov)

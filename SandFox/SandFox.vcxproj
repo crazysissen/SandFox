@@ -326,6 +326,7 @@ echo Copying complete!</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\ImGuiHandler.cpp" />
     <ClCompile Include="src\ParticleStream.cpp" />
     <ClCompile Include="src\GeometryShader.cpp" />
     <ClCompile Include="src\ComputeShader.cpp" />
@@ -361,6 +362,7 @@ echo Copying complete!</Command>
     <ClCompile Include="src\PrimitiveTopology.cpp" />
     <ClCompile Include="src\SamplerState.cpp" />
     <ClCompile Include="src\Buffer.cpp" />
+    <ClInclude Include="src\ImGuiHandler.h" />
     <ClInclude Include="src\GraphicsEnums.h" />
     <ClInclude Include="src\GeometryShader.h" />
     <ClInclude Include="src\ParticleStream.h" />

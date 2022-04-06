@@ -9,6 +9,8 @@ SandFox::Input* SandFox::Input::s_input = nullptr;
 
 SandFox::Input::Input()
 	:
+	m_window(nullptr),
+
 	m_mLocked(false),
 	m_lastMp(0, 0),
 	m_mp(0, 0),
@@ -32,6 +34,13 @@ SandFox::Input::Input()
 	s_input = this;
 }
 
+SandFox::Input::Input(Window* window)
+	:
+	Input()
+{
+	m_window = window;
+}
+
 SandFox::Input::~Input()
 {
 	delete[] m_frameChars;
@@ -41,11 +50,28 @@ SandFox::Input::~Input()
 	ShowCursor(true);
 }
 
+void SandFox::Input::LoadWindow(Window* window)
+{
+	m_window = window;
+}
+
+Point SandFox::Input::WindowLockPosition()
+{
+	return { m_window->GetW() / 2, m_window->GetH() / 2 };
+}
+
+void SandFox::Input::MoveMouseTo(Point p)
+{
+	POINT temp = { p.x, p.y };
+	ClientToScreen(m_window->GetHwnd(), &temp);
+	SetCursorPos(temp.x, temp.y);
+}
+
 void SandFox::Input::CoreUpdateState()
 {
 	m_mpDiff = m_mp - m_lastMp;
 
-	m_lastMp = m_mLocked ? MouseLockedPosition() : m_mp;
+	m_lastMp = m_mLocked ? WindowLockPosition() : m_mp;
 
 	m_keyDown.reset();
 	m_keyUp.reset();
@@ -110,7 +136,7 @@ void SandFox::Input::CoreUpdateState()
 
 	if (m_mLocked)
 	{
-		MoveMouseTo(MouseLockedPosition());
+		MoveMouseTo(WindowLockPosition());
 	}
 }
 
@@ -171,17 +197,17 @@ void SandFox::Input::MouseVisible(bool show)
 
 void SandFox::Input::MouseLocked(bool locked)
 {
+	if (s_input->m_window == nullptr)
+	{
+		return;
+	}
+
 	s_input->m_mLocked = locked;
 }
 
 bool SandFox::Input::GetMouseLocked()
 {
 	return s_input->m_mLocked;
-}
-
-Point SandFox::Input::MouseLockedPosition()
-{
-	return { Window::GetW() / 2, Window::GetH() / 2 };
 }
 
 SandFox::Input& SandFox::Input::Get()
@@ -197,11 +223,4 @@ Point SandFox::Input::MousePositionDiff()
 Point SandFox::Input::MousePosition()
 {
 	return s_input->m_mp;
-}
-
-void SandFox::Input::MoveMouseTo(Point p)
-{
-	POINT temp = { p.x, p.y };
-	ClientToScreen(Window::GetHwnd(), &temp);
-	SetCursorPos(temp.x, temp.y);
 }
