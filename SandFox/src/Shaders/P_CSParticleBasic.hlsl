@@ -1,5 +1,5 @@
 
-#define PARTICLES_PER_THREAD 1
+#define PARTICLES_PER_THREAD 32
 
 
 

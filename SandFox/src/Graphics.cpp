@@ -126,10 +126,10 @@ void SandFox::Graphics::Init(Window* window, std::wstring shaderDir, GraphicsTec
 	scd.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
 	scd.SampleDesc.Count = sampleCount;
 	scd.SampleDesc.Quality = sampleQuality;
-	scd.BufferCount = 1;
+	scd.BufferCount = 2;
 	scd.OutputWindow = m_window->GetHwnd() /*(HWND)67676*/;
 	scd.Windowed = true;
-	scd.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
+	scd.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 	scd.Flags = 0;
 
 	if (m_technique == GraphicsTechniqueImmediate)

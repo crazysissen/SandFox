@@ -84,7 +84,8 @@ int SafeWinMain(
 	window.InitClass(hInstance);
 	window.InitWindow(1664, 936, "SandBox"); 
 
-	graphics.Init(&window, L"Assets\\Shaders", sx::GraphicsTechniqueImmediate);
+	sx::GraphicsTechnique technique = sx::GraphicsTechniqueImmediate;
+	graphics.Init(&window, L"Assets\\Shaders", technique);
 	graphics.InitCamera({ 0, 0, 0 }, { 0, 0, 0 }, cs::c_pi * 0.5f);
 
 	input.LoadWindow(&window);
@@ -310,12 +311,25 @@ int SafeWinMain(
 
 #pragma region Imgui
 
+#define SPACE3 ImGui::Spacing(); ImGui::Spacing(); ImGui::Spacing();
+
 		imgui.BeginDraw();
 
-		ImGui::Begin("Info");
-
 		{
+			ImGui::Begin("Info");
+
+
+			// Main information 
+			ImGui::Text("Client");
+			ImGui::Spacing();
+			int res[] = { window.GetW(), window.GetH() };
+			ImGui::Text(technique == sx::GraphicsTechniqueImmediate ? "Technique: Immediate Rendering" : "Technique: Deferred Rendering");
+			ImGui::InputInt2("Resolution", res, ImGuiInputTextFlags_ReadOnly);
+			SPACE3;
+
+			// Basic performance monitoring
 			ImGui::Text("Performance");
+			ImGui::Spacing();
 			ImGui::InputFloat("Frame time", &dTime, 0, 0, "%.8f", ImGuiInputTextFlags_ReadOnly);
 			ImGui::InputFloat("Frame time (1s)", &dTimeAverage1, 0, 0, "%.8f", ImGuiInputTextFlags_ReadOnly);
 			ImGui::InputFloat("Frame time (5s)", &dTimeAverage5, 0, 0, "%.8f", ImGuiInputTextFlags_ReadOnly);
@@ -324,9 +338,9 @@ int SafeWinMain(
 			ImGui::InputFloat("FPS (5s)", &fpsAverage5, 0, 0, "%.4f", ImGuiInputTextFlags_ReadOnly);
 			ImGui::Spacing();
 			ImGui::InputInt("Frame", &frame, 0, 0, ImGuiInputTextFlags_ReadOnly);
+
+			ImGui::End();
 		}
-		
-		ImGui::End();
 
 		imgui.EndDraw();
 
