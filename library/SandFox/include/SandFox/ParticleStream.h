@@ -86,6 +86,7 @@ namespace SandFox
 		};
 
 		static constexpr int c_capacityBuffer = 16;
+		static constexpr int c_particlesPerThread = 32;
 
 		Shader* m_shader;
 		Bind::TextureBindable m_texture;

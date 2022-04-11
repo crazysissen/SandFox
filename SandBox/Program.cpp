@@ -295,7 +295,7 @@ int SafeWinMain(
 
 
 
-		// Draw the frame
+		// Draw the frame 
 
 		graphics.FrameBegin(cs::Color(0x301090));
 		graphics.ChangeDepthStencil(true, true); 

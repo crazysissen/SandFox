@@ -128,7 +128,7 @@ void SandFox::ParticleStream::Update(float dTime)
 	m_particleDataBuffer.Bind();
 
 	// Run the compute shader
-	m_computeShader.Dispatch(m_count, 1, 1);
+	m_computeShader.Dispatch(m_count / c_particlesPerThread, 1, 1);
 
 	// Unbind the potentially large buffers from the GPU
 	m_particleBuffer.Unbind();
