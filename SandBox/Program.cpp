@@ -281,7 +281,7 @@ int SafeWinMain(
 				{ r.Getf(-1.0f, 1.0f), r.Getf(-1.0f, 1.0f), r.Getf(-1.0f, 1.0f), r.Getf(-1.0f, 1.0f)},
 				{ r.Getf(-5, 5), r.Getf(2, 4), r.Getf(-5, 5)},
 				0.3f,
-				{ 0, -10, 0 }, 
+				{ 0, -6, 0 }, 
 				r.Getf(0.1f, 0.2f)
 			};
 

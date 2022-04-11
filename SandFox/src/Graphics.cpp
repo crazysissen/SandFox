@@ -126,10 +126,10 @@ void SandFox::Graphics::Init(Window* window, std::wstring shaderDir, GraphicsTec
 	scd.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
 	scd.SampleDesc.Count = sampleCount;
 	scd.SampleDesc.Quality = sampleQuality;
-	scd.BufferCount = 2;
+	scd.BufferCount = 1;
 	scd.OutputWindow = m_window->GetHwnd() /*(HWND)67676*/;
 	scd.Windowed = true;
-	scd.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+	scd.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
 	scd.Flags = 0;
 
 	if (m_technique == GraphicsTechniqueImmediate)
@@ -514,7 +514,7 @@ void SandFox::Graphics::FrameFinalize()
 		m_context->CSSetSamplers(8, 1, m_deferredSamplerState.GetSamplerState().GetAddressOf());
 	}
 
-	EXC_COMCHECKINFO(m_swapChain->Present(1u, 0));
+	EXC_COMCHECKINFO(m_swapChain->Present(0u, 0u));
 }
 
 void SandFox::Graphics::ChangeDepthStencil(bool enable, bool write)
