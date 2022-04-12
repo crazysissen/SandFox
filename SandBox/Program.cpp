@@ -17,11 +17,11 @@
 
 sx::Input input;
 
-constexpr float c_moveSpeed = 0.3f;
+constexpr float c_moveSpeed = 20.0f;
 constexpr float c_lookSpeed = 0.008f;
 constexpr byte c_mouseKey = sx::KeyE;
 
-Mat3 HandleInput()
+Mat3 HandleInput(float dTime)
 {
 	bool locked = sx::Input::GetMouseLocked();
 
@@ -40,12 +40,12 @@ Mat3 HandleInput()
 	if (sx::Input::KeyDown(c_mouseKey))
 	{
 		sx::Input::MouseLocked(!locked);
-		sx::Input::MouseVisible(locked);
+		//sx::Input::MouseVisible(locked);
 	}
 
 	if (locked)
 	{
-		look = (cs::Vec2)sx::Input::MousePositionDiff() * c_lookSpeed;
+		look = (cs::Vec2)sx::Input::MousePositionDiff() * c_lookSpeed; 
 		c->rotation = cs::Vec3(
 			cs::fclamp(c->rotation.x - look.y, -cs::c_pi * 0.5f, cs::c_pi * 0.5f),
 			cs::fwrap(c->rotation.y - look.x, -cs::c_pi, cs::c_pi),
@@ -54,7 +54,7 @@ Mat3 HandleInput()
 	}
 
 	Mat3 turn = Mat::rotation3Y(-c->rotation.y);
-	move = turn * (move * c_moveSpeed);
+	move = turn * (move * c_moveSpeed) * dTime;
 
 	c->position += move; 
 
@@ -76,13 +76,13 @@ int SafeWinMain(
 
 
 	// Initial setup of base resources
-
+	 
 	sx::Window window;
 	sx::Graphics graphics;
 	cs::Random r;
 
 	window.InitClass(hInstance);
-	window.InitWindow(1664, 936, "SandBox"); 
+	window.InitWindow(1920, 1080, "SandBox"); 
 
 	sx::GraphicsTechnique technique = sx::GraphicsTechniqueImmediate;
 	graphics.Init(&window, L"Assets\\Shaders", technique);
@@ -245,7 +245,7 @@ int SafeWinMain(
 
 #pragma region Input and camera
 		// Update camera and spotlight
-		Mat3 orientation = HandleInput();
+		Mat3 orientation = HandleInput(dTime);
 		Vec3 direction = orientation * Vec3(0, 0, 1);
 
 		lights[1].position = graphics.GetCamera()->position;

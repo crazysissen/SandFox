@@ -70,8 +70,12 @@ void SandFox::Input::MoveMouseTo(Point p)
 void SandFox::Input::CoreUpdateState()
 {
 	m_mpDiff = m_mp - m_lastMp;
-
 	m_lastMp = m_mLocked ? WindowLockPosition() : m_mp;
+
+	if (m_mpDiff != cs::Point(0, 0))
+	{
+		DBOUT("Mouse movement: { " << m_mpDiff.x << ", " << m_mpDiff.y << " }");
+	}
 
 	m_keyDown.reset();
 	m_keyUp.reset();
