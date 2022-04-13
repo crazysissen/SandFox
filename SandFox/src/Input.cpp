@@ -146,6 +146,7 @@ void SandFox::Input::CoreUpdateState()
 
 void SandFox::Input::CoreUpdateMousePosition(Point p)
 {
+	DBOUT("Mouse position change: { " << m_mpDiff.x << ", " << m_mpDiff.y << " }");
 	m_mp = p;
 }
 

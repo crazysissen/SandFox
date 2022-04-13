@@ -84,7 +84,7 @@ int SafeWinMain(
 	window.InitClass(hInstance);
 	window.InitWindow(1920, 1080, "SandBox"); 
 
-	sx::GraphicsTechnique technique = sx::GraphicsTechniqueImmediate;
+	sx::GraphicsTechnique technique = sx::GraphicsTechniqueImmediate; 
 	graphics.Init(&window, L"Assets\\Shaders", technique);
 	graphics.InitCamera({ 0, 0, 0 }, { 0, 0, 0 }, cs::c_pi * 0.5f);
 
