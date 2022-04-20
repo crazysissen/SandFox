@@ -65,6 +65,7 @@ void SandFox::Input::MoveMouseTo(Point p)
 	POINT temp = { p.x, p.y };
 	ClientToScreen(m_window->GetHwnd(), &temp);
 	SetCursorPos(temp.x, temp.y);
+	m_mp = p;
 }
 
 void SandFox::Input::CoreUpdateState()
@@ -146,7 +147,7 @@ void SandFox::Input::CoreUpdateState()
 
 void SandFox::Input::CoreUpdateMousePosition(Point p)
 {
-	DBOUT("Mouse position change: { " << m_mpDiff.x << ", " << m_mpDiff.y << " }");
+	DBOUT("Mouse position change: { " << p.x << ", " << p.y << " }");
 	m_mp = p;
 }
 

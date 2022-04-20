@@ -85,7 +85,7 @@ int SafeWinMain(
 	window.InitWindow(1920, 1080, "SandBox"); 
 
 	sx::GraphicsTechnique technique = sx::GraphicsTechniqueImmediate; 
-	graphics.Init(&window, L"Assets\\Shaders", technique);
+	graphics.Init(&window, L"Assets\\Shaders", technique); 
 	graphics.InitCamera({ 0, 0, 0 }, { 0, 0, 0 }, cs::c_pi * 0.5f);
 
 	input.LoadWindow(&window);
@@ -189,10 +189,10 @@ int SafeWinMain(
 
 	cs::Timer timer;
 	float dTime = 0.0f;
-	float dTimeAverage1 = 0.0f;
-	float dTimeAverage5 = 0.0f;
-	float fpsAverage1 = 0.0f;
-	float fpsAverage5 = 0.0f;
+	float dTimeAverage16 = 0.0f;
+	float dTimeAverage256 = 0.0f;
+	float fpsAverage16 = 0.0f;
+	float fpsAverage256 = 0.0f;
 
 	int exitCode = 0;
 	
@@ -200,33 +200,32 @@ int SafeWinMain(
 	{
 #pragma region Performance timing
 
-		static float dTimeAccumulator1 = 0.0f;
-		static float dTimeAccumulator5 = 0.0f;
-		static int frameCounter1 = 0;
-		static int frameCounter5 = 0;
+		static float dTimeAccumulator16 = 0.0f;
+		static float dTimeAccumulator256 = 0.0f;
+		static cs::Queue<float> dTimeQueue16;
+		static cs::Queue<float> dTimeQueue256;
 
 		dTime = timer.Lap();
 
-		dTimeAccumulator1 += dTime;
-		dTimeAccumulator5 += dTime;
-		frameCounter1++;
-		frameCounter5++;
+		dTimeAccumulator16 += dTime;
+		dTimeAccumulator256 += dTime;
+		dTimeQueue16.Push(dTime);
+		dTimeQueue256.Push(dTime);
 
-		if (dTimeAccumulator1 > 1.0f)
+		if (dTimeQueue16.Size() == 16)
 		{
-			fpsAverage1 = frameCounter1;
-			dTimeAverage1 = dTimeAccumulator1 / frameCounter1;
-			dTimeAccumulator1 = 0;
-			frameCounter1 = 0;
+			dTimeAccumulator16 -= dTimeQueue16.Pop();
 		}
 
-		if (dTimeAccumulator5 > 5.0f)
+		if (dTimeQueue256.Size() == 256)
 		{
-			fpsAverage5 = frameCounter5 / 5.0f;
-			dTimeAverage5 = dTimeAccumulator5 / frameCounter5;
-			dTimeAccumulator5 = 0;
-			frameCounter5 = 0;
+			dTimeAccumulator256 -= dTimeQueue256.Pop();
 		}
+
+		dTimeAverage16 = dTimeAccumulator16 / dTimeQueue16.Size();
+		dTimeAverage256 = dTimeAccumulator256 / dTimeQueue256.Size();
+		fpsAverage16 = 1.0f / dTimeAverage16;
+		fpsAverage256 = 1.0f / dTimeAverage256;
 
 #pragma endregion
 
@@ -330,14 +329,21 @@ int SafeWinMain(
 			// Basic performance monitoring
 			ImGui::Text("Performance");
 			ImGui::Spacing();
-			ImGui::InputFloat("Frame time", &dTime, 0, 0, "%.8f", ImGuiInputTextFlags_ReadOnly);
-			ImGui::InputFloat("Frame time (1s)", &dTimeAverage1, 0, 0, "%.8f", ImGuiInputTextFlags_ReadOnly);
-			ImGui::InputFloat("Frame time (5s)", &dTimeAverage5, 0, 0, "%.8f", ImGuiInputTextFlags_ReadOnly);
+			ImGui::InputFloat("Delta time", &dTime, 0, 0, "%.8f", ImGuiInputTextFlags_ReadOnly);
+			ImGui::InputFloat("Delta time (16)", &dTimeAverage16, 0, 0, "%.8f", ImGuiInputTextFlags_ReadOnly);
+			ImGui::InputFloat("Delta time (256)", &dTimeAverage256, 0, 0, "%.8f", ImGuiInputTextFlags_ReadOnly);
 			ImGui::Spacing();
-			ImGui::InputFloat("FPS (1s)", &fpsAverage1, 0, 0, "%.4f", ImGuiInputTextFlags_ReadOnly);
-			ImGui::InputFloat("FPS (5s)", &fpsAverage5, 0, 0, "%.4f", ImGuiInputTextFlags_ReadOnly);
+			ImGui::InputFloat("FPS (16)", &fpsAverage16, 0, 0, "%.4f", ImGuiInputTextFlags_ReadOnly);
+			ImGui::InputFloat("FPS (256)", &fpsAverage256, 0, 0, "%.4f", ImGuiInputTextFlags_ReadOnly);
 			ImGui::Spacing();
 			ImGui::InputInt("Frame", &frame, 0, 0, ImGuiInputTextFlags_ReadOnly);
+			SPACE3;
+
+			// Input
+			ImGui::Text("Input");
+			ImGui::Spacing();
+			Point mp = sx::Input::MousePosition();
+			ImGui::InputInt2("Mouse pos", (int*)&mp, ImGuiInputTextFlags_ReadOnly);
 
 			ImGui::End();
 		}
@@ -376,7 +382,7 @@ int WINAPI WinMain(
 	{
 		SafeWinMain(hInstance, hPrevInstance, lpCmdLine, nCmdShow);
 	}
-	catch (const cs::Exception& e)
+	catch (const cs::Exception& e) 
 	{
 		input.MouseVisible(true);
 		MessageBoxA(nullptr, e.what(), e.GetType(), MB_OK | MB_ICONERROR);

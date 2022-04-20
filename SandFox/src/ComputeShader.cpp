@@ -27,7 +27,7 @@ void SandFox::ComputeShader::Load(const std::wstring& shaderPath)
 		pBlob->GetBufferSize(),
 		nullptr,
 		&m_computeShader
-	));
+	)); 
 }
 
 void SandFox::ComputeShader::Dispatch(unsigned int x, unsigned int y, unsigned int z)
