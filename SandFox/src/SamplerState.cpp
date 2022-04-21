@@ -29,6 +29,8 @@ ComPtr<ID3D11SamplerState> SandFox::Bind::SamplerState::GetSamplerState()
 
 void SandFox::Bind::SamplerState::Load(unsigned int registerIndex, D3D11_FILTER filter, D3D11_TEXTURE_ADDRESS_MODE addressMode)
 {
+	m_registerIndex = registerIndex;
+
 	D3D11_SAMPLER_DESC d;
 
 	d.Filter = filter;

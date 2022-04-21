@@ -75,7 +75,7 @@ void SandFox::Input::CoreUpdateState()
 
 	if (m_mpDiff != cs::Point(0, 0))
 	{
-		DBOUT("Mouse movement: { " << m_mpDiff.x << ", " << m_mpDiff.y << " }");
+		//DBOUT("Mouse movement: { " << m_mpDiff.x << ", " << m_mpDiff.y << " }");
 	}
 
 	m_keyDown.reset();
@@ -147,7 +147,7 @@ void SandFox::Input::CoreUpdateState()
 
 void SandFox::Input::CoreUpdateMousePosition(Point p)
 {
-	DBOUT("Mouse position change: { " << p.x << ", " << p.y << " }");
+	//DBOUT("Mouse position change: { " << p.x << ", " << p.y << " }");
 	m_mp = p;
 }
 

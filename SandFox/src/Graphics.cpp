@@ -24,6 +24,8 @@ SandFox::Graphics::Graphics()
 	:
 	m_initialized(false),
 	m_imgui(false),
+	m_frameComposited(false),
+	m_displayedBuffer(0),
 
 	m_device(nullptr),
 	m_swapChain(nullptr),
@@ -126,10 +128,10 @@ void SandFox::Graphics::Init(Window* window, std::wstring shaderDir, GraphicsTec
 	scd.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
 	scd.SampleDesc.Count = sampleCount;
 	scd.SampleDesc.Quality = sampleQuality;
-	scd.BufferCount = 1;
+	scd.BufferCount = 2;
 	scd.OutputWindow = m_window->GetHwnd() /*(HWND)67676*/;
 	scd.Windowed = true;
-	scd.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
+	scd.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 	scd.Flags = 0;
 
 	if (m_technique == GraphicsTechniqueImmediate)
@@ -167,7 +169,7 @@ void SandFox::Graphics::Init(Window* window, std::wstring shaderDir, GraphicsTec
 	else
 	{
 
-		scd.BufferUsage = DXGI_USAGE_UNORDERED_ACCESS;
+		scd.BufferUsage = DXGI_USAGE_UNORDERED_ACCESS | DXGI_USAGE_RENDER_TARGET_OUTPUT; 
 
 		EXC_COMCHECKINFO(D3D11CreateDeviceAndSwapChain(
 			nullptr, // Let system pick graphics card/interface
@@ -195,7 +197,7 @@ void SandFox::Graphics::Init(Window* window, std::wstring shaderDir, GraphicsTec
 		EXC_COMCHECKINFO(m_swapChain->GetBuffer(0, _uuidof(ID3D11Texture2D), (void**)&bbTexture));
 
 		m_backBuffers[0].Load(bbTexture, nullptr, nullptr);
-		//m_backBuffers[0].CreateRenderTarget(DXGI_FORMAT_B8G8R8A8_UNORM);
+		m_backBuffers[0].CreateRenderTarget(DXGI_FORMAT_B8G8R8A8_UNORM);
 
 		m_backBufferUAV.Load(&m_backBuffers[0]);
 
@@ -232,7 +234,7 @@ void SandFox::Graphics::Init(Window* window, std::wstring shaderDir, GraphicsTec
 
 	// Shader systems
 
-	Shader::LoadPresets(m_technique);
+	Shader::LoadPresets(m_technique); 
 
 
 
@@ -485,10 +487,14 @@ void SandFox::Graphics::FrameBegin(const cs::Color& color)
 
 		EXC_COMINFO(m_context->OMSetRenderTargets(m_backBufferCount - 1, rtvs, m_depthStencilView.Get()));
 	}
+
+	m_frameComposited = false;
 }
 
-void SandFox::Graphics::FrameFinalize()
+void SandFox::Graphics::FrameComposite()
 {
+	m_frameComposited = true;
+
 	if (m_technique == GraphicsTechniqueDeferred)
 	{
 		// Clear render targets and reassign them as shader resources for the compute shader
@@ -504,17 +510,44 @@ void SandFox::Graphics::FrameFinalize()
 
 		// Bind the client info 
 		m_deferredClientInfo->Bind();
+		m_deferredSamplerState.Bind();
 
 		// Run the lighting pass
 		m_lightingPass.Dispatch(m_window->GetW(), m_window->GetH());
 
 		// Unbind shader resources before next frame
 		ID3D11ShaderResourceView* empty[c_maxRenderTargets] = { nullptr };
+		ID3D11UnorderedAccessView* emptyUAV = nullptr;
 		m_context->CSSetShaderResources(1, m_backBufferCount - 1, empty);
 		m_context->CSSetSamplers(8, 1, m_deferredSamplerState.GetSamplerState().GetAddressOf());
+		m_context->CSSetUnorderedAccessViews(0u, 1u, &emptyUAV, nullptr);
+
+		// Set the finalized image as render target.
+		m_context->OMSetRenderTargets(1, m_backBuffers[0].GetRenderTarget().GetAddressOf(), m_depthStencilView.Get());
+	}
+}
+
+void SandFox::Graphics::FrameFinalize()
+{
+	if (m_technique == GraphicsTechniqueDeferred && !m_frameComposited)
+	{
+		FrameComposite();
 	}
 
 	EXC_COMCHECKINFO(m_swapChain->Present(0u, 0u));
+}
+
+void SandFox::Graphics::DrawGraphicsImgui()
+{
+	ImGui::Begin("Graphics");
+
+	if (m_technique == GraphicsTechniqueDeferred)
+	{
+		cstr combo = "Back Buffer0Position Buffer0Normal Buffer0Color 10Color 20 Color 30Linear 10Linear 2";
+		ImGui::Combo("Display Buffer", &m_displayedBuffer, combo);
+	}
+
+	ImGui::End();
 }
 
 void SandFox::Graphics::ChangeDepthStencil(bool enable, bool write)

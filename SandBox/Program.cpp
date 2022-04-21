@@ -84,7 +84,7 @@ int SafeWinMain(
 	window.InitClass(hInstance);
 	window.InitWindow(1920, 1080, "SandBox"); 
 
-	sx::GraphicsTechnique technique = sx::GraphicsTechniqueImmediate; 
+	sx::GraphicsTechnique technique = sx::GraphicsTechniqueDeferred; 
 	graphics.Init(&window, L"Assets\\Shaders", technique); 
 	graphics.InitCamera({ 0, 0, 0 }, { 0, 0, 0 }, cs::c_pi * 0.5f);
 
@@ -308,6 +308,8 @@ int SafeWinMain(
 		graphics.ChangeDepthStencil(true, false);
 		particles.Draw();
 
+		graphics.FrameComposite();
+
 #pragma region Imgui
 
 #define SPACE3 ImGui::Spacing(); ImGui::Spacing(); ImGui::Spacing();
@@ -348,7 +350,11 @@ int SafeWinMain(
 			ImGui::End();
 		}
 
-		imgui.EndDraw();
+		{
+			graphics.DrawGraphicsImgui(); 
+		}
+
+		imgui.EndDraw(); 
 
 #pragma endregion
 

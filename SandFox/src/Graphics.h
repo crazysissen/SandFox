@@ -104,7 +104,10 @@ namespace SandFox
 
 		// Finalize drawing to back buffer and flip
 		void FrameBegin(const cs::Color& color);
+		void FrameComposite();
 		void FrameFinalize();
+
+		void DrawGraphicsImgui();
 
 		void ChangeDepthStencil(bool enable, bool write);
 
@@ -139,6 +142,9 @@ namespace SandFox
 
 		bool m_initialized;
 		bool m_imgui;
+		bool m_frameComposited;
+
+		int m_displayedBuffer;
 
 		// Window information
 		Window* m_window;
