@@ -23,7 +23,7 @@ constexpr byte c_mouseKey = sx::KeyE;
 
 Mat3 HandleInput(float dTime)
 {
-	bool locked = sx::Input::GetMouseLocked();
+	bool locked = sx::Input::GetMouseLocked(); 
 
 	std::shared_ptr<sx::Camera> c = sx::Graphics::Get().GetCamera();
 
@@ -82,10 +82,10 @@ int SafeWinMain(
 	cs::Random r;
 
 	window.InitClass(hInstance);
-	window.InitWindow(1920, 1080, "SandBox"); 
+	window.InitWindow(1920, 1080, "SandBox");
 
-	sx::GraphicsTechnique technique = sx::GraphicsTechniqueDeferred; 
-	graphics.Init(&window, L"Assets\\Shaders", technique); 
+	sx::GraphicsTechnique technique = sx::GraphicsTechniqueDeferred;
+	graphics.Init(&window, L"Assets\\Shaders", technique);
 	graphics.InitCamera({ 0, 0, 0 }, { 0, 0, 0 }, cs::c_pi * 0.5f);
 
 	input.LoadWindow(&window);
@@ -351,7 +351,7 @@ int SafeWinMain(
 		}
 
 		{
-			graphics.DrawGraphicsImgui(); 
+			graphics.DrawGraphicsImgui();
 		}
 
 		imgui.EndDraw(); 

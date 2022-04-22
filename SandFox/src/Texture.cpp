@@ -83,7 +83,7 @@ void SandFox::Texture::Load(const std::wstring& name, bool immutable, D3D11_BIND
 	EXC_COMCHECKINFO(Graphics::Get().GetDevice()->CreateShaderResourceView(m_texture.Get(), &srvd, &m_resourceView));
 }
 
-void SandFox::Texture::Load(unsigned char* data, int width, int height, bool immutable, int stride, DXGI_FORMAT format, D3D11_BIND_FLAG bindFlags)
+void SandFox::Texture::Load(unsigned char* data, int width, int height, bool immutable, int stride, DXGI_FORMAT format, D3D11_BIND_FLAG bindFlags, int srvFormatOverride)
 {
 	// Create Texture resource
 	D3D11_TEXTURE2D_DESC td;
@@ -94,7 +94,7 @@ void SandFox::Texture::Load(unsigned char* data, int width, int height, bool imm
 	td.Format = format;
 	td.SampleDesc = { 1, 0 };
 	td.Usage = immutable ? D3D11_USAGE_IMMUTABLE : D3D11_USAGE_DEFAULT;
-	td.BindFlags = bindFlags;
+	td.BindFlags = bindFlags | D3D11_BIND_SHADER_RESOURCE;
 	td.CPUAccessFlags = 0 /*D3D11_CPU_ACCESS_READ*/;
 	td.MiscFlags = 0;
 
@@ -107,7 +107,7 @@ void SandFox::Texture::Load(unsigned char* data, int width, int height, bool imm
 	// Create shader resource view
 
 	D3D11_SHADER_RESOURCE_VIEW_DESC srvd;
-	srvd.Format = format;
+	srvd.Format = (srvFormatOverride > -1) ? (DXGI_FORMAT)srvFormatOverride : format;
 	srvd.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 	srvd.Texture2D = { 0, 1 };
 
@@ -183,9 +183,9 @@ void SandFox::RenderTexture::Load(const std::wstring& name, bool immutable, D3D1
 	CreateRenderTarget(DXGI_FORMAT_R8G8B8A8_UNORM);
 }
 
-void SandFox::RenderTexture::Load(unsigned char* data, int width, int height, bool immutable, int stride, DXGI_FORMAT format, D3D11_BIND_FLAG additionalBindFlags)
+void SandFox::RenderTexture::Load(unsigned char* data, int width, int height, bool immutable, int stride, DXGI_FORMAT format, D3D11_BIND_FLAG additionalBindFlags, int srvFormatOverride)
 {
-	Texture::Load(data, width, height, false, stride, format, (D3D11_BIND_FLAG)(additionalBindFlags | D3D11_BIND_RENDER_TARGET));
+	Texture::Load(data, width, height, false, stride, format, (D3D11_BIND_FLAG)(additionalBindFlags | D3D11_BIND_RENDER_TARGET), srvFormatOverride);
 	CreateRenderTarget(format);
 }
 

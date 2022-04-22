@@ -52,7 +52,7 @@ namespace SandFox
 	public:
 		static constexpr bool c_usePPFX = false;
 		static constexpr float c_nearClip = 0.05f;
-		static constexpr float c_farClip = 1000.0f;
+		static constexpr float c_farClip = 100.0f;
 		static constexpr int c_maxRenderTargets = 7;
 		static constexpr int c_maxLights = 16;
 
@@ -155,8 +155,10 @@ namespace SandFox
 		ComPtr<ID3D11DeviceContext> m_context;
 
 		// Depth stencil
-		ComPtr<ID3D11Texture2D>			m_depthStencilTexture;
-		ComPtr<ID3D11DepthStencilView>	m_depthStencilView;
+		Texture								m_depthStencilTexture;
+		//ComPtr<ID3D11Texture2D>				m_depthStencilTexture;
+		ComPtr<ID3D11DepthStencilView>		m_depthStencilView;
+		//ComPtr<ID3D11ShaderResourceView>	m_depthStencilShaderResourceView;
 
 		// Technique
 		GraphicsTechnique m_technique;
@@ -166,6 +168,7 @@ namespace SandFox
 		int				m_backBufferCount;
 		UAVTexture		m_backBufferUAV;
 		ComputeShader   m_lightingPass;
+		ComputeShader	m_copyPass;
 
 		Bind::SamplerState	m_deferredSamplerState;
 		IBindable*			m_deferredClientInfo;

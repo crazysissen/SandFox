@@ -424,6 +424,9 @@
     <FxCompile Include="src\Shaders\D_P_PSBillboard.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
+    <FxCompile Include="CSCopyTexture.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="src\Shaders\H_PhongAlg.hlsli">

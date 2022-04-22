@@ -41,7 +41,7 @@ SandFox::Graphics::Graphics()
 	m_sceneInfoBuffer(nullptr),
 	m_sceneInfo(),
 
-	m_depthStencilTexture(nullptr),
+	m_depthStencilTexture(),
 	m_depthStencilView(nullptr),
 
 	m_technique(GraphicsTechniqueImmediate),
@@ -228,6 +228,7 @@ void SandFox::Graphics::Init(Window* window, std::wstring shaderDir, GraphicsTec
 
 	}
 
+	m_copyPass.Load(ShaderPath(L"CSCopyTexture"));
 
 
 
@@ -283,19 +284,16 @@ void SandFox::Graphics::Init(Window* window, std::wstring shaderDir, GraphicsTec
 	// --- Depth stencil texture
 
 	// Create
-	D3D11_TEXTURE2D_DESC dstDesc = {};
-	dstDesc.Width = m_window->GetW();
-	dstDesc.Height = m_window->GetH();
-	dstDesc.MipLevels = 1u;
-	dstDesc.ArraySize = 1u;
-	dstDesc.Format = DXGI_FORMAT_D32_FLOAT;
-	dstDesc.SampleDesc.Count = sampleCount;
-	dstDesc.SampleDesc.Quality = sampleQuality;
-	dstDesc.Usage = D3D11_USAGE_DEFAULT;
-	dstDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
-
-	//ComPtr<ID3D11Texture2D> m_depthStencilTexture;
-	EXC_COMCHECKINFO(m_device->CreateTexture2D(&dstDesc, nullptr, &m_depthStencilTexture));
+	m_depthStencilTexture.Load(
+		nullptr, 
+		m_window->GetW(), 
+		m_window->GetH(), 
+		false, 
+		4, 
+		DXGI_FORMAT_R32_TYPELESS, 
+		D3D11_BIND_DEPTH_STENCIL,
+		DXGI_FORMAT_R32_FLOAT
+	);
 
 
 
@@ -309,7 +307,7 @@ void SandFox::Graphics::Init(Window* window, std::wstring shaderDir, GraphicsTec
 	dsvDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DMS;
 	dsvDesc.Texture2D.MipSlice = 0u;
 
-	EXC_COMCHECKINFO(m_device->CreateDepthStencilView(m_depthStencilTexture.Get(), &dsvDesc, &m_depthStencilView));
+	EXC_COMCHECKINFO(m_device->CreateDepthStencilView(m_depthStencilTexture.GetTexture().Get(), &dsvDesc, &m_depthStencilView));
 
 
 
@@ -402,6 +400,8 @@ void SandFox::Graphics::Init(Window* window, std::wstring shaderDir, GraphicsTec
 	}
 	else
 	{
+		bd.RenderTarget[0] = rtbd;
+
 		bd.RenderTarget[2] = rtbd;
 		bd.RenderTarget[3] = rtbd;
 		bd.RenderTarget[4] = rtbd;
@@ -468,6 +468,8 @@ void SandFox::Graphics::FrameBegin(const cs::Color& color)
 	}
 	else
 	{
+		m_backBuffers[0].Clear(color);
+
 		m_backBuffers[1].Clear({ 0, 0, 0, 255 });
 		m_backBuffers[2].Clear({ 0, 0, 0, 255 });
 
@@ -500,26 +502,51 @@ void SandFox::Graphics::FrameComposite()
 		// Clear render targets and reassign them as shader resources for the compute shader
 		m_context->OMSetRenderTargets(0, nullptr, nullptr);
 
-		for (int i = 1; i < m_backBufferCount; i++)
-		{
-			EXC_COMINFO(m_context->CSSetShaderResources(i, 1u, m_backBuffers[i].GetResourceView().GetAddressOf()));
-		}
-
-		// Bind the new render target as a UAV
-		m_context->CSSetUnorderedAccessViews(0u, 1u, m_backBufferUAV.GetUAV().GetAddressOf(), nullptr);
-
 		// Bind the client info 
 		m_deferredClientInfo->Bind();
 		m_deferredSamplerState.Bind();
 
-		// Run the lighting pass
-		m_lightingPass.Dispatch(m_window->GetW(), m_window->GetH());
+		// Bind the new render target as a UAV
+		m_context->CSSetUnorderedAccessViews(0u, 1u, m_backBufferUAV.GetUAV().GetAddressOf(), nullptr);
 
-		// Unbind shader resources before next frame
-		ID3D11ShaderResourceView* empty[c_maxRenderTargets] = { nullptr };
+		if (m_displayedBuffer == 0)
+		{
+			// Compose the final image
+
+			for (int i = 1; i < m_backBufferCount; i++)
+			{
+				EXC_COMINFO(m_context->CSSetShaderResources(i, 1u, m_backBuffers[i].GetResourceView().GetAddressOf()));
+			}
+
+			// Run the lighting pass
+			m_lightingPass.Dispatch(m_window->GetW(), m_window->GetH());
+
+			// Unbind shader resources before next frame
+			ID3D11ShaderResourceView* empty[c_maxRenderTargets] = { nullptr };
+			m_context->CSSetShaderResources(1, m_backBufferCount - 1, empty);
+			m_context->CSSetSamplers(8, 1, m_deferredSamplerState.GetSamplerState().GetAddressOf());
+		}
+		else
+		{
+			ID3D11ShaderResourceView* target = nullptr;
+
+			if (m_displayedBuffer >= m_backBufferCount)
+			{
+				target = m_depthStencilTexture.GetResourceView().Get();
+			}
+			else
+			{
+				target = m_backBuffers[m_displayedBuffer].GetResourceView().Get();
+			}
+
+			m_context->CSSetShaderResources(0, 1, &target);
+			m_copyPass.Dispatch(m_window->GetW(), m_window->GetH());
+
+			target = nullptr;
+			m_context->CSSetShaderResources(0, 1, &target);
+		}
+
 		ID3D11UnorderedAccessView* emptyUAV = nullptr;
-		m_context->CSSetShaderResources(1, m_backBufferCount - 1, empty);
-		m_context->CSSetSamplers(8, 1, m_deferredSamplerState.GetSamplerState().GetAddressOf());
 		m_context->CSSetUnorderedAccessViews(0u, 1u, &emptyUAV, nullptr);
 
 		// Set the finalized image as render target.
@@ -543,9 +570,40 @@ void SandFox::Graphics::DrawGraphicsImgui()
 
 	if (m_technique == GraphicsTechniqueDeferred)
 	{
-		cstr combo = "Back Buffer0Position Buffer0Normal Buffer0Color 10Color 20 Color 30Linear 10Linear 2";
-		ImGui::Combo("Display Buffer", &m_displayedBuffer, combo);
+		cstr combo = "Composited Image\0Position Buffer\0Normal Buffer\0Ambient Color\0Diffuse Color\0Specular Color\0Specular Exponent\0-Unused\0Depth Stencil";
+		ImGui::Combo("Display Buffer", &m_displayedBuffer, combo, 9);
+
+		Texture* texture;
+		D3D11_TEXTURE2D_DESC textureFormat = {};
+		D3D11_SHADER_RESOURCE_VIEW_DESC srvFormat = {};
+		D3D11_DEPTH_STENCIL_VIEW_DESC dsvFormat = {};
+		if (m_displayedBuffer < m_backBufferCount)
+		{
+			texture = &m_backBuffers[m_displayedBuffer];
+			texture->GetTexture().Get()->GetDesc(&textureFormat);
+
+			if (m_displayedBuffer != 0)
+			{
+				texture->GetResourceView().Get()->GetDesc(&srvFormat);
+			}
+		}
+		else
+		{
+			texture = &m_depthStencilTexture;
+			texture->GetTexture().Get()->GetDesc(&textureFormat);
+			texture->GetResourceView().Get()->GetDesc(&srvFormat);
+			m_depthStencilView->GetDesc(&dsvFormat);
+		}
+
+		ImGui::LabelText("TEX Format", c_dxgiFormatCstr[textureFormat.Format]);
+
+		if (srvFormat.ViewDimension != 0)	ImGui::LabelText("SRV Format", c_dxgiFormatCstr[srvFormat.Format]);
+		else								ImGui::LabelText("SRV Format", "N/A");
+
+		if (dsvFormat.ViewDimension != 0)	ImGui::LabelText("DSV Format", c_dxgiFormatCstr[dsvFormat.Format]);
+		else								ImGui::LabelText("DSV Format", "N/A");
 	}
+
 
 	ImGui::End();
 }

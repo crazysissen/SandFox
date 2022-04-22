@@ -55,7 +55,7 @@ SamplerState samplerState : register(s5);
 
 PSOut main(PSIn input)
 {
-    float3 color = shaderTexture.Sample(samplerState, input.uv).xyz;
+    float3 color = shaderTexture.Sample(samplerState, input.uv * uvScale).xyz;
 
     PSOut o;
 
