@@ -44,25 +44,29 @@ void main(uint3 id : SV_DispatchThreadID)
     float3 position = tPosition.SampleLevel(samplerState, uv, 0).xyz;
     float3 normal = tNormal.SampleLevel(samplerState, uv, 0).xyz;
 
-    float3 ambientSample = tAmbient.SampleLevel(samplerState, uv, 0).xyz;
-    float3 diffuseSample = tDiffuse.SampleLevel(samplerState, uv, 0).xyz;
-    float3 specularSample = tSpecular.SampleLevel(samplerState, uv, 0).xyz;
-    float exponentSample = tExponent.SampleLevel(samplerState, uv, 0).x;
-
-    float3 color = ambient * ambientSample;
-
-    for (int i = 0; i < lightCount; i++)
+    float4 diffuseSample = tDiffuse.SampleLevel(samplerState, uv, 0);
+    
+    if (diffuseSample.w != 0)
     {
-        color += phong(
-            lights[i],
-            viewerPosition,
-            position,
-            normal,
-            diffuseSample,
-            specularSample,
-            exponentSample
-        );
-    }
+        float3 ambientSample = tAmbient.SampleLevel(samplerState, uv, 0).xyz;
+        float3 specularSample = tSpecular.SampleLevel(samplerState, uv, 0).xyz;
+        float exponentSample = tExponent.SampleLevel(samplerState, uv, 0).x;
 
-    tTarget[id.xy] = saturate(float4(color, 1.0f));
+        float3 color = ambient * ambientSample;
+
+        for (int i = 0; i < lightCount; i++)
+        {
+            color += phong(
+                lights[i],
+                viewerPosition,
+                position,
+                normal,
+                diffuseSample.xyz,
+                specularSample,
+                exponentSample
+            );
+        }
+
+        tTarget[id.xy] = saturate(float4(color, 1.0f));
+    }
 }

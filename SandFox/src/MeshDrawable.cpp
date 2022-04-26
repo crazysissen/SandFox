@@ -95,11 +95,20 @@ SandFox::Prim::MeshDrawable::SubmeshDrawable::SubmeshDrawable(Transform t, Mesh*
 	MeshSubmesh& s = m->submeshes[index];
 	MeshMaterial& mt = m->materials[s.materialIndex];
 
+	MaterialInfo mi =
+	{
+		mt.ambient, {},
+		mt.diffuse, {},
+		mt.specular,
+		mt.exponent
+	};
+
 	AddBind(new SandFox::Bind::SamplerState(4u, D3D11_FILTER_MIN_MAG_MIP_POINT));
-	AddBind(new SandFox::Bind::TextureBindable(m->textures[mt.ambientMapIndex], 5u));
-	AddBind(new SandFox::Bind::TextureBindable(m->textures[mt.diffuseMapIndex], 6u));
-	AddBind(new SandFox::Bind::TextureBindable(m->textures[mt.specularMapIndex], 7u));
-	AddBind(new SandFox::Bind::TextureBindable(m->textures[mt.exponentMapIndex], 8u));
+	AddBind(new SandFox::Bind::TextureBindable(m->textures[mt.albedoIndex], 5u));
+	AddBind(new SandFox::Bind::TextureBindable(m->textures[mt.exponentIndex], 6u));
+
+	m_materialInfo = new SandFox::Bind::ConstBufferP<MaterialInfo>(mi, 2, false);
+	AddBind(m_materialInfo);
 
 	AddBind(new SandFox::Bind::VertexBuffer(m->vertices, m->vertexCount));
 	AddIndexBuffer(new SandFox::Bind::IndexBuffer(s.indices, s.indexCount));

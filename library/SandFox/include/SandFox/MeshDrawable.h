@@ -25,6 +25,14 @@ namespace SandFox
 			void Draw();
 
 		private:
+			struct MaterialInfo
+			{
+				cs::Color ambient;		PAD(4, 0);
+				cs::Color diffuse;		PAD(4, 1);
+				cs::Color specular;		
+				float shininess;		
+			};
+
 			class SubmeshDrawable : public Drawable<SubmeshDrawable>
 			{
 			public:
@@ -32,6 +40,7 @@ namespace SandFox
 
 			private:
 				Mesh* m_mesh;
+				IBindable* m_materialInfo;
 				int m_index;
 			};
 

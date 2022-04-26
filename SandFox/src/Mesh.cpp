@@ -99,16 +99,13 @@ bool LoadOBJ(SandFox::Mesh& m, const wchar_t* path)
 	{
 		string name;
 
-		cs::Color ambient = cs::Color(-1.0f, 0.0f, 0.0f);
-		cs::Color diffuse = cs::Color(-1.0f, 0.0f, 0.0f);
-		cs::Color specular = cs::Color(-1.0f, 0.0f, 0.0f);
-		cs::Color emissive = cs::Color(0.0f, 0.0f, 0.0f);
+		cs::Color ambient = cs::Color(0.0f, 0.0f, 0.0f);
+		cs::Color diffuse = cs::Color(0.0f, 0.0f, 0.0f);
+		cs::Color specular = cs::Color(0.0f, 0.0f, 0.0f);
+		//cs::Color emissive = cs::Color(0.0f, 0.0f, 0.0f);
 		float exponent = 1.0f;
 
-		int ambientMap = -1;
-		int diffuseMap = -1;
-		int specularMap = -1;
-		int emissiveMap = -1;
+		int albedoMap = -1;
 		int exponentMap = -1;
 	};
 
@@ -317,8 +314,11 @@ bool LoadOBJ(SandFox::Mesh& m, const wchar_t* path)
 							materialPrimers.Back().specular = cs::Color(fBuffer[0], fBuffer[1], fBuffer[2]);
 							break;
 
-						case 'e': // Emissive
-							materialPrimers.Back().emissive = cs::Color(fBuffer[0], fBuffer[1], fBuffer[2]);
+						//case 'e': // Emissive
+						//	materialPrimers.Back().emissive = cs::Color(fBuffer[0], fBuffer[1], fBuffer[2]);
+						//	break;
+
+						default:
 							break;
 					}
 				}
@@ -343,20 +343,23 @@ bool LoadOBJ(SandFox::Mesh& m, const wchar_t* path)
 						{
 							switch (line[5])
 							{
-								case 'a':
-									materialPrimers.Back().ambientMap = currentTexture;
-									break;
+								//case 'a':
+								//	materialPrimers.Back().ambientMap = currentTexture;
+								//	break;
 
 								case 'd':
-									materialPrimers.Back().diffuseMap = currentTexture;
+									materialPrimers.Back().albedoMap = currentTexture;
 									break;
 
-								case 's':
-									materialPrimers.Back().specularMap = currentTexture;
-									break;
+								//case 's':
+								//	materialPrimers.Back().specularMap = currentTexture;
+								//	break;
 
-								case 'e':
-									materialPrimers.Back().emissiveMap = currentTexture;
+								//case 'e':
+								//	materialPrimers.Back().emissiveMap = currentTexture;
+								//	break;
+
+								default:
 									break;
 							}
 
@@ -489,43 +492,51 @@ bool LoadOBJ(SandFox::Mesh& m, const wchar_t* path)
 	{
 		m.materials[i].name = materialPrimers[i].name;
 
-		if (materialPrimers[i].ambientMap == -1 && materialPrimers[i].ambient.r == -1.0f)
-		{
-			if (materialPrimers[i].diffuseMap != -1)
-			{
-				materialPrimers[i].ambientMap = materialPrimers[i].diffuseMap;
-			}
-			else if (materialPrimers[i].diffuse.r != -1.0f)
-			{
-				materialPrimers[i].ambient = materialPrimers[i].diffuse;
-			}
-			else
-			{
-				materialPrimers[i].ambient = cs::Color(1.0f, 1.0f, 1.0f);
-			}
-		}
+		m.materials[i].ambient = materialPrimers[i].ambient;
+		m.materials[i].diffuse = materialPrimers[i].diffuse;
+		m.materials[i].specular = materialPrimers[i].specular;
+		m.materials[i].exponent = materialPrimers[i].exponent;
 
-		if (materialPrimers[i].specularMap == -1 && materialPrimers[i].specular.r == -1.0f)
-		{
-			if (materialPrimers[i].diffuseMap != -1)
-			{
-				materialPrimers[i].specularMap = materialPrimers[i].diffuseMap;
-			}
-			else if (materialPrimers[i].diffuse.r != -1.0f)
-			{
-				materialPrimers[i].specular = materialPrimers[i].diffuse;
-			}
-			else
-			{
-				materialPrimers[i].specular = cs::Color(1.0f, 1.0f, 1.0f);
-			}
-		}
+		loadTextureColor(m.materials[i].albedoIndex, materialPrimers[i].albedoMap, cs::Color(1.0f, 1.0f, 1.0f));
+		loadTextureLinear(m.materials[i].exponentIndex, materialPrimers[i].exponentMap, 1.0f);
 
-		loadTextureColor(m.materials[i].ambientMapIndex, materialPrimers[i].ambientMap, materialPrimers[i].ambient);
-		loadTextureColor(m.materials[i].diffuseMapIndex, materialPrimers[i].diffuseMap, materialPrimers[i].diffuse);
-		loadTextureColor(m.materials[i].specularMapIndex, materialPrimers[i].specularMap, materialPrimers[i].specular);
-		loadTextureColor(m.materials[i].emissiveMapIndex, materialPrimers[i].emissiveMap, materialPrimers[i].emissive);
-		loadTextureLinear(m.materials[i].exponentMapIndex, materialPrimers[i].exponentMap, materialPrimers[i].exponent);
+		//if (materialPrimers[i].ambientMap == -1 && materialPrimers[i].ambient.r == -1.0f)
+		//{
+		//	if (materialPrimers[i].diffuseMap != -1)
+		//	{
+		//		materialPrimers[i].ambientMap = materialPrimers[i].diffuseMap;
+		//	}
+		//	else if (materialPrimers[i].diffuse.r != -1.0f)
+		//	{
+		//		materialPrimers[i].ambient = materialPrimers[i].diffuse;
+		//	}
+		//	else
+		//	{
+		//		materialPrimers[i].ambient = cs::Color(1.0f, 1.0f, 1.0f);
+		//	}
+		//}
+
+		//if (materialPrimers[i].specularMap == -1 && materialPrimers[i].specular.r == -1.0f)
+		//{
+		//	if (materialPrimers[i].diffuseMap != -1)
+		//	{
+		//		materialPrimers[i].specularMap = materialPrimers[i].diffuseMap;
+		//	}
+		//	else if (materialPrimers[i].diffuse.r != -1.0f)
+		//	{
+		//		materialPrimers[i].specular = materialPrimers[i].diffuse;
+		//	}
+		//	else
+		//	{
+		//		materialPrimers[i].specular = cs::Color(1.0f, 1.0f, 1.0f);
+		//	}
+		//}
+
+		//loadTextureColor(m.materials[i].ambientMapIndex, materialPrimers[i].ambientMap, materialPrimers[i].ambient);
+		//loadTextureColor(m.materials[i].diffuseMapIndex, materialPrimers[i].diffuseMap, materialPrimers[i].diffuse);
+		//loadTextureColor(m.materials[i].specularMapIndex, materialPrimers[i].specularMap, materialPrimers[i].specular);
+		////loadTextureColor(m.materials[i].emissiveMapIndex, materialPrimers[i].emissiveMap, materialPrimers[i].emissive);
+		//loadTextureLinear(m.materials[i].exponentMapIndex, materialPrimers[i].exponentMap, materialPrimers[i].exponent);
 	}
 
 

@@ -23,12 +23,18 @@ cbuffer SceneInfo : register(b10)
     Light lights[LIGHT_CAPACITY];
 };
 
+cbuffer MaterialInfo : register(b2)
+{
+    float3 materialAmbient;
+    float3 materialDiffuse;
+    float3 materialSpecular;
+    float materialShininess;
+}
+
 // Textures and sample information
 SamplerState samplerState : register(s4);
-Texture2D tAmbient : register(t5);
-Texture2D tDiffuse : register(t6);
-Texture2D tSpecular : register(t7);
-Texture2D tExponent : register(t8);
+Texture2D tAlbedo : register(t5);
+Texture2D tExponent : register(t6);
 
 
 
@@ -38,12 +44,10 @@ float4 main(PSIn input) : SV_TARGET
     float3 position = input.position.xyz;
     float3 normal = normalize(input.normal.xyz);
 
-    float3 ambientSample = tAmbient.Sample(samplerState, input.uv).xyz;
-    float3 diffuseSample = tDiffuse.Sample(samplerState, input.uv).xyz;
-    float3 specularSample = tSpecular.Sample(samplerState, input.uv).xyz;
+    float3 albedoSample = tAlbedo.Sample(samplerState, input.uv).xyz;
     float exponentSample = tExponent.Sample(samplerState, input.uv).x;
 
-    float3 color = ambient * ambientSample;
+    float3 color = ambient * materialAmbient * albedoSample;
 
     for (int i = 0; i < lightCount; i++)
     {
@@ -52,9 +56,9 @@ float4 main(PSIn input) : SV_TARGET
             viewerPosition,
             position, 
             normal, 
-            diffuseSample,
-            specularSample,
-            exponentSample
+            albedoSample * materialDiffuse,
+            albedoSample * materialSpecular, 
+            exponentSample * materialShininess
         );
     }
 

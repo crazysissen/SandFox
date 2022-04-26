@@ -33,11 +33,13 @@ namespace SandFox
 	{
 		string name;
 
-		int ambientMapIndex;
-		int diffuseMapIndex;
-		int specularMapIndex;
-		int emissiveMapIndex;
-		int exponentMapIndex;
+		Vec3 ambient;
+		Vec3 diffuse;
+		Vec3 specular;
+		float exponent;
+
+		int albedoIndex;
+		int exponentIndex;
 	};
 
 	struct FOX_API Mesh

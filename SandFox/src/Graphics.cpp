@@ -436,7 +436,7 @@ void SandFox::Graphics::InitImgui()
 	m_imgui = true;
 }
 
-void SandFox::Graphics::SetLights(Light* lights, int count)
+void SandFox::Graphics::SetLights(const Light* lights, int count)
 {
 	if (count >= c_maxLights)
 	{
@@ -473,9 +473,9 @@ void SandFox::Graphics::FrameBegin(const cs::Color& color)
 		m_backBuffers[1].Clear({ 0, 0, 0, 255 });
 		m_backBuffers[2].Clear({ 0, 0, 0, 255 });
 
-		m_backBuffers[3].Clear({ color });
-		m_backBuffers[4].Clear({ 0, 0, 0, 255 });
-		m_backBuffers[5].Clear({ 0, 0, 0, 255 });
+		m_backBuffers[3].Clear({ 0, 0, 0, 0 });
+		m_backBuffers[4].Clear({ 0, 0, 0, 0 });
+		m_backBuffers[5].Clear({ 0, 0, 0, 0 });
 						
 		m_backBuffers[6].Clear({ 0, 0, 0, 255 });
 		m_backBuffers[7].Clear({ 0, 0, 0, 255 });
@@ -566,46 +566,50 @@ void SandFox::Graphics::FrameFinalize()
 
 void SandFox::Graphics::DrawGraphicsImgui()
 {
-	ImGui::Begin("Graphics");
+	//ImGui::Begin("Graphics");
 
 	if (m_technique == GraphicsTechniqueDeferred)
 	{
-		cstr combo = "Composited Image\0Position Buffer\0Normal Buffer\0Ambient Color\0Diffuse Color\0Specular Color\0Specular Exponent\0-Unused\0Depth Stencil";
+		cstr combo = "Composited Image\0Position Buffer\0Normal Buffer\0Albedo Color\0- Color\0- Color\0Specular Exponent\0- Linear\0Depth Stencil";
 		ImGui::Combo("Display Buffer", &m_displayedBuffer, combo, 9);
-
-		Texture* texture;
-		D3D11_TEXTURE2D_DESC textureFormat = {};
-		D3D11_SHADER_RESOURCE_VIEW_DESC srvFormat = {};
-		D3D11_DEPTH_STENCIL_VIEW_DESC dsvFormat = {};
-		if (m_displayedBuffer < m_backBufferCount)
-		{
-			texture = &m_backBuffers[m_displayedBuffer];
-			texture->GetTexture().Get()->GetDesc(&textureFormat);
-
-			if (m_displayedBuffer != 0)
-			{
-				texture->GetResourceView().Get()->GetDesc(&srvFormat);
-			}
-		}
-		else
-		{
-			texture = &m_depthStencilTexture;
-			texture->GetTexture().Get()->GetDesc(&textureFormat);
-			texture->GetResourceView().Get()->GetDesc(&srvFormat);
-			m_depthStencilView->GetDesc(&dsvFormat);
-		}
-
-		ImGui::LabelText("TEX Format", c_dxgiFormatCstr[textureFormat.Format]);
-
-		if (srvFormat.ViewDimension != 0)	ImGui::LabelText("SRV Format", c_dxgiFormatCstr[srvFormat.Format]);
-		else								ImGui::LabelText("SRV Format", "N/A");
-
-		if (dsvFormat.ViewDimension != 0)	ImGui::LabelText("DSV Format", c_dxgiFormatCstr[dsvFormat.Format]);
-		else								ImGui::LabelText("DSV Format", "N/A");
+	}
+	else
+	{
+		cstr combo = "Render Target\0Depth Stencil";
+		ImGui::Combo("Display Buffer", &m_displayedBuffer, combo, 9);
 	}
 
+	Texture* texture;
+	D3D11_TEXTURE2D_DESC textureFormat = {};
+	D3D11_SHADER_RESOURCE_VIEW_DESC srvFormat = {};
+	D3D11_DEPTH_STENCIL_VIEW_DESC dsvFormat = {};
+	if (m_displayedBuffer < m_backBufferCount)
+	{
+		texture = &m_backBuffers[m_displayedBuffer];
+		texture->GetTexture().Get()->GetDesc(&textureFormat);
 
-	ImGui::End();
+		if (m_displayedBuffer != 0)
+		{
+			texture->GetResourceView().Get()->GetDesc(&srvFormat);
+		}
+	}
+	else
+	{
+		texture = &m_depthStencilTexture;
+		texture->GetTexture().Get()->GetDesc(&textureFormat);
+		texture->GetResourceView().Get()->GetDesc(&srvFormat);
+		m_depthStencilView->GetDesc(&dsvFormat);
+	}
+
+	ImGui::LabelText("TEX Format", c_dxgiFormatCstr[textureFormat.Format]);
+
+	if (srvFormat.ViewDimension != 0)	ImGui::LabelText("SRV Format", c_dxgiFormatCstr[srvFormat.Format]);
+	else								ImGui::LabelText("SRV Format", "N/A");
+
+	if (dsvFormat.ViewDimension != 0)	ImGui::LabelText("DSV Format", c_dxgiFormatCstr[dsvFormat.Format]);
+	else								ImGui::LabelText("DSV Format", "N/A");
+
+	//ImGui::End();
 }
 
 void SandFox::Graphics::ChangeDepthStencil(bool enable, bool write)

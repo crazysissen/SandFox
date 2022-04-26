@@ -84,9 +84,9 @@ int SafeWinMain(
 	window.InitClass(hInstance);
 	window.InitWindow(1920, 1080, "SandBox");
 
-	sx::GraphicsTechnique technique = sx::GraphicsTechniqueDeferred;
+	sx::GraphicsTechnique technique = sx::GraphicsTechniqueImmediate; 
 	graphics.Init(&window, L"Assets\\Shaders", technique);
-	graphics.InitCamera({ 0, 0, 0 }, { 0, 0, 0 }, cs::c_pi * 0.5f);
+	graphics.InitCamera({ 0, 0, 0 }, { 0, 0, 0 }, cs::c_pi * 0.5f); 
 
 	input.LoadWindow(&window);
 
@@ -97,33 +97,50 @@ int SafeWinMain(
 	window.Show();
 
 
+
+	// Creating drawables
+
+#pragma region Lights
 	
 	// Lights
 
-	const int lightCount = 2;
+	cs::List<sx::Graphics::Light> lights;
+	float ambientLight = 0.2f;
+	cs::Color ambientColor(0xFFFFFF);
 
-	sx::Graphics::Light lights[lightCount] =
-	{
-		sx::Graphics::Light::Directional({ -0.1f, -1.0f, 0.1f }, 0.9f, cs::Color(0xFFFFF0)),
-		//sx::Graphics::Light::Point({ 0, 0, 0 }, 50.0f),
-		sx::Graphics::Light::Spot({ 0, 0, 0 }, { 0, 0, 1 }, 0.6f, 20.0f)
-	};
+	lights.Add(sx::Graphics::Light::Directional({ -0.1f, -1.0f, 0.1f }, 0.9f, cs::Color(0xFFFFF0)));
+	lights.Add(sx::Graphics::Light::Spot({ 0, 0, 0 }, { 0, 0, 1 }, 0.6f, 20.0f));
+
+	int lightLockIndex = -1;
+	Vec3 lightLockOffset = { 0, 0, 0 };
 	
-	graphics.SetLights(lights, lightCount);
-	graphics.SetLightAmbient(cs::Color(0xFFFFFF), 0.2f);
+	graphics.SetLights(lights.Data(), lights.Size());
+	graphics.SetLightAmbient(ambientColor, ambientLight);
 
+#pragma endregion
 
+#pragma region Models
 
 	// Models
 
- 	sx::Mesh m;
-	m.Load(L"Assets/Models/MonkeyTexture.obj");
+	sx::Mesh mSphere1;
+	mSphere1.Load(L"Assets/Models/Sphere1.obj");
+	sx::Prim::MeshDrawable sphere1(sx::Transform({ 0, 0, 10 }), mSphere1);
 
+	sx::Mesh mTerrain1;
+	mTerrain1.Load(L"Assets/Models/Terrain1.obj");
+	sx::Prim::MeshDrawable terrain1(sx::Transform({ 0, -20, 0 }, { 0, 0, 0 }, { 10, 5, 10 }), mTerrain1);
+
+	sx::Mesh mWatchtower;
+	mWatchtower.Load(L"Assets/Models/Watchtower.obj");
+	sx::Prim::MeshDrawable watchtower(sx::Transform({ 0, -20, 0 }, { 0, 0, 0 }, { 2, 2, 2 }), mWatchtower);
+
+ 	sx::Mesh mMonkey; 
+	mMonkey.Load(L"Assets/Models/MonkeyTexture.obj");
 	sx::Prim::MeshDrawable suzannes[50];
-	
 	for (int i = 0; i < 50; i++)
 	{
-		suzannes[i].Load(m);
+		suzannes[i].Load(mMonkey);
 		suzannes[i].SetTransform(
 			sx::Transform(
 				{ r.Getf(-10, 10), r.Getf(-10, 10), r.Getf(10, 30) },
@@ -133,13 +150,11 @@ int SafeWinMain(
 		);
 	}
 
-	sx::Mesh cityMesh;
-	cityMesh.Load(L"Assets/Models/Hut.obj");
-	sx::Prim::MeshDrawable city(sx::Transform({ 0, -20, 0 }), cityMesh);
+	//sx::Prim::TexturePlane ground(sx::Transform({ 0, -20, 0 }, { cs::c_pi * 0.5f, 0, 0 }, { 100, 100, 100 }), L"Assets/Textures/Stone.jpg", { 30, 30 });
 
-	sx::Prim::TexturePlane ground(sx::Transform({ 0, -20, 0 }, { cs::c_pi * 0.5f, 0, 0 }, { 100, 100, 100 }), L"Assets/Textures/Stone.jpg", { 30, 30 });
+#pragma endregion
 
-
+#pragma region Particles
 
 	// Particles
 
@@ -181,7 +196,18 @@ int SafeWinMain(
 
 	float noiseTimer = 0.0f;
 	float particleTimer = 0.0f;
-	float particleTargetTime = 0.0001f;
+	float particleTargetTime = 0.001f;
+	
+	Vec3 particleSpawn = { 15, 0, 0 };
+	Vec3 particleSpawnArea = { 3, 0, 3 }; // Maximum distance in each direction for particle spawn
+	Vec3 particleVelocity = { 0, 5, 0 };
+	Vec3 particleVelocityVariability = { 2, 2, 2 };
+	Vec3 particleAcceleration = { 0, -5, 0 };
+	float particleSizeMin = 0.2f;
+	float particleSizeMax = 0.3f;
+	float particleDampening = 0.2f;
+
+#pragma endregion
 
 
 
@@ -191,7 +217,7 @@ int SafeWinMain(
 	float dTime = 0.0f;
 	float dTimeAverage16 = 0.0f;
 	float dTimeAverage256 = 0.0f;
-	float fpsAverage16 = 0.0f;
+	float fpsAverage16 = 0.0f; 
 	float fpsAverage256 = 0.0f;
 
 	int exitCode = 0;
@@ -242,14 +268,18 @@ int SafeWinMain(
 		sx::Input::Get().CoreUpdateState();
 #pragma endregion
 
-#pragma region Input and camera
+#pragma region Input, light, and camera
 		// Update camera and spotlight
 		Mat3 orientation = HandleInput(dTime);
 		Vec3 direction = orientation * Vec3(0, 0, 1);
 
-		lights[1].position = graphics.GetCamera()->position;
-		lights[1].direction = direction;
-		graphics.SetLights(lights, lightCount);
+		if (lightLockIndex >= 0 && lightLockIndex < lights.Size())
+		{
+			lights[lightLockIndex].position = graphics.GetCamera()->position + orientation * lightLockOffset;
+			lights[lightLockIndex].direction = direction;
+		}
+		graphics.SetLights(lights.Data(), lights.Size());
+		graphics.SetLightAmbient(ambientColor, ambientLight);
 #pragma endregion
 
 #pragma region Particle updating
@@ -278,21 +308,19 @@ int SafeWinMain(
 			PData pd =
 			{
 				{ r.Getf(-1.0f, 1.0f), r.Getf(-1.0f, 1.0f), r.Getf(-1.0f, 1.0f), r.Getf(-1.0f, 1.0f)},
-				{ r.Getf(-5, 5), r.Getf(2, 4), r.Getf(-5, 5)},
-				0.3f,
-				{ 0, -6, 0 }, 
-				r.Getf(0.1f, 0.2f)
+				particleVelocity + Vec3(r.Getf(-1, 1), r.Getf(-1, 1), r.Getf(-1, 1)) % particleVelocityVariability,
+				particleDampening,
+				particleAcceleration,
+				r.Getf(particleSizeMin, particleSizeMax)
 			};
 
-			particles.CreateParticle({ r.Getf(-60.0f, 60.0f), 10, r.Getf(-60.0f, 60.0f) }, pd.size, & pd);
+			particles.CreateParticle(particleSpawn + particleSpawnArea % Vec3(r.Getf(-1.0f, 1.0f), r.Getf(-1.0f, 1.0f), r.Getf(-1.0f, 1.0f)), pd.size, &pd);
 			particleTimer -= particleTargetTime;
 		}
 
 		particles.Update(dTime);
 
 #pragma endregion
-
-
 
 		// Draw the frame 
 
@@ -302,8 +330,10 @@ int SafeWinMain(
 		//for (int i = 0; i < 50; i++)
 		//	suzannes[i].Draw();
 		
-		city.Draw();
-		ground.Draw();
+		//ground.Draw();
+		watchtower.Draw();
+		sphere1.Draw();
+		terrain1.Draw();
 
 		graphics.ChangeDepthStencil(true, false);
 		particles.Draw();
@@ -351,7 +381,125 @@ int SafeWinMain(
 		}
 
 		{
-			graphics.DrawGraphicsImgui();
+			ImGui::Begin("Controls");
+
+			if (ImGui::BeginTabBar("What"))
+			{
+				if (ImGui::BeginTabItem("Graphics"))
+				{
+					graphics.DrawGraphicsImgui();
+					ImGui::EndTabItem();
+				}
+				
+				if (ImGui::BeginTabItem("Lights"))
+				{
+					if (ImGui::BeginListBox("Lights"))
+					{
+						if (ImGui::Button("Ambient Light"))
+						{
+							ImGui::OpenPopup("AmbientLight");
+						}
+
+						if (ImGui::BeginPopupContextWindow("AmbientLight"))
+						{
+							ImGui::ColorEdit3("Color", (float*)&ambientColor);
+							ImGui::DragFloat("Intensity", &ambientLight, 0.01f, 0.0f, 5.0f);
+
+							ImGui::EndPopup();
+						}
+
+						for (int i = 0; i < lights.Size(); i++)
+						{
+							string title = "";
+							if (lightLockIndex == i) title += "(A) ";
+							title += "Light ";
+							title += std::to_string(i);
+							if (lights[i].type == sx::LightTypeDirectional) title += " (Directional)";
+							if (lights[i].type == sx::LightTypePoint) title += " (Point)";
+							if (lights[i].type == sx::LightTypeSpot) title += " (Spot)";
+
+							if (ImGui::Button(title.c_str()))
+							{
+								ImGui::OpenPopup(title.c_str());
+							}
+
+							if (ImGui::BeginPopupContextWindow(title.c_str()))
+							{
+								if (lights[i].type != sx::LightTypeDirectional)
+								{
+									ImGui::DragFloat3("Position", (float*)&lights[i].position, 0.05f);
+								}
+								if (lights[i].type != sx::LightTypePoint)
+								{
+									ImGui::DragFloat3("Direction", (float*)&lights[i].direction, 0.05f);
+								}
+								if (lights[i].type == sx::LightTypeSpot)
+								{
+									ImGui::SliderFloat("Spread", (float*)&lights[i].spreadDotLimit, 0.0f, 1.0f);
+								}
+
+								ImGui::ColorEdit3("Color", (float*)&lights[i].color);
+								ImGui::DragFloat("Intensity", (float*)&lights[i].intensity, 0.01f, 0.0f, 100.0f);
+
+								if (ImGui::Button("Anchor"))
+								{
+									lightLockIndex = i;
+								}
+
+								if (ImGui::Button("-"))
+								{
+									lights.Remove(i);
+									i--;
+								}
+
+								ImGui::EndPopup();
+							}
+
+						}
+
+						ImGui::EndListBox();
+					}
+
+					if (ImGui::Button("+", ImVec2(100, 0)))
+					{
+						ImGui::OpenPopup("AddLight");
+					}
+
+					if (ImGui::BeginPopupContextWindow("AddLight"))
+					{
+						ImGui::TextWrapped("Light will, as applicable, appear in the camera's position, facing the same way.");
+
+						Vec3 pos = sx::Graphics::Get().GetCamera()->position;
+
+						if (ImGui::Button("Directional Light"))
+						{
+							lights.Add(sx::Graphics::Light::Directional(direction));
+						}
+
+						if (ImGui::Button("Point Light"))
+						{
+							lights.Add(sx::Graphics::Light::Point(pos));
+						}
+
+						if (ImGui::Button("Spot Light"))
+						{
+							lights.Add(sx::Graphics::Light::Spot(pos, direction));
+						}
+
+						ImGui::EndPopup();
+					}
+
+					SPACE3;
+					if (ImGui::Button("Release Anchor")) lightLockIndex = -1;
+					ImGui::InputFloat3("Anchor Offset", (float*)&lightLockOffset);
+
+					ImGui::EndTabItem();
+				}
+
+				ImGui::EndTabBar();
+			}
+
+			ImGui::End();
 		}
 
 		imgui.EndDraw(); 

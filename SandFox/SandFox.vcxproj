@@ -157,7 +157,10 @@ xcopy /y /q /i "$(OutDir)*.lib" "$(SolutionDir)library\SandFox\lib\"
 xcopy /y /q /i "$(OutDir)*.pdb" "$(SolutionDir)library\SandFox\lib\"
 xcopy /y /q /i "$(OutDir)*.dll" "$(SolutionDir)library\SandFox\dll\"
 xcopy /y /q /i /s "$(OutDir)*.cso" "$(SolutionDir)library\SandFox\shaders\"
-echo Copying complete!</Command>
+echo Copying complete!
+
+xcopy /y /q /i /s "$(OutDir)*.cso" "$(SolutionDir)SandBoxDebugDir\Assets\Shaders\"
+echo Debug copying complete!</Command>
     </PostBuildEvent>
     <PreBuildEvent>
       <Command>
@@ -188,7 +191,10 @@ xcopy /y /q /i "$(OutDir)*.lib" "$(SolutionDir)library\SandFox\lib\"
 xcopy /y /q /i "$(OutDir)*.pdb" "$(SolutionDir)library\SandFox\lib\"
 xcopy /y /q /i "$(OutDir)*.dll" "$(SolutionDir)library\SandFox\dll\"
 xcopy /y /q /i /s "$(OutDir)*.cso" "$(SolutionDir)library\SandFox\shaders\"
-echo Copying complete!</Command>
+echo Copying complete!
+
+xcopy /y /q /i /s "$(OutDir)*.cso" "$(SolutionDir)SandBoxDebugDir\Assets\Shaders\"
+echo Debug copying complete!</Command>
     </PostBuildEvent>
     <PreBuildEvent>
       <Command>
@@ -222,7 +228,10 @@ xcopy /y /q /i "$(ProjectDir)src\Header\*.h" "$(SolutionDir)library\SandFox\incl
 xcopy /y /q /i "$(OutDir)*.lib" "$(SolutionDir)library\SandFox\lib\"
 xcopy /y /q /i "$(OutDir)*.dll" "$(SolutionDir)library\SandFox\dll\"
 xcopy /y /q /i /s "$(OutDir)*.cso" "$(SolutionDir)library\SandFox\shaders\"
-echo Copying complete!</Command>
+echo Copying complete!
+
+xcopy /y /q /i /s "$(OutDir)*.cso" "$(SolutionDir)SandBoxDebugDir\Assets\Shaders\"
+echo Debug copying complete!</Command>
     </PostBuildEvent>
     <PreBuildEvent>
       <Command>
@@ -253,7 +262,10 @@ xcopy /y /q /i "$(OutDir)*.lib" "$(SolutionDir)library\SandFox\lib\"
 xcopy /y /q /i "$(OutDir)*.pdb" "$(SolutionDir)library\SandFox\lib\"
 xcopy /y /q /i "$(OutDir)*.dll" "$(SolutionDir)library\SandFox\dll\"
 xcopy /y /q /i /s "$(OutDir)*.cso" "$(SolutionDir)library\SandFox\shaders\"
-echo Copying complete!</Command>
+echo Copying complete!
+
+xcopy /y /q /i /s "$(OutDir)*.cso" "$(SolutionDir)SandBoxDebugDir\Assets\Shaders\"
+echo Debug copying complete!</Command>
     </PostBuildEvent>
     <PreBuildEvent>
       <Command>
@@ -284,7 +296,10 @@ xcopy /y /q /i "$(OutDir)*.lib" "$(SolutionDir)library\SandFox\lib\"
 xcopy /y /q /i "$(OutDir)*.pdb" "$(SolutionDir)library\SandFox\lib\"
 xcopy /y /q /i "$(OutDir)*.dll" "$(SolutionDir)library\SandFox\dll\"
 xcopy /y /q /i /s "$(OutDir)*.cso" "$(SolutionDir)library\SandFox\shaders\"
-echo Copying complete!</Command>
+echo Copying complete!
+
+xcopy /y /q /i /s "$(OutDir)*.cso" "$(SolutionDir)SandBoxDebugDir\Assets\Shaders\"
+echo Debug copying complete!</Command>
     </PostBuildEvent>
     <PreBuildEvent>
       <Command>
@@ -318,7 +333,10 @@ xcopy /y /q /i "$(ProjectDir)src\Header\*.h" "$(SolutionDir)library\SandFox\incl
 xcopy /y /q /i "$(OutDir)*.lib" "$(SolutionDir)library\SandFox\lib\"
 xcopy /y /q /i "$(OutDir)*.dll" "$(SolutionDir)library\SandFox\dll\"
 xcopy /y /q /i /s "$(OutDir)*.cso" "$(SolutionDir)library\SandFox\shaders\"
-echo Copying complete!</Command>
+echo Copying complete!
+
+xcopy /y /q /i /s "$(OutDir)*.cso" "$(SolutionDir)SandBoxDebugDir\Assets\Shaders\"
+echo Debug copying complete!</Command>
     </PostBuildEvent>
     <PreBuildEvent>
       <Command>

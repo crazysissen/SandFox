@@ -52,7 +52,7 @@ namespace SandFox
 	public:
 		static constexpr bool c_usePPFX = false;
 		static constexpr float c_nearClip = 0.05f;
-		static constexpr float c_farClip = 100.0f;
+		static constexpr float c_farClip = 1000.0f;
 		static constexpr int c_maxRenderTargets = 7;
 		static constexpr int c_maxLights = 16;
 
@@ -99,7 +99,7 @@ namespace SandFox
 
 		void InitImgui();
 
-		void SetLights(Light* lights, int count);
+		void SetLights(const Light* lights, int count);
 		void SetLightAmbient(const cs::Color& color, float intensity);
 
 		// Finalize drawing to back buffer and flip
