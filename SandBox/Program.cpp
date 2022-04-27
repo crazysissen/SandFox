@@ -446,7 +446,7 @@ int SafeWinMain(
 									lightLockIndex = i;
 								}
 
-								if (ImGui::Button("-"))
+								if (ImGui::Button("Remove Light"))
 								{
 									lights.Remove(i);
 									i--;
@@ -460,15 +460,13 @@ int SafeWinMain(
 						ImGui::EndListBox();
 					}
 
-					if (ImGui::Button("+", ImVec2(100, 0)))
+					if (ImGui::Button("Add Light"))
 					{
 						ImGui::OpenPopup("AddLight");
 					}
 
 					if (ImGui::BeginPopupContextWindow("AddLight"))
 					{
-						ImGui::TextWrapped("Light will, as applicable, appear in the camera's position, facing the same way.");
-
 						Vec3 pos = sx::Graphics::Get().GetCamera()->position;
 
 						if (ImGui::Button("Directional Light"))
@@ -485,6 +483,9 @@ int SafeWinMain(
 						{
 							lights.Add(sx::Graphics::Light::Spot(pos, direction));
 						}
+
+						ImGui::Text("Light will, as applicable, appear in the");
+						ImGui::Text("camera's position, facing the same way.");
 
 						ImGui::EndPopup();
 					}
