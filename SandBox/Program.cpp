@@ -84,9 +84,9 @@ int SafeWinMain(
 	window.InitClass(hInstance);
 	window.InitWindow(1920, 1080, "SandBox");
 
-	sx::GraphicsTechnique technique = sx::GraphicsTechniqueImmediate; 
+	sx::GraphicsTechnique technique = sx::GraphicsTechniqueDeferred;
 	graphics.Init(&window, L"Assets\\Shaders", technique);
-	graphics.InitCamera({ 0, 0, 0 }, { 0, 0, 0 }, cs::c_pi * 0.5f); 
+	graphics.InitCamera({ 0, 0, 0 }, { 0, 0, 0 }, cs::c_pi * 0.5f);
 
 	input.LoadWindow(&window);
 
@@ -335,10 +335,10 @@ int SafeWinMain(
 		sphere1.Draw();
 		terrain1.Draw();
 
+		graphics.FrameComposite();
+
 		graphics.ChangeDepthStencil(true, false);
 		particles.Draw();
-
-		graphics.FrameComposite();
 
 #pragma region Imgui
 
@@ -347,7 +347,7 @@ int SafeWinMain(
 		imgui.BeginDraw();
 
 		{
-			ImGui::Begin("Info");
+			ImGui::Begin("Info"); 
 
 
 			// Main information 
@@ -462,7 +462,7 @@ int SafeWinMain(
 
 					if (ImGui::Button("Add Light"))
 					{
-						ImGui::OpenPopup("AddLight");
+						ImGui::OpenPopup("AddLight"); 
 					}
 
 					if (ImGui::BeginPopupContextWindow("AddLight"))
@@ -484,8 +484,9 @@ int SafeWinMain(
 							lights.Add(sx::Graphics::Light::Spot(pos, direction));
 						}
 
-						ImGui::Text("Light will, as applicable, appear in the");
-						ImGui::Text("camera's position, facing the same way.");
+						ImGui::Text("Light will, as applicable,");
+						ImGui::Text("appear in the camera's position,");
+						ImGui::Text("facing the same way.");
 
 						ImGui::EndPopup();
 					}

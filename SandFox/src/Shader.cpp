@@ -74,6 +74,13 @@ void SandFox::Shader::LoadPresets(GraphicsTechnique technique)
 
 
 
+	s_presets[(int)ShaderTypeParticleBasic] = new Shader();
+	s_presets[(int)ShaderTypeParticleBasic]->LoadPS(Graphics::Get().ShaderPath(L"P_PSBillboard"), blob);
+	s_presets[(int)ShaderTypeParticleBasic]->LoadGS(Graphics::Get().ShaderPath(L"P_GSBillboard"), blob);
+	s_presets[(int)ShaderTypeParticleBasic]->LoadVS(Graphics::Get().ShaderPath(L"P_VSBillboard"), blob);
+	s_presets[(int)ShaderTypeParticleBasic]->LoadIL(ieParticle, 2, blob);
+	s_presets[(int)ShaderTypeParticleBasic]->LoadPT(D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
+
 	if (technique == GraphicsTechniqueImmediate)
 	{
 		s_presets[(int)ShaderTypePhong] = new Shader();
@@ -87,13 +94,6 @@ void SandFox::Shader::LoadPresets(GraphicsTechnique technique)
 		s_presets[(int)ShaderTypePhongMapped]->LoadVS(Graphics::Get().ShaderPath(L"VSStandard"), blob);
 		s_presets[(int)ShaderTypePhongMapped]->LoadIL(iePhong, 3, blob);
 		s_presets[(int)ShaderTypePhongMapped]->LoadPT();
-
-		s_presets[(int)ShaderTypeParticleBasic] = new Shader();
-		s_presets[(int)ShaderTypeParticleBasic]->LoadPS(Graphics::Get().ShaderPath(L"P_PSBillboard"), blob);
-		s_presets[(int)ShaderTypeParticleBasic]->LoadGS(Graphics::Get().ShaderPath(L"P_GSBillboard"), blob);
-		s_presets[(int)ShaderTypeParticleBasic]->LoadVS(Graphics::Get().ShaderPath(L"P_VSBillboard"), blob);
-		s_presets[(int)ShaderTypeParticleBasic]->LoadIL(ieParticle, 2, blob);
-		s_presets[(int)ShaderTypeParticleBasic]->LoadPT(D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
 	}
 	else
 	{
@@ -109,12 +109,12 @@ void SandFox::Shader::LoadPresets(GraphicsTechnique technique)
 		s_presets[(int)ShaderTypePhongMapped]->LoadIL(iePhong, 3, blob);
 		s_presets[(int)ShaderTypePhongMapped]->LoadPT();
 
-		s_presets[(int)ShaderTypeParticleBasic] = new Shader();
-		s_presets[(int)ShaderTypeParticleBasic]->LoadPS(Graphics::Get().ShaderPath(L"D_P_PSBillboard"), blob);
-		s_presets[(int)ShaderTypeParticleBasic]->LoadGS(Graphics::Get().ShaderPath(L"P_GSBillboard"), blob);
-		s_presets[(int)ShaderTypeParticleBasic]->LoadVS(Graphics::Get().ShaderPath(L"P_VSBillboard"), blob);
-		s_presets[(int)ShaderTypeParticleBasic]->LoadIL(ieParticle, 2, blob);
-		s_presets[(int)ShaderTypeParticleBasic]->LoadPT(D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
+		//s_presets[(int)ShaderTypeParticleBasic] = new Shader();
+		//s_presets[(int)ShaderTypeParticleBasic]->LoadPS(Graphics::Get().ShaderPath(L"D_P_PSBillboard"), blob);
+		//s_presets[(int)ShaderTypeParticleBasic]->LoadGS(Graphics::Get().ShaderPath(L"P_GSBillboard"), blob);
+		//s_presets[(int)ShaderTypeParticleBasic]->LoadVS(Graphics::Get().ShaderPath(L"P_VSBillboard"), blob);
+		//s_presets[(int)ShaderTypeParticleBasic]->LoadIL(ieParticle, 2, blob);
+		//s_presets[(int)ShaderTypeParticleBasic]->LoadPT(D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
 	}
 }
 

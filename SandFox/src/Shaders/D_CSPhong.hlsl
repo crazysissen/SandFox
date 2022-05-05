@@ -30,6 +30,7 @@ cbuffer ClientInfo : register(b11)
 {
     uint2 screen;
     float2 screenInverse;
+    float exponent;
 }
 
 

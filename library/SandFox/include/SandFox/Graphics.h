@@ -56,6 +56,8 @@ namespace SandFox
 		static constexpr int c_maxRenderTargets = 7;
 		static constexpr int c_maxLights = 16;
 
+		static constexpr float c_depthStencilExponent = 25.0f;
+
 		static constexpr uint c_registerSceneInfo = 10;
 		static constexpr uint c_registerClientInfo = 11;
 
@@ -136,6 +138,8 @@ namespace SandFox
 			uint screenHeight;
 			float screenWidthI;
 			float screenHeightI;
+			float sampleExp;
+			PAD(12, 0);
 		};
 
 		static Graphics* s_graphics;
@@ -171,7 +175,7 @@ namespace SandFox
 		ComputeShader	m_copyPass;
 
 		Bind::SamplerState	m_deferredSamplerState;
-		IBindable*			m_deferredClientInfo;
+		IBindable*			m_clientInfo;
 		IBindable*			m_sceneInfoBuffer;
 		SceneInfo			m_sceneInfo;
 

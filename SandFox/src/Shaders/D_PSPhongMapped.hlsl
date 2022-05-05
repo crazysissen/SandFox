@@ -16,7 +16,7 @@ struct PSOut
     float4 diffuse : SV_Target3;
     float4 specular : SV_Target4;
 
-    float exponent : SV_Target5;
+    float4 exponent : SV_Target5;
 };
 
 cbuffer MaterialInfo : register(b2)
@@ -40,11 +40,12 @@ PSOut main(PSIn input)
     o.normal = float4(normalize(input.normal.xyz), 1.0f);
     
     float4 albedoSample = tAlbedo.Sample(samplerState, input.uv).xyzw;
-
+    float exponentSample = materialShininess * tExponent.Sample(samplerState, input.uv).x;
+    
     o.ambient = albedoSample * float4(materialAmbient, 1.0f);
     o.diffuse = albedoSample * float4(materialDiffuse, 1.0f);
     o.specular = albedoSample * float4(materialSpecular, 1.0f);
-    o.exponent = tExponent.Sample(samplerState, input.uv).x * materialShininess;
+    o.exponent = float4(exponentSample, exponentSample, exponentSample, 1.0f);
 
     return o;
 }

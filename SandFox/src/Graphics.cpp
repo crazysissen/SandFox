@@ -4,9 +4,9 @@
 #include <dxgidebug.h>
 #include <cstring>
 
-#include "imgui.h"
-#include "imgui_impl_dx11.h"
-#include "imgui_impl_win32.h"
+#include "ImGui/imgui.h"
+#include "ImGui/imgui_impl_dx11.h"
+#include "ImGui/imgui_impl_win32.h"
 
 #include "Graphics.h"
 #include "Window.h"
@@ -37,7 +37,7 @@ SandFox::Graphics::Graphics()
 	m_lightingPass(),
 
 	m_deferredSamplerState(),
-	m_deferredClientInfo(nullptr),
+	m_clientInfo(nullptr),
 	m_sceneInfoBuffer(nullptr),
 	m_sceneInfo(),
 
@@ -137,7 +137,7 @@ void SandFox::Graphics::Init(Window* window, std::wstring shaderDir, GraphicsTec
 	if (m_technique == GraphicsTechniqueImmediate)
 	{
 
-		scd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+		scd.BufferUsage = DXGI_USAGE_UNORDERED_ACCESS | DXGI_USAGE_RENDER_TARGET_OUTPUT;
 
 		EXC_COMCHECKINFO(D3D11CreateDeviceAndSwapChain(
 			nullptr, // Let system pick graphics card/interface
@@ -164,6 +164,16 @@ void SandFox::Graphics::Init(Window* window, std::wstring shaderDir, GraphicsTec
 		m_backBuffers[0].CreateRenderTarget(DXGI_FORMAT_B8G8R8A8_UNORM);
 
 		m_sceneInfoBuffer = new Bind::ConstBufferP<SceneInfo>(m_sceneInfo, c_registerSceneInfo, false);
+
+		ClientInfo ci
+		{
+			(uint)m_window->GetW(),
+			(uint)m_window->GetH(),
+			1.0f / (m_window->GetW() - 1),
+			1.0f / (m_window->GetH() - 1),
+			c_depthStencilExponent
+		};
+		m_clientInfo = new Bind::ConstBufferC<ClientInfo>(ci, c_registerClientInfo, false);
 
 	}
 	else
@@ -199,8 +209,6 @@ void SandFox::Graphics::Init(Window* window, std::wstring shaderDir, GraphicsTec
 		m_backBuffers[0].Load(bbTexture, nullptr, nullptr);
 		m_backBuffers[0].CreateRenderTarget(DXGI_FORMAT_B8G8R8A8_UNORM);
 
-		m_backBufferUAV.Load(&m_backBuffers[0]);
-
 		m_backBuffers[1].Load(cs::ColorA(0, 0, 0, 0), m_window->GetW(), m_window->GetH(), DXGI_FORMAT_R32G32B32A32_FLOAT);
 		m_backBuffers[2].Load(cs::ColorA(0, 0, 0, 0), m_window->GetW(), m_window->GetH(), DXGI_FORMAT_R32G32B32A32_FLOAT);
 
@@ -209,25 +217,28 @@ void SandFox::Graphics::Init(Window* window, std::wstring shaderDir, GraphicsTec
 
 		for (int i = 6; i < 8; i++)
 			m_backBuffers[i].Load(cs::ColorA(0, 0, 0, 0), m_window->GetW(), m_window->GetH(), DXGI_FORMAT_R32_FLOAT);
-	
 
+		m_sceneInfoBuffer = new Bind::ConstBufferC<SceneInfo>(m_sceneInfo, c_registerSceneInfo, false);
+
+		m_lightingPass.Load(ShaderPath(L"D_CSPhong"));
 
 		ClientInfo ci
 		{
 			(uint)m_window->GetW(),
 			(uint)m_window->GetH(),
 			1.0f / (m_window->GetW() - 1),
-			1.0f / (m_window->GetH() - 1)
+			1.0f / (m_window->GetH() - 1),
+			0.0f
 		};
-
-		m_deferredSamplerState.Load(8, D3D11_FILTER_MIN_MAG_MIP_POINT);
-		m_sceneInfoBuffer = new Bind::ConstBufferC<SceneInfo>(m_sceneInfo, c_registerSceneInfo, false);
-		m_deferredClientInfo = new Bind::ConstBufferC<ClientInfo>(ci, c_registerClientInfo, false);
-
-		m_lightingPass.Load(ShaderPath(L"D_CSPhong"));
+		m_clientInfo = new Bind::ConstBufferC<ClientInfo>(ci, c_registerClientInfo, false);
 
 	}
 
+	
+
+	m_deferredSamplerState.Load(8, D3D11_FILTER_MIN_MAG_MIP_POINT);
+
+	m_backBufferUAV.Load(&m_backBuffers[0]);
 	m_copyPass.Load(ShaderPath(L"CSCopyTexture"));
 
 
@@ -425,7 +436,7 @@ void SandFox::Graphics::DeInit()
 
 	delete[] m_backBuffers;
 
-	delete m_deferredClientInfo;
+	delete m_clientInfo;
 	delete m_sceneInfoBuffer;
 }
 
@@ -502,8 +513,7 @@ void SandFox::Graphics::FrameComposite()
 		// Clear render targets and reassign them as shader resources for the compute shader
 		m_context->OMSetRenderTargets(0, nullptr, nullptr);
 
-		// Bind the client info 
-		m_deferredClientInfo->Bind();
+
 		m_deferredSamplerState.Bind();
 
 		// Bind the new render target as a UAV
@@ -512,6 +522,9 @@ void SandFox::Graphics::FrameComposite()
 		if (m_displayedBuffer == 0)
 		{
 			// Compose the final image
+
+			// Bind the client info 
+			m_clientInfo->Bind();
 
 			for (int i = 1; i < m_backBufferCount; i++)
 			{
@@ -528,16 +541,30 @@ void SandFox::Graphics::FrameComposite()
 		}
 		else
 		{
+			ClientInfo ci
+			{
+				(uint)m_window->GetW(),
+				(uint)m_window->GetH(),
+				1.0f / (m_window->GetW() - 1),
+				1.0f / (m_window->GetH() - 1),
+				0.0f
+			};
+
 			ID3D11ShaderResourceView* target = nullptr;
 
 			if (m_displayedBuffer >= m_backBufferCount)
 			{
 				target = m_depthStencilTexture.GetResourceView().Get();
+				ci.sampleExp = c_depthStencilExponent;
 			}
 			else
 			{
 				target = m_backBuffers[m_displayedBuffer].GetResourceView().Get();
 			}
+
+			// Bind the client info 
+			((Bind::ConstBufferC<ClientInfo>*)m_clientInfo)->Write(ci);
+			m_clientInfo->Bind();
 
 			m_context->CSSetShaderResources(0, 1, &target);
 			m_copyPass.Dispatch(m_window->GetW(), m_window->GetH());
@@ -551,6 +578,37 @@ void SandFox::Graphics::FrameComposite()
 
 		// Set the finalized image as render target.
 		m_context->OMSetRenderTargets(1, m_backBuffers[0].GetRenderTarget().GetAddressOf(), m_depthStencilView.Get());
+	}
+	else
+	{
+		// Graphics technique is Immediate
+
+		if (m_displayedBuffer >= m_backBufferCount)
+		{
+			// Clear render targets and reassign them as shader resources for the compute shader
+			m_context->OMSetRenderTargets(0, nullptr, nullptr);
+
+			// Bind the client info 
+			m_clientInfo->Bind();
+			m_deferredSamplerState.Bind();
+
+			// Bind the new render target as a UAV
+			m_context->CSSetUnorderedAccessViews(0u, 1u, m_backBufferUAV.GetUAV().GetAddressOf(), nullptr);
+
+			ID3D11ShaderResourceView* target = m_depthStencilTexture.GetResourceView().Get();
+			m_context->CSSetShaderResources(0, 1, &target);
+
+			m_copyPass.Dispatch(m_window->GetW(), m_window->GetH());
+
+			target = nullptr;
+			m_context->CSSetShaderResources(0, 1, &target);
+
+			ID3D11UnorderedAccessView* emptyUAV = nullptr;
+			m_context->CSSetUnorderedAccessViews(0u, 1u, &emptyUAV, nullptr);
+
+			// Set the finalized image as render target.
+			m_context->OMSetRenderTargets(1, m_backBuffers[0].GetRenderTarget().GetAddressOf(), m_depthStencilView.Get());
+		}
 	}
 }
 

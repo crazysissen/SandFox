@@ -40,7 +40,7 @@ float3 phong(Light l, float3 viewerPosition, float3 position, float3 normal, flo
         float3 towardsViewer = normalize(viewerPosition - position);
 
         // Scalar indicating how close the reflected light is to hitting the camera
-        float specularBase = dot(reflection, towardsViewer);
+        float specularBase = max(0.0f, dot(reflection, towardsViewer));
 
         float3 diffuse = mDiffuse * l.color * incidence;
         float3 specular = max(mSpecular * l.color * pow(specularBase, mExponent), float3(0, 0, 0));
