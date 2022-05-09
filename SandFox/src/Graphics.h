@@ -51,8 +51,8 @@ namespace SandFox
 	{
 	public:
 		static constexpr bool c_usePPFX = false;
-		static constexpr float c_nearClip = 0.05f;
-		static constexpr float c_farClip = 1000.0f;
+		static constexpr float c_nearClipDefault = 0.05f;
+		static constexpr float c_farClipDefault = 1000.0f;
 		static constexpr int c_maxRenderTargets = 7;
 		static constexpr int c_maxLights = 16;
 
@@ -115,10 +115,9 @@ namespace SandFox
 
 		void PostProcess();
 
-		float GetAspectRatio();
 		Window* GetWindow();
 
-		void InitCamera(cs::Vec3 pos, cs::Vec3 rot, float fov);
+		void InitCamera(cs::Vec3 pos, cs::Vec3 rot, float fov, float nearClip = c_nearClipDefault, float farClip = c_farClipDefault);
 		void UpdateCamera();
 		std::shared_ptr<Camera> GetCamera();
 		const dx::XMMATRIX& GetCameraMatrix();
@@ -183,7 +182,6 @@ namespace SandFox
 
 		std::shared_ptr<Camera> m_camera;
 		dx::XMMATRIX			m_cameraMatrix;
-		float					m_aspectRatio;
 
 		std::wstring m_shaderDir;
 	};

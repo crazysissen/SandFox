@@ -139,7 +139,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions);FOX_COMPILE</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <AdditionalIncludeDirectories>$(SolutionDir)Libraries\DirectXTK\include;$(SolutionDir)Libraries\CHSL\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
@@ -173,7 +173,7 @@ echo Debug copying complete!</Command>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>inSAFE;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions);FOX_COMPILE</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <AdditionalIncludeDirectories>$(SolutionDir)Libraries\DirectXTK\include;$(SolutionDir)Libraries\CHSL\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
@@ -209,7 +209,7 @@ echo Debug copying complete!</Command>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>RELEASE;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions);FOX_COMPILE</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <AdditionalIncludeDirectories>$(SolutionDir)Libraries\DirectXTK\include;$(SolutionDir)Libraries\CHSL\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
@@ -244,7 +244,7 @@ echo Debug copying complete!</Command>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions);FOX_COMPILE</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <AdditionalIncludeDirectories>$(SolutionDir)Libraries\DirectXTK\include;$(SolutionDir)Libraries\CHSL\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
@@ -278,7 +278,7 @@ echo Debug copying complete!</Command>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>inSAFE;_DEBUG;_CONSOLE;%(PreprocessorDefinitions);FOX_COMPILE</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <AdditionalIncludeDirectories>$(SolutionDir)Libraries\DirectXTK\include;$(SolutionDir)Libraries\CHSL\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
@@ -314,7 +314,7 @@ echo Debug copying complete!</Command>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>RELEASE;NDEBUG;_CONSOLE;%(PreprocessorDefinitions);FOX_COMPILE</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <AdditionalIncludeDirectories>$(SolutionDir)Libraries\DirectXTK\include;$(SolutionDir)Libraries\CHSL\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
@@ -344,6 +344,7 @@ echo Debug copying complete!</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\Debug.cpp" />
     <ClCompile Include="src\ImGuiHandler.cpp" />
     <ClCompile Include="src\ImGui\imgui.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
@@ -429,6 +430,7 @@ echo Debug copying complete!</Command>
     <ClCompile Include="src\PrimitiveTopology.cpp" />
     <ClCompile Include="src\SamplerState.cpp" />
     <ClCompile Include="src\Buffer.cpp" />
+    <ClInclude Include="src\Debug.h" />
     <ClInclude Include="src\ImGuiHandler.h" />
     <ClInclude Include="src\GraphicsEnums.h" />
     <ClInclude Include="src\GeometryShader.h" />

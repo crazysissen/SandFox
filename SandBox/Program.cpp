@@ -8,8 +8,9 @@
 #include <SandFox\Mesh.h>
 #include <SandFox\ParticleStream.h>
 #include <SandFox\ImGuiHandler.h>
+#include <SandFox\Debug.h>
 
-#include <SandFox\imgui.h>
+#include <SandFox\ImGui\imgui.h>
 
 
 
@@ -61,6 +62,11 @@ Mat3 HandleInput(float dTime)
 	return turn * Mat::rotation3X(-c->rotation.x);
 }
 
+inline bool CullFrustum(const cs::Box& box, void* data)
+{
+	return ((cs::Frustum*)data)->IntersectsFuzzy(box); 
+}
+
 
 
 int SafeWinMain(
@@ -75,27 +81,50 @@ int SafeWinMain(
 
 
 
+	// Variables
+
+	float fov = cs::c_pi * 0.5f; 
+	float nearClip = 0.01f;
+	float farClip = 1000.0f;
+	cs::Point aspectRatio = { 16, 9 };
+
+	bool frustumEnable = true;
+	float frustumFov = cs::c_pi * 0.5f; 
+	float frustumNearClip = 0.01f;
+	float frustumFarClip = 100.0f;
+	cs::Point frustumAspectRatio = { 16, 9 };
+
+	int monkeyDisplayCount = 0; // Set later to max
+
+
+
 	// Initial setup of base resources
+
+	sx::Debug debug;
+	debug.Init();
 	 
 	sx::Window window;
 	sx::Graphics graphics;
 	cs::Random r;
 
 	window.InitClass(hInstance);
-	window.InitWindow(1920, 1080, "SandBox");
+ 	window.InitWindow(hInstance, 1920, 1080, "SandBox", true);
 
-	sx::GraphicsTechnique technique = sx::GraphicsTechniqueDeferred;
+	sx::GraphicsTechnique technique = sx::GraphicsTechniqueImmediate; 
 	graphics.Init(&window, L"Assets\\Shaders", technique);
-	graphics.InitCamera({ 0, 0, 0 }, { 0, 0, 0 }, cs::c_pi * 0.5f);
+	graphics.InitCamera({ 0, 0, 0 }, { 0, 0, 0 }, fov, nearClip, farClip);
 
-	input.LoadWindow(&window);
+	input.LoadWindow(&window); 
 
 	sx::ImGuiHandler imgui(&graphics);
 
 	sx::Input::MouseLocked(false);
 
-	window.Show();
+	cs::ViewFrustum frustum(Vec3(0, 0, 0), Vec3(0, 0, 0), frustumNearClip, frustumFarClip, frustumFov);
 
+	window.Show();
+	debug.CreateConsole();
+	
 
 
 	// Creating drawables
@@ -135,19 +164,34 @@ int SafeWinMain(
 	mWatchtower.Load(L"Assets/Models/Watchtower.obj");
 	sx::Prim::MeshDrawable watchtower(sx::Transform({ 0, -20, 0 }, { 0, 0, 0 }, { 2, 2, 2 }), mWatchtower);
 
+	cs::Octree<sx::Prim::MeshDrawable*>* monkeyTree = new cs::Octree<sx::Prim::MeshDrawable*>(
+		cs::Box(-100, -100, -100, 200, 200, 200),
+		8
+	);
+
+
+
+	// Monkeys
+
+	const int c_monkeyCount = 1000;
+	monkeyDisplayCount = c_monkeyCount;
+
  	sx::Mesh mMonkey; 
 	mMonkey.Load(L"Assets/Models/MonkeyTexture.obj");
-	sx::Prim::MeshDrawable suzannes[50];
-	for (int i = 0; i < 50; i++)
+	sx::Prim::MeshDrawable* suzannes = new sx::Prim::MeshDrawable[c_monkeyCount];
+	cs::Box baseBox(-mMonkey.vertexFurthest, -mMonkey.vertexFurthest, -mMonkey.vertexFurthest, mMonkey.vertexFurthest * 2, mMonkey.vertexFurthest * 2, mMonkey.vertexFurthest * 2);
+	for (int i = 0; i < c_monkeyCount; i++)
 	{
 		suzannes[i].Load(mMonkey);
 		suzannes[i].SetTransform(
 			sx::Transform(
-				{ r.Getf(-10, 10), r.Getf(-10, 10), r.Getf(10, 30) },
+				{ r.Getf(-25, 25), r.Getf(-25, 25), r.Getf(50, 100) },
 				{ 0, r.Getf(0, 2 * cs::c_pi), 0 },
 				{ 1, 1, 1 }
 			)
 		);
+
+		monkeyTree->Add(&suzannes[i], cs::Box(baseBox.position + suzannes[i].GetTransform().GetPosition(), baseBox.size));
 	}
 
 	//sx::Prim::TexturePlane ground(sx::Transform({ 0, -20, 0 }, { cs::c_pi * 0.5f, 0, 0 }, { 100, 100, 100 }), L"Assets/Textures/Stone.jpg", { 30, 30 });
@@ -268,18 +312,22 @@ int SafeWinMain(
 		sx::Input::Get().CoreUpdateState();
 #pragma endregion
 
-#pragma region Input, light, and camera
+#pragma region Input/light/camera
 		// Update camera and spotlight
 		Mat3 orientation = HandleInput(dTime);
 		Vec3 direction = orientation * Vec3(0, 0, 1);
+		Vec3 position = graphics.GetCamera()->position;
 
 		if (lightLockIndex >= 0 && lightLockIndex < lights.Size())
 		{
-			lights[lightLockIndex].position = graphics.GetCamera()->position + orientation * lightLockOffset;
+			lights[lightLockIndex].position = position + orientation * lightLockOffset;
 			lights[lightLockIndex].direction = direction;
 		}
 		graphics.SetLights(lights.Data(), lights.Size());
 		graphics.SetLightAmbient(ambientColor, ambientLight);
+
+		frustum.SetPosition(position);
+		frustum.SetViewDirection(orientation);
 #pragma endregion
 
 #pragma region Particle updating
@@ -327,8 +375,27 @@ int SafeWinMain(
 		graphics.FrameBegin(cs::Color(0x301090));
 		graphics.ChangeDepthStencil(true, true); 
 
-		//for (int i = 0; i < 50; i++)
-		//	suzannes[i].Draw();
+		if (frustumEnable)
+		{
+			monkeyTree->Search(&frustum, CullFrustum, CullFrustum);
+			int i = 0;
+			for (sx::Prim::MeshDrawable* m : *monkeyTree)
+			{
+				if (i++ >= monkeyDisplayCount)
+				{
+					break;
+				}
+
+				m->Draw();
+			}
+		}
+		else
+		{
+			for (int i = 0; i < min(monkeyDisplayCount, c_monkeyCount); i++)
+			{
+				suzannes[i].Draw();
+			}
+		}
 		
 		//ground.Draw();
 		watchtower.Draw();
@@ -346,6 +413,7 @@ int SafeWinMain(
 
 		imgui.BeginDraw();
 
+		// Info window
 		{
 			ImGui::Begin("Info"); 
 
@@ -380,10 +448,11 @@ int SafeWinMain(
 			ImGui::End();
 		}
 
+		// Controls window
 		{
 			ImGui::Begin("Controls");
 
-			if (ImGui::BeginTabBar("What"))
+			if (ImGui::BeginTabBar("ControlsTabs"))
 			{
 				if (ImGui::BeginTabItem("Graphics"))
 				{
@@ -498,11 +567,55 @@ int SafeWinMain(
 					ImGui::EndTabItem();
 				}
 
+				if (ImGui::BeginTabItem("World"))
+				{
+					ImGui::Text("Suzanne Heads");
+					ImGui::TextWrapped("Note: Display Count doesn't change the Octree structure, so Octree culling is unaffected.");
+					ImGui::SliderInt("Display Count", &monkeyDisplayCount, 0, c_monkeyCount);
+
+					ImGui::EndTabItem();
+				}
+
+				if (ImGui::BeginTabItem("View"))
+				{
+					std::shared_ptr<sx::Camera> c = graphics.GetCamera();
+
+					ImGui::Text("Camera");
+					if (ImGui::SliderFloat("FOV", &fov, 0.0f, cs::c_pi))					{ c->SetFOV(fov); }
+					if (ImGui::InputInt2("Aspect Ratio", (int*)&aspectRatio))				{ c->SetAspectRatio((float)aspectRatio.x / (float)aspectRatio.y); }
+					if (ImGui::DragFloat("Near Clip", &nearClip, 0.01f, 0.0f, farClip) ||
+						ImGui::DragFloat("Far Clip", &farClip, 1.0f, max(nearClip, 10.0f), 1000.0f))	{ c->SetClip(nearClip, farClip); }
+
+					SPACE3;
+
+					ImGui::Text("Frustum");
+					ImGui::Checkbox("Frustum Enable", &frustumEnable);
+					if (ImGui::SliderFloat("Frustum FOV", &frustumFov, 0.0f, cs::c_pi) ||							
+						ImGui::InputInt2("Frustum Aspect Ratio", (int*)&frustumAspectRatio))					{ frustum.SetViewAngle(frustumFov, (float)aspectRatio.x / (float)aspectRatio.y); }
+					if (ImGui::DragFloat("Frustum Near Clip", &frustumNearClip, 0.01f, 0.0f, frustumFarClip))	{ frustum.SetNearPlane(frustumNearClip); }
+					if (ImGui::DragFloat("Frustum Far Clip", &frustumFarClip, 1.0f, frustumNearClip, 1000.0f))	{ frustum.SetFarPlane(frustumFarClip); }
+				
+					ImGui::EndTabItem();
+				}
+
+				if (ImGui::BeginTabItem("Misc"))
+				{
+					if (ImGui::Button("Generate debug message"))
+					{
+						sx::Debug::PushMessage(sx::DebugLevelDebug, "Test message!");
+					}
+
+					ImGui::EndTabItem();
+				}
+
 				ImGui::EndTabBar();
 			}
 
 			ImGui::End();
 		}
+
+		// Debug console
+		debug.DrawConsole();
 
 		imgui.EndDraw(); 
 
@@ -512,6 +625,10 @@ int SafeWinMain(
 	}
 
 	graphics.DeInit();
+	debug.DeInit();
+
+	delete monkeyTree; 
+	delete[] suzannes;
 
 	return 0;
 }

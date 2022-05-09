@@ -3,26 +3,62 @@
 #include "Graphics.h"
 #include "Camera.h"
 
-SandFox::Camera::Camera(Vec3 position, Vec3 rotation, float fov, float nearClip, float farClip)
+SandFox::Camera::Camera(Vec3 position, Vec3 rotation, float fov, float nearClip, float farClip, float aspectRatio)
 	:
 	position(position),
 	rotation(rotation),
-	fov(fov),
-	nearClip(nearClip),
-	farClip(farClip)
+	m_fov(fov),
+	m_nearClip(nearClip),
+	m_farClip(farClip),
+	m_aspectRatio(aspectRatio)
 {
-	projectionMatrix = dx::XMMatrixPerspectiveFovLH(fov, Graphics::Get().GetAspectRatio(), nearClip, farClip);
-	projectionMatrixInv = dx::XMMatrixInverse(nullptr, projectionMatrix);
+	m_projectionMatrix = dx::XMMatrixPerspectiveFovLH(fov, aspectRatio, nearClip, farClip);
+	//m_projectionMatrixInv = dx::XMMatrixInverse(nullptr, m_projectionMatrix);
+}
+ 
+void SandFox::Camera::SetFOV(float fov)
+{
+	m_fov = fov;
+
+	m_projectionMatrix = dx::XMMatrixPerspectiveFovLH(m_fov, m_aspectRatio, m_nearClip, m_farClip);
+	//m_projectionMatrixInv = dx::XMMatrixInverse(nullptr, m_projectionMatrix);
 }
 
-void SandFox::Camera::SetPosition(const Vec3 & pos)
+void SandFox::Camera::SetClip(float nearClip, float farClip)
 {
-	position = pos;
+	m_nearClip = nearClip;
+	m_farClip = farClip;
+
+	m_projectionMatrix = dx::XMMatrixPerspectiveFovLH(m_fov, m_aspectRatio, m_nearClip, m_farClip);
+	//m_projectionMatrixInv = dx::XMMatrixInverse(nullptr, m_projectionMatrix);
 }
 
-void SandFox::Camera::SetRotation(const Vec3 & angles)
+void SandFox::Camera::SetAspectRatio(float aspectRatio)
 {
-	rotation = angles;
+	m_aspectRatio = aspectRatio;
+
+	m_projectionMatrix = dx::XMMatrixPerspectiveFovLH(m_fov, m_aspectRatio, m_nearClip, m_farClip);
+	//m_projectionMatrixInv = dx::XMMatrixInverse(nullptr, m_projectionMatrix);
+}
+
+float SandFox::Camera::GetFOV()
+{
+	return m_fov;
+}
+
+float SandFox::Camera::GetNearClip()
+{
+	return m_nearClip;
+}
+
+float SandFox::Camera::GetFarClip()
+{
+	return m_farClip;
+}
+
+float SandFox::Camera::GetAspectRatio()
+{
+	return m_aspectRatio;
 }
 
 dx::XMMATRIX SandFox::Camera::GetMatrix()
@@ -32,6 +68,6 @@ dx::XMMATRIX SandFox::Camera::GetMatrix()
 		dx::XMMatrixRotationY(rotation.y) *
 		dx::XMMatrixRotationX(rotation.x) *
 		dx::XMMatrixRotationZ(rotation.z) *
-		projectionMatrix;
+		m_projectionMatrix;
 		
 }

@@ -11,7 +11,7 @@
 //#define NORASTEROPS
 #define NOPATOM
 //#define NOCLIPBOARD
-#define NOCOLOR
+//#define NOCOLOR
 #define NODRAWTEXT
 #define NOKERNEL
 //#define NONLS

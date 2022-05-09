@@ -16,8 +16,13 @@ SandFox::ImGuiHandler::ImGuiHandler(Graphics* graphics, ImGuiStyleBasic style)
 	m_graphics(graphics)
 {
 	ImGui::CreateContext();
+	ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+
 	ImGui_ImplWin32_Init(m_graphics->GetWindow()->GetHwnd());
 	ImGui_ImplDX11_Init(m_graphics->GetDevice().Get(), m_graphics->GetContext().Get());
+
+	//ImGuiPlatformIO& pio = ImGui::GetPlatformIO();
+	//pio.Renderer_CreateWindow = imgui_impldx11_creat
 
 	// Set the imgui input-overriding wndproc
 	m_graphics->GetWindow()->LoadPrioritizedWndProc(ImGui_ImplWin32_WndProcHandler);
@@ -46,6 +51,12 @@ void SandFox::ImGuiHandler::EndDraw()
 {
 	ImGui::Render();
 	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+
+	if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+	{
+		ImGui::UpdatePlatformWindows();
+		ImGui::RenderPlatformWindowsDefault();
+	}
 }
 
 void SandFox::ImGuiHandler::SetStyle(ImGuiStyleBasic style)

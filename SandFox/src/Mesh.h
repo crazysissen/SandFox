@@ -72,6 +72,8 @@ namespace SandFox
 		int materialCount;
 		int textureCount;
 
+		float vertexFurthest;
+
 	};
 
 }

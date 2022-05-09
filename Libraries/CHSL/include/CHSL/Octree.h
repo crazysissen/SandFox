@@ -265,8 +265,11 @@ namespace cs
 				RecursiveDelete(node->children[i]);
 			}
 		}
+		else
+		{
+			delete[] node->data;
+		}
 
-		delete[] node->data;
 		delete node;
 	}
 

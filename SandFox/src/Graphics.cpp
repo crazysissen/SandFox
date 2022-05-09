@@ -27,6 +27,8 @@ SandFox::Graphics::Graphics()
 	m_frameComposited(false),
 	m_displayedBuffer(0),
 
+	m_window(nullptr),
+
 	m_device(nullptr),
 	m_swapChain(nullptr),
 	m_context(nullptr),
@@ -50,7 +52,6 @@ SandFox::Graphics::Graphics()
 
 	m_camera(nullptr),
 	m_cameraMatrix(),
-	m_aspectRatio(),
 
 	m_shaderDir(L"")
 {
@@ -356,9 +357,6 @@ void SandFox::Graphics::Init(Window* window, std::wstring shaderDir, GraphicsTec
 	vp.TopLeftX = 0;
 	vp.TopLeftY = 0;
 	EXC_COMINFO(m_context->RSSetViewports(1u, &vp));
-
-	// and aspect ration in conjunction
-	m_aspectRatio = (float)vp.Width / (float)vp.Height;
 
 
 
@@ -695,19 +693,14 @@ void SandFox::Graphics::PostProcess()
 	//}
 }
 
-float SandFox::Graphics::GetAspectRatio()
-{
-	return m_aspectRatio;
-}
-
 inline SandFox::Window* SandFox::Graphics::GetWindow()
 {
 	return m_window;
 }
 
-void SandFox::Graphics::InitCamera(Vec3 pos, Vec3 rot, float fov)
+void SandFox::Graphics::InitCamera(Vec3 pos, Vec3 rot, float fov, float nearClip, float farClip)
 {
-	m_camera = std::make_shared<Camera>(pos, rot, fov, c_nearClip, c_farClip);
+	m_camera = std::make_shared<Camera>(pos, rot, fov, nearClip, farClip, (float)m_window->GetW() / (float)m_window->GetH());
 }
 
 std::shared_ptr<SandFox::Camera> SandFox::Graphics::GetCamera()

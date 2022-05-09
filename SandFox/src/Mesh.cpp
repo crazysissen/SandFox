@@ -126,6 +126,7 @@ bool LoadOBJ(SandFox::Mesh& m, const wchar_t* path)
 	string currentObject;
 	int currentObjectIndex = 0;
 	int currentTexture = 0;
+	float maxDistanceSq = 0.0f;
 
 
 
@@ -169,7 +170,10 @@ bool LoadOBJ(SandFox::Mesh& m, const wchar_t* path)
 					case ' ':
 					{
 						ReadFloats(&(line[2]), (int)line.length() - 2, 3, fBuffer);
-						vertices.Add(Vec3(fBuffer[0], fBuffer[1], fBuffer[2]));
+						Vec3 vec(fBuffer[0], fBuffer[1], fBuffer[2]);
+						vertices.Add(vec);
+
+						maxDistanceSq = std::max(vec.LengthSq(), maxDistanceSq);
 
 						// Following is for xyzw vectors
 
@@ -441,6 +445,8 @@ bool LoadOBJ(SandFox::Mesh& m, const wchar_t* path)
 	m.submeshCount = submeshPrimers.Size();
 	m.materialCount = materialPrimers.Size();
 	m.textureCount = materialPrimers.Size() * 5 - originalTextureCount + textureStrings.Size();
+
+	m.vertexFurthest = sqrtf(maxDistanceSq);
 
 	m.vertices = new SandFox::MeshVertex[m.vertexCount];
 	m.submeshes = new SandFox::MeshSubmesh[m.submeshCount];
