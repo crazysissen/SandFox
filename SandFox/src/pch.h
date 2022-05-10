@@ -44,6 +44,8 @@ using Microsoft::WRL::ComPtr;
 #define CHSL_DX
 #include <CHSL.h>
 
+#include "Debug.h"
+
 #pragma warning( push )
 #pragma warning( disable : 26451 )
 

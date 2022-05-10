@@ -43,8 +43,9 @@ namespace cs
 
         void Insert(int index, const T& value);
         void Remove(int index);
+        void MassRemove(const int* indices, int indexCount);
         void Add(const T& value);
-        void Clear();
+        void Clear(bool shrink = true);
         T Pop();
 
         const T* Data() const;
@@ -285,6 +286,27 @@ namespace cs
     }
 
     template<typename T>
+    inline void List<T>::MassRemove(const int* indices, int indexCount)
+    {
+        int currentIndex = 1;
+        int backCounter = 1;
+        for (int i = indices[0] + 1; i < m_size; i++)
+        {
+            if (currentIndex < indexCount && i == indices[currentIndex])
+            {
+                do { currentIndex++; } while (currentIndex < indexCount && i >= indices[currentIndex]);
+                backCounter++;
+            }
+            else
+            {
+                m_elements[i - backCounter] = m_elements[i];
+            }
+        }
+
+        m_size -= backCounter;
+    }
+
+    template<typename T>
     inline void List<T>::Add(const T& value)
     {
         BoundArray();
@@ -310,14 +332,16 @@ namespace cs
     }
 
     template<typename T>
-    inline void List<T>::Clear()
+    inline void List<T>::Clear(bool shrink)
     {
         m_size = 0;
-        m_capacity = c_dCapacity;
 
-        delete[] m_elements;
-
-        m_elements = new T[c_dCapacity];
+        if (shrink)
+        {
+            m_capacity = c_dCapacity;
+            delete[] m_elements;
+            m_elements = new T[c_dCapacity];
+        }
     }
 
 

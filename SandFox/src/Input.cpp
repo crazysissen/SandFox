@@ -38,11 +38,14 @@ SandFox::Input::Input(Window* window)
 	:
 	Input()
 {
+	FOX_TRACE("Constructing Input.");
 	m_window = window;
 }
 
 SandFox::Input::~Input()
 {
+	FOX_TRACE("Destructing Input.");
+
 	delete[] m_frameChars;
 
 	s_input = nullptr;
@@ -62,6 +65,7 @@ Point SandFox::Input::WindowLockPosition()
 
 void SandFox::Input::MoveMouseTo(Point p)
 {
+	FOX_FTRACE_F("Mouse moved to (%i, %i) by program.", p.x, p.y);
 	POINT temp = { p.x, p.y };
 	ClientToScreen(m_window->GetHwnd(), &temp);
 	SetCursorPos(temp.x, temp.y);
@@ -70,12 +74,15 @@ void SandFox::Input::MoveMouseTo(Point p)
 
 void SandFox::Input::CoreUpdateState()
 {
+	FOX_FTRACE("Updating Input system.");
+
 	m_mpDiff = m_mp - m_lastMp;
 	m_lastMp = m_mLocked ? WindowLockPosition() : m_mp;
 
 	if (m_mpDiff != cs::Point(0, 0))
 	{
 		//DBOUT("Mouse movement: { " << m_mpDiff.x << ", " << m_mpDiff.y << " }");
+		FOX_FTRACE_F("Mouse moved to (%i, %i) by user.", m_mp.x, m_mp.y);
 	}
 
 	m_keyDown.reset();
@@ -88,11 +95,13 @@ void SandFox::Input::CoreUpdateState()
 		switch (e.type)
 		{
 		case PressEventType::KeyUp:
+			FOX_FTRACE_F("Key (%x) was released.", (uint)e.index);
 			m_keyPressed[e.index] = false;
 			m_keyUp[e.index] = true;
 			break;
 
 		case PressEventType::KeyDown:
+			FOX_FTRACE_F("Key (%x) was pressed.", (uint)e.index);
 			m_keyPressed[e.index] = true;
 			m_keyDown[e.index] = true;
 			break;
@@ -106,11 +115,13 @@ void SandFox::Input::CoreUpdateState()
 		switch (e.type)
 		{
 		case PressEventType::KeyUp:
+			FOX_FTRACE_F("Mouse button (%x) was released.", (uint)e.index);
 			m_mbPressed[e.index] = false;
 			m_mbUp[e.index] = true;
 			break;
 
 		case PressEventType::KeyDown:
+			FOX_FTRACE_F("Mouse button (%x) was pressed.", (uint)e.index);
 			m_mbPressed[e.index] = true;
 			m_mbDown[e.index] = true;
 			break;
@@ -125,6 +136,8 @@ void SandFox::Input::CoreUpdateState()
 		} 
 		while (m_charQueue.Size() > m_frameCharCapacity);
 
+		FOX_TRACE_F("Char queue capacity increased to %i.", m_frameCharCapacity);
+			
 		delete[] m_frameChars;
 		m_frameChars = new wchar_t[m_frameCharCapacity];
 	}
@@ -134,6 +147,7 @@ void SandFox::Input::CoreUpdateState()
 	for (int i = 0; !m_charQueue.Empty(); i++)
 	{
 		wchar_t c = m_charQueue.Pop();
+		FOX_FTRACE_F("Char %cl was inputted.", c);
 
 		m_frameChars[i] = c;
 	}

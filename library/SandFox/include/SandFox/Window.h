@@ -19,23 +19,16 @@ namespace SandFox
 		Window();
 		~Window();
 
-		// Optional. Default style is CS_OWNDC
 		void InitClass(HINSTANCE instance, uint style = 0x20, HICON icon = nullptr, HCURSOR cursor = nullptr);
-
-		// Register the window on Windows API side
 		HWND InitWindow(HINSTANCE instance, int width, int height, cstr name, bool inputWindow);
-
-		// Loads external WndProc which has priority over default proc
-		void LoadPrioritizedWndProc(WNDPROC wndProc);
-
-		// Show the window to the user
 		void Show(int command = SW_SHOW);
+
+		void DeInitWindow();
+
+		void LoadPrioritizedWndProc(WNDPROC wndProc);
 
 		// Process the current message stack and optionally return quit message
 		std::optional<int> ProcessMessages();
-
-		// Windows procedure member function
-		LRESULT WindowsProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 		HWND GetHwnd();
 		HINSTANCE GetHInstance();
@@ -48,6 +41,8 @@ namespace SandFox
 	private:
 		// Initialize window class for this window
 		void InitClassDefault(HINSTANCE instance);
+		// Windows procedure member function
+		LRESULT WindowsProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 		// Initial windows procedure to configure instance link
 		static LRESULT CALLBACK WndProcSetup(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 		// Windows procedure passthrough to instance

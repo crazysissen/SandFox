@@ -164,14 +164,14 @@ int SafeWinMain(
 	mWatchtower.Load(L"Assets/Models/Watchtower.obj");
 	sx::Prim::MeshDrawable watchtower(sx::Transform({ 0, -20, 0 }, { 0, 0, 0 }, { 2, 2, 2 }), mWatchtower);
 
-	cs::Octree<sx::Prim::MeshDrawable*>* monkeyTree = new cs::Octree<sx::Prim::MeshDrawable*>(
-		cs::Box(-100, -100, -100, 200, 200, 200),
-		8
-	);
-
 
 
 	// Monkeys
+
+	cs::Octree<sx::Prim::MeshDrawable*>* monkeyTree = new cs::Octree<sx::Prim::MeshDrawable*>(
+		cs::Box(-100, -50, 50, 200, 100, 200),
+		8
+	);
 
 	const int c_monkeyCount = 1000;
 	monkeyDisplayCount = c_monkeyCount;
@@ -185,7 +185,7 @@ int SafeWinMain(
 		suzannes[i].Load(mMonkey);
 		suzannes[i].SetTransform(
 			sx::Transform(
-				{ r.Getf(-25, 25), r.Getf(-25, 25), r.Getf(50, 100) },
+				{ r.Getf(-100, 100), r.Getf(-50, 50), r.Getf(50, 250) }, 
 				{ 0, r.Getf(0, 2 * cs::c_pi), 0 },
 				{ 1, 1, 1 }
 			)
@@ -300,6 +300,8 @@ int SafeWinMain(
 #pragma endregion
 
 #pragma region Core stuff
+		debug.ClearFrameTrace();
+
 		// Exit code optional evaluates to true if it contains a value
 		if (const std::optional<int> optExitCode = window.ProcessMessages())
 		{
@@ -655,7 +657,7 @@ int WINAPI WinMain(
 	{
 		SafeWinMain(hInstance, hPrevInstance, lpCmdLine, nCmdShow);
 	}
-	catch (const cs::Exception& e) 
+	catch (const cs::Exception& e)
 	{
 		input.MouseVisible(true);
 		MessageBoxA(nullptr, e.what(), e.GetType(), MB_OK | MB_ICONERROR);
@@ -677,5 +679,5 @@ int WINAPI WinMain(
 //
 //#endif
 
-	return 0;
+	return 0; 
 }

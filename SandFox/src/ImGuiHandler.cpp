@@ -15,9 +15,11 @@ SandFox::ImGuiHandler::ImGuiHandler(Graphics* graphics, ImGuiStyleBasic style)
 	:
 	m_graphics(graphics)
 {
+	FOX_TRACE("Constructing ImGuiHandler.");
 	ImGui::CreateContext();
 	ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 
+	FOX_TRACE("Initializing ImGui Win32 and DX11 implementation.");
 	ImGui_ImplWin32_Init(m_graphics->GetWindow()->GetHwnd());
 	ImGui_ImplDX11_Init(m_graphics->GetDevice().Get(), m_graphics->GetContext().Get());
 
@@ -34,6 +36,7 @@ SandFox::ImGuiHandler::ImGuiHandler(Graphics* graphics, ImGuiStyleBasic style)
 
 SandFox::ImGuiHandler::~ImGuiHandler()
 {
+	FOX_TRACE("Deconstructing ImGuiHandler.");
 	ImGui_ImplDX11_Shutdown();
 	ImGui_ImplWin32_Shutdown();
 	
@@ -42,6 +45,7 @@ SandFox::ImGuiHandler::~ImGuiHandler()
 
 void SandFox::ImGuiHandler::BeginDraw()
 {
+	FOX_FTRACE("Begin new ImGui frame.");
 	ImGui_ImplDX11_NewFrame();
 	ImGui_ImplWin32_NewFrame();
 	ImGui::NewFrame();
@@ -49,11 +53,13 @@ void SandFox::ImGuiHandler::BeginDraw()
 
 void SandFox::ImGuiHandler::EndDraw()
 {
+	FOX_FTRACE("Render finished ImGui frame.");
 	ImGui::Render();
 	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 
 	if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
 	{
+		FOX_FTRACE("Update ImGui platform windows.");
 		ImGui::UpdatePlatformWindows();
 		ImGui::RenderPlatformWindowsDefault();
 	}
@@ -61,6 +67,8 @@ void SandFox::ImGuiHandler::EndDraw()
 
 void SandFox::ImGuiHandler::SetStyle(ImGuiStyleBasic style)
 {
+	FOX_TRACE("ImGui style changed.");
+
 	switch (style)
 	{
 		case SandFox::ImGuiStyleClassic:

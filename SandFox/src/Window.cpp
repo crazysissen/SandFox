@@ -22,10 +22,12 @@ SandFox::Window::Window()
 	m_externWndProc(nullptr),
 	m_size(0, 0)
 {
+	FOX_TRACE("Constructing window.");
 }
 
 SandFox::Window::~Window()
 {
+	FOX_TRACE("Destructing window.");
 }
 
 
@@ -34,10 +36,13 @@ SandFox::Window::~Window()
 
 LRESULT SandFox::Window::WindowsProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
+	FOX_FTRACE_F("WndProc message (%x). WP: %xl, LP: %xl", msg, wParam, lParam);
+
 	if (m_externWndProc)
 	{
 		if (m_externWndProc(hWnd, msg, wParam, lParam))
 		{
+			FOX_FTRACE("Extern WndProc override.");
 			return true;
 		}
 	}
@@ -125,6 +130,8 @@ void SandFox::Window::InitClass(HINSTANCE instance, uint style, HICON icon, HCUR
 	m_className = new char[className.size() + 1] { '\0' };
 	std::memcpy(m_className, className.data(), className.size());
 
+	FOX_TRACE_F("Initializing Window class: %s", m_className);
+
 	wndClass.cbSize = sizeof(WNDCLASSEX);
 	wndClass.style = style;
 	wndClass.lpfnWndProc = WndProcSetup;
@@ -139,6 +146,7 @@ void SandFox::Window::InitClass(HINSTANCE instance, uint style, HICON icon, HCUR
 
 	if (!RegisterClassEx(&wndClass))
 	{
+		FOX_CRITICAL_F("Window class registration failed. HRES: %xl", (HRESULT)GetLastError());
 		EXC_HRLAST();
 	}
 }
@@ -150,6 +158,8 @@ void SandFox::Window::InitClassDefault(HINSTANCE instance)
 
 HWND SandFox::Window::InitWindow(HINSTANCE instance, int width, int height, cstr name, bool inputWindow)
 {
+	FOX_TRACE_F("Initializing Window: %s. Size: (%i x %i).", name, width, height);
+
 	if (m_classIndex == -1)
 	{
 		InitClassDefault(instance);
@@ -183,10 +193,21 @@ HWND SandFox::Window::InitWindow(HINSTANCE instance, int width, int height, cstr
 
 	if (m_handle == nullptr)
 	{
+		FOX_CRITICAL_F("Window creation failed. HRES: %xl", (HRESULT)GetLastError());
 		EXC_HRLAST();
 	}
 
 	return m_handle;
+}
+
+void SandFox::Window::DeInitWindow()
+{
+	FOX_TRACE_F("Deinitializing Window.");
+
+	if (m_className != nullptr)
+	{
+		delete[] m_className;
+	}
 }
 
 void SandFox::Window::LoadPrioritizedWndProc(WNDPROC wndProc)
@@ -196,6 +217,8 @@ void SandFox::Window::LoadPrioritizedWndProc(WNDPROC wndProc)
 
 void SandFox::Window::Show(int command)
 {
+	FOX_TRACE_F("Window Show command: %i", command);
+
 	if (m_handle == nullptr)
 		return;
 
@@ -208,6 +231,8 @@ void SandFox::Window::Show(int command)
 
 std::optional<int> SandFox::Window::ProcessMessages()
 {
+	FOX_FTRACE_F("Call to ProcessMessages for Window.");
+
 	static MSG msg;
 
 	while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
@@ -215,6 +240,7 @@ std::optional<int> SandFox::Window::ProcessMessages()
 		// Return optional int containing exit code if the message is a quit message
 		if (msg.message == WM_QUIT)
 		{
+			FOX_TRACE_F("ProcessMessages caught WM_QUIT message.");
 			return (int)msg.wParam;
 		}
 
@@ -262,6 +288,8 @@ LRESULT CALLBACK SandFox::Window::WndProcSetup(HWND hWnd, UINT msg, WPARAM wPara
 
 	case WM_NCCREATE:
 	{
+		FOX_TRACE_F("WndProcSetup caught WM_NCCREATE message, linking window procedure.");
+
 		Window* wp = (Window*)(((CREATESTRUCTA*)lParam)->lpCreateParams); // Get window pointer from create struct
 		SetWindowLongPtrA(hWnd, GWLP_WNDPROC, (LONG_PTR)&WndProcPass);
 		SetWindowLongPtrA(hWnd, GWLP_USERDATA, (LONG_PTR)wp);

@@ -71,11 +71,14 @@ int ReadIndices(char* start, int length, int maxNumbers, uindex* buffer) // <-- 
 
 bool LoadOBJ(SandFox::Mesh& m, const wchar_t* path)
 {
+	FOX_TRACE("Loading Mesh object with OBJ-format.");
+
 	// File open
 
 	std::ifstream fileObj(path);
 	if (!fileObj.good())
 	{
+		FOX_ERROR("Could not open OBJ file.");
 		return false;
 	}
 
