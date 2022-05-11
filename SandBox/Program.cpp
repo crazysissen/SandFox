@@ -98,7 +98,7 @@ int SafeWinMain(
 
 
 
-	// Initial setup of base resources
+	// Initial setup of base resources 
 
 	sx::Debug debug;
 	debug.Init();
@@ -110,7 +110,7 @@ int SafeWinMain(
 	window.InitClass(hInstance);
  	window.InitWindow(hInstance, 1920, 1080, "SandBox", true);
 
-	sx::GraphicsTechnique technique = sx::GraphicsTechniqueImmediate; 
+	sx::GraphicsTechnique technique = sx::GraphicsTechniqueImmediate;
 	graphics.Init(&window, L"Assets\\Shaders", technique);
 	graphics.InitCamera({ 0, 0, 0 }, { 0, 0, 0 }, fov, nearClip, farClip);
 
@@ -627,7 +627,8 @@ int SafeWinMain(
 	}
 
 	graphics.DeInit();
-	debug.DeInit();
+	debug.DeInit(); 
+	window.DeInitWindow(); 
 
 	delete monkeyTree; 
 	delete[] suzannes;
@@ -679,5 +680,5 @@ int WINAPI WinMain(
 //
 //#endif
 
-	return 0; 
+	return 0;
 }

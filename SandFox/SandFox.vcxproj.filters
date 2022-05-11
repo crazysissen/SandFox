@@ -115,7 +115,9 @@
     <ClCompile Include="src\ImGui\imgui_widgets.cpp">
       <Filter>Source\%2a Libraries\Imgui</Filter>
     </ClCompile>
-    <ClCompile Include="src\Debug.cpp" />
+    <ClCompile Include="src\Debug.cpp">
+      <Filter>Source\%2a Core\Debug</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Graphics.h">
@@ -247,7 +249,9 @@
     <ClInclude Include="src\ImGui\imstb_textedit.h">
       <Filter>Source\%2a Libraries\Imgui</Filter>
     </ClInclude>
-    <ClInclude Include="src\Debug.h" />
+    <ClInclude Include="src\Debug.h">
+      <Filter>Source\%2a Core\Debug</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Source">
@@ -381,6 +385,9 @@
     </Filter>
     <Filter Include="Source\%2a Core\ImGuiHandler">
       <UniqueIdentifier>{bcdab947-cd92-41d4-9237-c65ebf6c3835}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\%2a Core\Debug">
+      <UniqueIdentifier>{c4da21e1-c609-4fad-b165-1d14c3f4eb29}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

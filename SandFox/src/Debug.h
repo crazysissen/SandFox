@@ -2,6 +2,8 @@
 
 #include "SandFoxCore.h"
 #include <string>
+#include <ios>
+#include <mutex>
 
 namespace SandFox
 {
@@ -75,10 +77,68 @@ namespace SandFox
 
 
 	private:
+		class DebugStreambuf : public std::streambuf
+		{
+		public:
+			DebugStreambuf();
+			~DebugStreambuf();
+
+			void SetLevel(DebugLevel level);
+
+		private:
+			void Push();
+
+			//int xsputn(char* c, long long s) override;
+			int overflow(int c) override;
+			int sync() override;
+
+		private:
+			DebugLevel m_level;
+			cs::List<char> m_buffer;
+		};
+
 		struct DebugItem
 		{
 			DebugLevel level;
 			std::string text;
+		};
+
+		class DebugOutputCaptor
+		{
+		public:
+			DebugOutputCaptor();
+			~DebugOutputCaptor();
+
+			bool Init(DebugLevel level);
+			void DeInit();
+
+			void Detach();
+			void Terminate();
+
+			bool Initialized();
+
+		private:
+			static void Run(DebugOutputCaptor* captor);
+
+			struct DBWINBuffer
+			{
+				unsigned long processID;
+				char data[4096 - sizeof(unsigned long)];
+			};
+
+		private:
+			bool m_initialized;
+
+			DebugLevel m_level;
+
+			void* m_mutexHandle;
+			void* m_bufferReadyEvent;
+			void* m_dataReadyEvent;
+			void* m_bufferHandle;
+
+			DBWINBuffer* m_buffer;
+
+			std::thread* m_thread;
 		};
 
 		struct CommandItem
@@ -91,9 +151,21 @@ namespace SandFox
 			void* userData;
 		};
 
+		struct StreamRedirect
+		{
+			DebugStreambuf buffer;
+			std::streambuf* streamBuffer;
+			std::ios* stream;
+		};
+
 	private:
 		void PPushMessage(DebugLevel level, const char* format, va_list args);
 		void PPushMessage(const char* message, DebugLevel level);
+
+		void CaptureDebugOutput();
+
+		void CaptureStream(std::ios* stream, DebugLevel level);
+		void ReleaseStreams();
 
 		void TryCommand();
 		void RegisterDefaultCommands();
@@ -106,14 +178,21 @@ namespace SandFox
 		static constexpr int c_tempBufferSize = 2048;
 		static constexpr int c_inputBufferSize = 128;
 		static constexpr int c_dataBufferSize = 144;
+		static constexpr int c_debutOutputTimeout = 100;
 		static constexpr char c_commandChar = '>';
+
 		static Debug* s_debug;
+		
+		std::mutex* m_mutex;
 
 		DebugLevel m_debugLevel;
 		DebugLevel m_displayLevel;
 		bool m_initialized;
 
 		cs::List<DebugItem> m_items;
+
+		cs::List<StreamRedirect> m_streams;
+		DebugOutputCaptor m_debugOutputCaptor;
 
 		cs::Vec4 m_textColors[DebugLevelCount];
 

@@ -28,6 +28,12 @@ SandFox::Window::Window()
 SandFox::Window::~Window()
 {
 	FOX_TRACE("Destructing window.");
+
+	if (m_className != nullptr)
+	{
+		FOX_WARN("Window not manually deinitialized, proceeding with automatic deinitialization at destruction.");
+		DeInitWindow();
+	}
 }
 
 
@@ -36,7 +42,7 @@ SandFox::Window::~Window()
 
 LRESULT SandFox::Window::WindowsProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-	FOX_FTRACE_F("WndProc message (%x). WP: %xl, LP: %xl", msg, wParam, lParam);
+	FOX_FTRACE_F("WndProc message (%x). WP: %lx, LP: %lx", msg, wParam, lParam);
 
 	if (m_externWndProc)
 	{
@@ -146,7 +152,7 @@ void SandFox::Window::InitClass(HINSTANCE instance, uint style, HICON icon, HCUR
 
 	if (!RegisterClassEx(&wndClass))
 	{
-		FOX_CRITICAL_F("Window class registration failed. HRES: %xl", (HRESULT)GetLastError());
+		FOX_CRITICAL_F("Window class registration failed. HRES: %lx", (HRESULT)GetLastError());
 		EXC_HRLAST();
 	}
 }
@@ -193,7 +199,7 @@ HWND SandFox::Window::InitWindow(HINSTANCE instance, int width, int height, cstr
 
 	if (m_handle == nullptr)
 	{
-		FOX_CRITICAL_F("Window creation failed. HRES: %xl", (HRESULT)GetLastError());
+		FOX_CRITICAL_F("Window creation failed. HRES: %lx", (HRESULT)GetLastError());
 		EXC_HRLAST();
 	}
 
@@ -207,6 +213,7 @@ void SandFox::Window::DeInitWindow()
 	if (m_className != nullptr)
 	{
 		delete[] m_className;
+		m_className = nullptr;
 	}
 }
 

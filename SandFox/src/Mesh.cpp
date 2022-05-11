@@ -71,7 +71,7 @@ int ReadIndices(char* start, int length, int maxNumbers, uindex* buffer) // <-- 
 
 bool LoadOBJ(SandFox::Mesh& m, const wchar_t* path)
 {
-	FOX_TRACE("Loading Mesh object with OBJ-format.");
+	FOX_TRACE_F("Loading Mesh object with OBJ-format at \"%ls\".", path);
 
 	// File open
 
@@ -160,6 +160,8 @@ bool LoadOBJ(SandFox::Mesh& m, const wchar_t* path)
 	string line;
 	float fBuffer[4] = { 0, 0, 0, 0 };
 	uindex iBuffer[12] = { 0,0,0,0,0,0,0,0,0,0,0,0 };
+
+	FOX_TRACE("Parsing OBJ file...");
 
 #pragma region OBJ Reading
 	while (std::getline(fileObj, line))
@@ -289,6 +291,7 @@ bool LoadOBJ(SandFox::Mesh& m, const wchar_t* path)
 
 #pragma region MTL Reading
 
+	FOX_TRACE("Parsing MTL file(s)...");
 
 	for (int i = 0; i < mtlPaths.Size(); i++)
 	{
@@ -296,6 +299,7 @@ bool LoadOBJ(SandFox::Mesh& m, const wchar_t* path)
 		std::ifstream fileMtl(mtlDir);
 		if (!fileMtl.good())
 		{
+			FOX_ERROR("Could not open MTL file.");
 			continue;
 		}
 
@@ -409,6 +413,7 @@ bool LoadOBJ(SandFox::Mesh& m, const wchar_t* path)
 		}
 	}
 
+
 #pragma endregion
 
 	int vertexCount = 0;
@@ -460,10 +465,12 @@ bool LoadOBJ(SandFox::Mesh& m, const wchar_t* path)
 
 	// Textures
 
+	FOX_TRACE("Loading image file(s)...");
 	for (int i = 0; i < textureStrings.Size() && i < m.textureCount; i++)
 	{
 		m.textures[i].Load(dir + wstring(textureStrings[i].begin(), textureStrings[i].end()));
 	}
+	
 
 
 
@@ -497,6 +504,7 @@ bool LoadOBJ(SandFox::Mesh& m, const wchar_t* path)
 		}
 	};
 
+	FOX_TRACE("Loading material(s)...");
 	for (int i = 0; i < m.materialCount; i++)
 	{
 		m.materials[i].name = materialPrimers[i].name;
@@ -554,6 +562,7 @@ bool LoadOBJ(SandFox::Mesh& m, const wchar_t* path)
 
 	int currentVertex = 0;
 
+	FOX_TRACE("Assembling submesh(es)...");
 	for (int i = 0; i < m.submeshCount; i++)
 	{
 		SubmeshPrimer& s = submeshPrimers[i];
@@ -580,6 +589,8 @@ bool LoadOBJ(SandFox::Mesh& m, const wchar_t* path)
 			currentVertex += 3;
 		}
 	}
+
+	FOX_TRACE("Done!");
 
 	return true;
 }

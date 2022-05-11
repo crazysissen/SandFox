@@ -63,12 +63,19 @@ void SandFox::Debug::Init()
 {
 	s_debug = this;
 
+	m_mutex = new std::mutex();
+
 	m_initialized = true;
 	m_tempBuffer = new char[c_tempBufferSize + 1] { '\0' };
 	m_inputBuffer = new char[c_inputBufferSize + 1]{ '\0' };
 	m_dataBuffer = new byte[c_dataBufferSize + 1] { 0 };
 
 	m_commands = new std::unordered_map<std::string, CommandItem>();
+
+	CaptureStream(&std::cerr, DebugLevelError);
+	CaptureStream(&std::cout, DebugLevelDebug);
+	CaptureStream(&std::clog, DebugLevelTrace);
+	CaptureDebugOutput();
 
 	RegisterDefaultCommands();
 }
@@ -85,11 +92,39 @@ void SandFox::Debug::DeInit(bool writeLog)
 	delete[] m_inputBuffer;
 	delete[] m_dataBuffer;
 
-	delete m_commands;
+	delete (std::unordered_map<std::string, CommandItem>*)m_commands;
+
+	ReleaseStreams();
+
+	delete m_mutex;
 
 	if (s_debug == this)
 	{
 		s_debug = nullptr;
+	}
+}
+
+void SandFox::Debug::CaptureStream(std::ios* stream, DebugLevel level)
+{
+	m_streams.Add({ {}, stream->rdbuf(), stream });
+
+	StreamRedirect& d = m_streams.Back();
+	d.buffer.SetLevel(level);
+	stream->rdbuf(&d.buffer);
+}
+
+void SandFox::Debug::ReleaseStreams()
+{
+	for (StreamRedirect& s : m_streams)
+	{
+		s.stream->rdbuf(s.streamBuffer);
+	}
+
+	m_streams.Clear();
+
+	if (m_debugOutputCaptor.Initialized())
+	{
+		m_debugOutputCaptor.DeInit();
 	}
 }
 
@@ -122,6 +157,9 @@ void SandFox::Debug::PushMessage(const char* message, DebugLevel level)
 void SandFox::Debug::PPushMessage(DebugLevel level, const char* format, va_list args)
 {
 	const char* end = m_tempBuffer + ImFormatStringV(m_tempBuffer, c_tempBufferSize, format, args);
+
+	m_mutex->lock();
+
 	m_items.Add(DebugItem{ level, std::string(m_tempBuffer, (int)(end - m_tempBuffer)) });
 
 	if (level == DebugLevelFrameTrace)
@@ -130,10 +168,14 @@ void SandFox::Debug::PPushMessage(DebugLevel level, const char* format, va_list 
 	}
 
 	TryCommand();
+
+	m_mutex->unlock();
 }
 
 void SandFox::Debug::PPushMessage(const char* message, DebugLevel level)
 {
+	m_mutex->lock();
+
 	m_items.Add(DebugItem{ level, std::string(message) });
 
 	if (level == DebugLevelFrameTrace)
@@ -142,6 +184,24 @@ void SandFox::Debug::PPushMessage(const char* message, DebugLevel level)
 	}
 
 	TryCommand();
+
+	m_mutex->unlock();
+}
+
+void SandFox::Debug::CaptureDebugOutput()
+{
+	bool success = m_debugOutputCaptor.Init(DebugLevelDebug);
+
+	if (success)
+	{
+		PushMessage("Debug output stream captured successfuly.", DebugLevelDebug);
+
+		m_debugOutputCaptor.Detach();
+	}
+	else
+	{
+		PushMessage("Debug output stream not captured.", DebugLevelError);
+	}
 }
 
 void SandFox::Debug::TryCommand()
@@ -242,7 +302,7 @@ void SandFox::Debug::TryCommand()
 		}
 		else
 		{
-			PushMessage(DebugLevelWarn, "Command \"%s\" not recognized. Type \"%c help\" for a list of registered commands.", id.c_str(), c_commandChar);
+			PushMessage(DebugLevelWarn, "Command \"%s\" not recognized. Type \"help\" for a list of registered commands.", id.c_str(), c_commandChar);
 		}
 	}
 }
@@ -494,4 +554,233 @@ void SandFox::Debug::RegisterCommand(DebugCommandCallback callback, const std::s
 {
 	DebugCommandParamType noParams[4] = { DebugCommandParamTypeNone };
 	RegisterCommand(callback, noParams, identifier, description, userData);
+}
+
+
+
+// streambuf
+
+SandFox::Debug::DebugStreambuf::DebugStreambuf()
+	:
+	std::streambuf(),
+	m_level(DebugLevelDebug)
+{
+}
+
+SandFox::Debug::DebugStreambuf::~DebugStreambuf()
+{
+}
+
+void SandFox::Debug::DebugStreambuf::SetLevel(DebugLevel level)
+{
+	m_level = level;
+}
+
+void SandFox::Debug::DebugStreambuf::Push()
+{
+	m_buffer.Add('\0');
+	PushMessage(m_buffer.Data(), m_level);
+	m_buffer.Clear(false);
+}
+
+int SandFox::Debug::DebugStreambuf::overflow(int c)
+{
+	int result = EOF;
+
+	if (c < 0 || c == '\n' || c == '\r')
+	{
+		result = sync();
+		Push();
+	}
+	else if (c >= 0 && c <= UCHAR_MAX)
+	{
+		result = c;
+		m_buffer.Add(c);
+	}
+	else
+	{
+		result = c;
+		PushMessage(DebugLevelWarn, "Invalid value [%x] pushed to DebugStreambuf.", c);
+	}
+
+	return result;
+}
+
+int SandFox::Debug::DebugStreambuf::sync()
+{
+	return 0;
+}
+
+
+
+// Debug output captor
+
+SandFox::Debug::DebugOutputCaptor::DebugOutputCaptor()
+	:
+	m_initialized(false),
+
+	m_mutexHandle(nullptr),
+	m_bufferReadyEvent(nullptr),
+	m_dataReadyEvent(nullptr),
+	m_bufferHandle(nullptr),
+
+	m_buffer(nullptr),
+	m_thread(nullptr)
+{
+}
+
+SandFox::Debug::DebugOutputCaptor::~DebugOutputCaptor()
+{
+}
+
+bool SandFox::Debug::DebugOutputCaptor::Init(DebugLevel level)
+{
+	PushMessage("Initializing DebugOutputCaptor.", DebugLevelDebug);
+
+	m_level = level;
+
+	m_mutexHandle = nullptr;
+	m_bufferReadyEvent = nullptr;
+	m_dataReadyEvent = nullptr;
+	m_bufferHandle = nullptr;
+	m_buffer = nullptr;
+
+	// Mutex
+	m_mutexHandle = OpenMutexA(SYNCHRONIZE, FALSE, "DBWinMutex");
+	if (m_mutexHandle == nullptr)
+	{
+		PushMessage(DebugLevelError, "Failed to open DBWIN mutex. Error: %s", cs::ExceptionWindows::TranslateHRESULT(GetLastError()).c_str());
+		DeInit();
+		return false;
+	}
+
+	// Buffer ready event
+	m_bufferReadyEvent = OpenEventA(EVENT_ALL_ACCESS, FALSE, "DBWIN_BUFFER_READY");
+	if (m_bufferReadyEvent == nullptr)
+	{
+		PushMessage("Failed to open BufferReady event, attempting to create.", DebugLevelWarn);
+
+		m_bufferReadyEvent = CreateEventA(NULL, FALSE, TRUE, "DBWIN_BUFFER_READY");
+		if (m_bufferReadyEvent == nullptr)
+		{
+			PushMessage(DebugLevelError, "Failed to create BufferReady event. Error: %s", cs::ExceptionWindows::TranslateHRESULT(GetLastError()).c_str());
+			DeInit();
+			return false;
+		}
+	}
+
+	// Data ready event
+	m_dataReadyEvent = OpenEventA(SYNCHRONIZE, FALSE, "DBWIN_DATA_READY");
+	if (m_bufferReadyEvent == nullptr)
+	{
+		PushMessage("Failed to open DataReady event, attempting to create.", DebugLevelWarn);
+
+		m_bufferReadyEvent = CreateEventA(NULL, FALSE, FALSE, "DBWIN_DATA_READY");
+		if (m_bufferReadyEvent == nullptr)
+		{
+			PushMessage(DebugLevelError, "Failed to create DataReady event. Error: %s", cs::ExceptionWindows::TranslateHRESULT(GetLastError()).c_str());
+			DeInit();
+			return false;
+		}
+	}
+
+	// Buffer
+	m_bufferHandle = OpenFileMappingA(FILE_MAP_READ, FALSE, "DBWIN_BUFFER");
+	if (m_bufferHandle == nullptr)
+	{
+		PushMessage("Failed to open DBWIN buffer, attempting to create.", DebugLevelWarn);
+
+		m_bufferHandle = CreateFileMappingA(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, sizeof(DBWINBuffer), "DBWIN_BUFFER");
+		if (m_bufferHandle == nullptr)
+		{
+			PushMessage(DebugLevelError, "Failed to create DBWIN buffer. Error: %s", cs::ExceptionWindows::TranslateHRESULT(GetLastError()).c_str());
+			DeInit();
+			return false;
+		}
+	}
+
+	m_buffer = (DBWINBuffer*)MapViewOfFile(m_bufferHandle, SECTION_MAP_READ, 0, 0, 0);
+
+	if (m_buffer == nullptr)
+	{
+		PushMessage(DebugLevelError, "Failed to map DBWIN buffer to local pointer. Error: %s", cs::ExceptionWindows::TranslateHRESULT(GetLastError()).c_str());
+		DeInit();
+		return false;
+	}
+
+	m_initialized = true;
+
+	return true;
+}
+
+void SandFox::Debug::DebugOutputCaptor::DeInit()
+{
+	PushMessage("Deinitializing DebugOutputCaptor.", DebugLevelTrace);
+
+	if (m_thread != nullptr)
+	{
+		Terminate();
+	}
+
+	if (m_mutexHandle != nullptr)
+	{
+		CloseHandle(m_mutexHandle);
+		m_mutexHandle = nullptr;
+	}
+
+	if (m_bufferReadyEvent != nullptr)
+	{
+		CloseHandle(m_bufferReadyEvent);
+		m_bufferReadyEvent = nullptr;
+	}
+
+	if (m_dataReadyEvent != nullptr)
+	{
+		CloseHandle(m_dataReadyEvent);
+		m_dataReadyEvent = nullptr;
+	}
+
+	if (m_bufferHandle != nullptr)
+	{
+		CloseHandle(m_bufferHandle);
+		UnmapViewOfFile(m_buffer);
+		m_bufferHandle = nullptr;
+	}
+
+	m_buffer = nullptr;
+}
+
+void SandFox::Debug::DebugOutputCaptor::Detach()
+{
+	PushMessage("Creating and detaching DebugOutputCaptor thread.", DebugLevelTrace);
+
+	m_thread = new std::thread(Run, this);
+	m_thread->detach();
+}
+
+void SandFox::Debug::DebugOutputCaptor::Terminate()
+{
+	PushMessage("Terminating DebugOutputCaptor thread.", DebugLevelTrace);
+	delete m_thread;
+}
+
+bool SandFox::Debug::DebugOutputCaptor::Initialized()
+{
+	return m_initialized;
+}
+
+void SandFox::Debug::DebugOutputCaptor::Run(DebugOutputCaptor* captor)
+{
+	PushMessage("DebugOutputCaptor thread running.", DebugLevelTrace);
+
+	for (;;)
+	{
+		DWORD returnValue = WaitForSingleObject(captor->m_dataReadyEvent, c_debutOutputTimeout);
+
+		if (returnValue == WAIT_OBJECT_0)
+		{
+			PushMessage(captor->m_buffer->data, captor->m_level);
+			SetEvent(captor->m_bufferReadyEvent);
+		}
+	}
 }
