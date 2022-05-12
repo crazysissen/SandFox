@@ -118,6 +118,7 @@
     <ClCompile Include="src\Debug.cpp">
       <Filter>Source\%2a Core\Debug</Filter>
     </ClCompile>
+    <ClCompile Include="src\Light.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Graphics.h">
@@ -252,6 +253,7 @@
     <ClInclude Include="src\Debug.h">
       <Filter>Source\%2a Core\Debug</Filter>
     </ClInclude>
+    <ClInclude Include="src\Light.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Source">

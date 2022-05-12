@@ -325,28 +325,6 @@ void SandFox::Graphics::Init(Window* window, std::wstring shaderDir, GraphicsTec
 
 
 
-	// --- Bind render target
-
-	//if (m_technique == GraphicsTechniqueImmediate)
-	//{
-	//	if (c_usePPFX)
-	//	{
-	//		//EXC_COMINFO(m_context->OMSetRenderTargets(1u, pOffscreenRTV/*m_backBufferRTV*/.GetAddressOf(), g_dsv.Get()));
-	//	}
-	//	else
-	//	{
-	//		EXC_COMINFO(m_context->OMSetRenderTargets(1u, m_backBuffers[0].GetRenderTarget().GetAddressOf(), m_depthStencilView.Get()));
-	//	}
-	//}
-	//else
-	//{
-	//	/*EXC_COMINFO(*/m_context->OMSetRenderTargets(1u, m_backBuffers[0].GetRenderTarget().GetAddressOf(), m_depthStencilView.Get()));
-	//}
-
-
-
-
-
 	// --- Configure viewport
 
 	D3D11_VIEWPORT vp = {};
@@ -357,7 +335,6 @@ void SandFox::Graphics::Init(Window* window, std::wstring shaderDir, GraphicsTec
 	vp.TopLeftX = 0;
 	vp.TopLeftY = 0;
 	EXC_COMINFO(m_context->RSSetViewports(1u, &vp));
-
 
 
 

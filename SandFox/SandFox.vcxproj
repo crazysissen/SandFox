@@ -402,6 +402,7 @@ echo Debug copying complete!</Command>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='DebugSafe|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="src\Light.cpp" />
     <ClCompile Include="src\ParticleStream.cpp" />
     <ClCompile Include="src\GeometryShader.cpp" />
     <ClCompile Include="src\ComputeShader.cpp" />
@@ -442,6 +443,7 @@ echo Debug copying complete!</Command>
     <ClInclude Include="src\ImGui\imstb_rectpack.h" />
     <ClInclude Include="src\ImGui\imstb_textedit.h" />
     <ClInclude Include="src\ImGui\imstb_truetype.h" />
+    <ClInclude Include="src\Light.h" />
     <ClInclude Include="src\ParticleStream.h" />
     <ClInclude Include="src\ComputeShader.h" />
     <ClInclude Include="src\Shader.h" />

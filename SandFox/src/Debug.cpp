@@ -63,7 +63,7 @@ void SandFox::Debug::Init()
 {
 	s_debug = this;
 
-	m_mutex = new std::mutex();
+	// m_mutex = new std::mutex();
 
 	m_initialized = true;
 	m_tempBuffer = new char[c_tempBufferSize + 1] { '\0' };
@@ -75,7 +75,8 @@ void SandFox::Debug::Init()
 	CaptureStream(&std::cerr, DebugLevelError);
 	CaptureStream(&std::cout, DebugLevelDebug);
 	CaptureStream(&std::clog, DebugLevelTrace);
-	CaptureDebugOutput();
+	
+	//CaptureDebugOutput();
 
 	RegisterDefaultCommands();
 }
@@ -96,7 +97,7 @@ void SandFox::Debug::DeInit(bool writeLog)
 
 	ReleaseStreams();
 
-	delete m_mutex;
+	// delete m_mutex;
 
 	if (s_debug == this)
 	{
@@ -158,7 +159,7 @@ void SandFox::Debug::PPushMessage(DebugLevel level, const char* format, va_list 
 {
 	const char* end = m_tempBuffer + ImFormatStringV(m_tempBuffer, c_tempBufferSize, format, args);
 
-	m_mutex->lock();
+	// m_mutex->lock();
 
 	m_items.Add(DebugItem{ level, std::string(m_tempBuffer, (int)(end - m_tempBuffer)) });
 
@@ -169,7 +170,7 @@ void SandFox::Debug::PPushMessage(DebugLevel level, const char* format, va_list 
 
 	TryCommand();
 
-	m_mutex->unlock();
+	// m_mutex->unlock();
 }
 
 void SandFox::Debug::PPushMessage(const char* message, DebugLevel level)
