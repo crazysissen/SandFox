@@ -2,6 +2,7 @@
 
 #include "InputLayout.h"
 #include "Graphics.h"
+#include "BindHandler.h"
 
 SandFox::Bind::InputLayout::InputLayout()
 	:
@@ -32,7 +33,15 @@ void SandFox::Bind::InputLayout::Load(const D3D11_INPUT_ELEMENT_DESC elementDesc
 	));
 }
 
-void SandFox::Bind::InputLayout::Bind()
+void SandFox::Bind::InputLayout::Bind(BindStage stage)
 {
-	EXC_COMINFO(Graphics::Get().GetContext()->IASetInputLayout(m_inputLayout.Get()));
+	if (BindHandler::BindIL(this))
+	{
+		EXC_COMINFO(Graphics::Get().GetContext()->IASetInputLayout(m_inputLayout.Get()));
+	}
+}
+
+SandFox::BindType SandFox::Bind::InputLayout::Type()
+{
+	return BindTypePipeline;
 }

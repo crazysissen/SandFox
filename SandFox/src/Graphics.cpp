@@ -18,16 +18,23 @@
 
 SandFox::Graphics* SandFox::Graphics::s_graphics = nullptr;
 
+extern "C"
+{
+	__declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
+	__declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
+}
+
 
 
 SandFox::Graphics::Graphics()
 	:
 	m_initialized(false),
-	m_imgui(false),
 	m_frameComposited(false),
 	m_displayedBuffer(0),
 
 	m_window(nullptr),
+
+	m_bindHandler(nullptr),
 
 	m_device(nullptr),
 	m_swapChain(nullptr),
@@ -38,10 +45,9 @@ SandFox::Graphics::Graphics()
 	m_backBufferUAV(),
 	m_lightingPass(),
 
-	m_deferredSamplerState(),
-	m_clientInfo(nullptr),
-	m_sceneInfoBuffer(nullptr),
-	m_sceneInfo(),
+	m_clientInfoBuffer(nullptr),
+	m_cameraInfoBuffer(nullptr),
+	m_cameraInfo(),
 
 	m_depthStencilTexture(),
 	m_depthStencilView(nullptr),
@@ -105,11 +111,7 @@ void SandFox::Graphics::Init(Window* window, std::wstring shaderDir, GraphicsTec
 
 
 
-	// --- Scene info
-
-	m_sceneInfo.cameraPos = { 0, 0, 0 };
-	m_sceneInfo.ambient = { 0, 0, 0 };
-	m_sceneInfo.lightCount = 0;
+	
 
 
 	
@@ -134,81 +136,44 @@ void SandFox::Graphics::Init(Window* window, std::wstring shaderDir, GraphicsTec
 	scd.Windowed = true;
 	scd.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 	scd.Flags = 0;
+	scd.BufferUsage = DXGI_USAGE_UNORDERED_ACCESS | DXGI_USAGE_RENDER_TARGET_OUTPUT;
 
-	if (m_technique == GraphicsTechniqueImmediate)
+	EXC_COMCHECKINFO(D3D11CreateDeviceAndSwapChain(
+		nullptr, // Let system pick graphics card/interface
+		D3D_DRIVER_TYPE_HARDWARE,
+		nullptr,
+		deviceFlags,
+		featureLevels,
+		featureLevelCount,
+		D3D11_SDK_VERSION,
+		&scd,
+		&m_swapChain,
+		&m_device,
+		nullptr,
+		&m_context
+	));
+
+
+
+
+
+	// Handlers setup
+
+	m_bindHandler = new BindHandler();
+	m_bindHandler->Init();
+
+
+
+
+
+	// Deferred rendering setup
+
+	if (technique == GraphicsTechniqueDeferred)
 	{
+		// Setup additional back buffers
 
-		scd.BufferUsage = DXGI_USAGE_UNORDERED_ACCESS | DXGI_USAGE_RENDER_TARGET_OUTPUT;
-
-		EXC_COMCHECKINFO(D3D11CreateDeviceAndSwapChain(
-			nullptr, // Let system pick graphics card/interface
-			D3D_DRIVER_TYPE_HARDWARE,
-			nullptr,
-			deviceFlags,
-			featureLevels,
-			featureLevelCount,
-			D3D11_SDK_VERSION,
-			&scd,
-			&m_swapChain,
-			&m_device,
-			nullptr,
-			&m_context
-		));
-		
-
-
-		m_backBufferCount = 1;
-		m_backBuffers = new RenderTexture[1];
-		ID3D11Texture2D* backBufferTexture;
-		EXC_COMCHECKINFO(m_swapChain->GetBuffer(0, _uuidof(ID3D11Texture2D), (void**)&backBufferTexture));
-		m_backBuffers[0].Load(backBufferTexture, nullptr, nullptr);
-		m_backBuffers[0].CreateRenderTarget(DXGI_FORMAT_B8G8R8A8_UNORM);
-
-		m_sceneInfoBuffer = new Bind::ConstBufferP<SceneInfo>(m_sceneInfo, c_registerSceneInfo, false);
-
-		ClientInfo ci
-		{
-			(uint)m_window->GetW(),
-			(uint)m_window->GetH(),
-			1.0f / (m_window->GetW() - 1),
-			1.0f / (m_window->GetH() - 1),
-			c_depthStencilExponent
-		};
-		m_clientInfo = new Bind::ConstBufferC<ClientInfo>(ci, c_registerClientInfo, false);
-
-	}
-	else
-	{
-
-		scd.BufferUsage = DXGI_USAGE_UNORDERED_ACCESS | DXGI_USAGE_RENDER_TARGET_OUTPUT; 
-
-		EXC_COMCHECKINFO(D3D11CreateDeviceAndSwapChain(
-			nullptr, // Let system pick graphics card/interface
-			D3D_DRIVER_TYPE_HARDWARE,
-			nullptr,
-			deviceFlags,
-			featureLevels,
-			featureLevelCount,
-			D3D11_SDK_VERSION,
-			&scd,
-			&m_swapChain,
-			&m_device,
-			nullptr,
-			&m_context
-		));
-
-		//m_device->CreateDeferredContext(0, &m_context);
-
-
-
-		m_backBufferCount = c_maxRenderTargets + 1;
+		m_backBufferCount = FOX_C_MAX_RENDER_TARGETS + 1;
 		m_backBuffers = new RenderTexture[m_backBufferCount];
-		
-		ID3D11Texture2D* bbTexture;
-		EXC_COMCHECKINFO(m_swapChain->GetBuffer(0, _uuidof(ID3D11Texture2D), (void**)&bbTexture));
-
-		m_backBuffers[0].Load(bbTexture, nullptr, nullptr);
-		m_backBuffers[0].CreateRenderTarget(DXGI_FORMAT_B8G8R8A8_UNORM);
 
 		m_backBuffers[1].Load(cs::ColorA(0, 0, 0, 0), m_window->GetW(), m_window->GetH(), DXGI_FORMAT_R32G32B32A32_FLOAT);
 		m_backBuffers[2].Load(cs::ColorA(0, 0, 0, 0), m_window->GetW(), m_window->GetH(), DXGI_FORMAT_R32G32B32A32_FLOAT);
@@ -219,28 +184,67 @@ void SandFox::Graphics::Init(Window* window, std::wstring shaderDir, GraphicsTec
 		for (int i = 6; i < 8; i++)
 			m_backBuffers[i].Load(cs::ColorA(0, 0, 0, 0), m_window->GetW(), m_window->GetH(), DXGI_FORMAT_R32_FLOAT);
 
-		m_sceneInfoBuffer = new Bind::ConstBufferC<SceneInfo>(m_sceneInfo, c_registerSceneInfo, false);
+
+
+		// Setup deferred compute shader
 
 		m_lightingPass.Load(ShaderPath(L"D_CSPhong"));
-
-		ClientInfo ci
-		{
-			(uint)m_window->GetW(),
-			(uint)m_window->GetH(),
-			1.0f / (m_window->GetW() - 1),
-			1.0f / (m_window->GetH() - 1),
-			0.0f
-		};
-		m_clientInfo = new Bind::ConstBufferC<ClientInfo>(ci, c_registerClientInfo, false);
-
+	}
+	else
+	{
+		m_backBufferCount = 1;
+		m_backBuffers = new RenderTexture[1];
 	}
 
+
+
+
+
+	// Back buffer 0 and SRVs
+
+	ID3D11Texture2D* backBufferTexture;
+	EXC_COMCHECKINFO(m_swapChain->GetBuffer(0, _uuidof(ID3D11Texture2D), (void**)&backBufferTexture));
+	m_backBuffers[0].Load(backBufferTexture, nullptr);
+	m_backBuffers[0].CreateRenderTarget(DXGI_FORMAT_B8G8R8A8_UNORM);
+
+	m_backBufferSRVs = new TextureSRV[m_backBufferCount];
+	//m_backBufferSRVs[0].Load(&m_backBuffers[i], RegSRV);
+
+	for (int i = 1; i < m_backBufferCount; i++)
+	{
+		m_backBufferSRVs[i].Load(&m_backBuffers[i], (RegSRV)(RegSRVDefPosition + i - 1));
+	}
+
+
+
+
+
+	// Shader resources
+
+	ClientInfo ci
+	{
+		(uint)m_window->GetW(),
+		(uint)m_window->GetH(),
+		1.0f / (m_window->GetW() - 1),
+		1.0f / (m_window->GetH() - 1),
+		FOX_C_DEPTH_STENCIL_EXPONENT
+	};
+
+	m_cameraInfo.cameraPos = { 0, 0, 0 };
 	
+	m_clientInfoBuffer = new Bind::ConstBuffer(RegCBVClientInfo, &ci, sizeof(ClientInfo), false);
+	m_clientInfoBuffer->Bind(BindStageCS);
 
-	m_deferredSamplerState.Load(8, D3D11_FILTER_MIN_MAG_MIP_POINT);
+	m_cameraInfoBuffer = new Bind::ConstBuffer(RegCBVCameraInfo, &m_cameraInfo, sizeof(CameraInfo), false);
+	m_cameraInfoBuffer->Bind(BindStagePS);
+	m_cameraInfoBuffer->Bind(BindStageCS);
 
-	m_backBufferUAV.Load(&m_backBuffers[0]);
+	BindHandler::ApplyPresetSampler(RegSamplerStandard, BindStagePS);
+	BindHandler::ApplyPresetSampler(RegSamplerStandard, BindStageCS);
+
+	m_backBufferUAV.Load(&m_backBuffers[0], RegUAVDefault);
 	m_copyPass.Load(ShaderPath(L"CSCopyTexture"));
+
 
 
 
@@ -248,6 +252,12 @@ void SandFox::Graphics::Init(Window* window, std::wstring shaderDir, GraphicsTec
 	// Shader systems
 
 	Shader::LoadPresets(m_technique); 
+
+
+
+
+
+	EXC_COMCHECK(CoInitializeEx(nullptr, COINIT_MULTITHREADED));
 
 
 
@@ -303,7 +313,13 @@ void SandFox::Graphics::Init(Window* window, std::wstring shaderDir, GraphicsTec
 		false, 
 		4, 
 		DXGI_FORMAT_R32_TYPELESS, 
-		D3D11_BIND_DEPTH_STENCIL,
+		D3D11_BIND_DEPTH_STENCIL
+	);
+
+	m_depthStencilTextureSRV.Load(
+		&m_depthStencilTexture,
+		RegSRVCopySource,
+		false,
 		DXGI_FORMAT_R32_FLOAT
 	);
 
@@ -406,46 +422,27 @@ void SandFox::Graphics::DeInit()
 {
 	m_initialized = false;
 
+
 	Shader::UnloadPresets();
-	_Drawable::ReleaseStatics();
+	DrawableBase::ReleaseStatics();
 
 	delete[] m_backBuffers;
 
-	delete m_clientInfo;
-	delete m_sceneInfoBuffer;
-}
+	delete m_clientInfoBuffer;
+	delete m_cameraInfoBuffer;
 
-void SandFox::Graphics::InitImgui()
-{
-	// Imgui
-
-	m_imgui = true;
-}
-
-void SandFox::Graphics::SetLights(const Light* lights, int count)
-{
-	if (count >= c_maxLights)
-	{
-		EXC(string("Cannot load more than [") + std::to_string(c_maxLights) + "] lights. Given: [" + std::to_string(count) + "]");
-	}
-
-	std::memcpy(m_sceneInfo.lights, lights, count * sizeof(Light));
-	m_sceneInfo.lightCount = count;
-}
-
-void SandFox::Graphics::SetLightAmbient(const cs::Color& color, float intensity)
-{
-	m_sceneInfo.ambient = (Vec3)color * intensity;
+	delete m_bindHandler;
 }
 
 void SandFox::Graphics::FrameBegin(const cs::Color& color)
 {
 	UpdateCamera();
 
-	m_context->ClearDepthStencilView(m_depthStencilView.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0u);
+	m_context->ClearDepthStencilView(m_depthStencilView.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0u); 
 
-	((Bind::ConstBuffer<SceneInfo>*)m_sceneInfoBuffer)->Write(m_sceneInfo);
-	m_sceneInfoBuffer->Bind();
+	m_cameraInfoBuffer->Write(&m_cameraInfo);
+	m_cameraInfoBuffer->Bind(BindStagePS);
+	m_cameraInfoBuffer->Bind(BindStageCS);
 
 	if (m_technique == GraphicsTechniqueImmediate)
 	{
@@ -467,7 +464,7 @@ void SandFox::Graphics::FrameBegin(const cs::Color& color)
 		m_backBuffers[7].Clear({ 0, 0, 0, 255 });
 
 
-		ID3D11RenderTargetView* rtvs[c_maxRenderTargets];
+		ID3D11RenderTargetView* rtvs[FOX_C_MAX_RENDER_TARGETS];
 		for (int i = 0; i < m_backBufferCount - 1; i++)
 		{
 			rtvs[i] = m_backBuffers[i + 1].GetRenderTarget().Get();
@@ -488,31 +485,29 @@ void SandFox::Graphics::FrameComposite()
 		// Clear render targets and reassign them as shader resources for the compute shader
 		m_context->OMSetRenderTargets(0, nullptr, nullptr);
 
+		m_backBufferUAV.Bind(BindStageCS);
 
-		m_deferredSamplerState.Bind();
-
-		// Bind the new render target as a UAV
-		m_context->CSSetUnorderedAccessViews(0u, 1u, m_backBufferUAV.GetUAV().GetAddressOf(), nullptr);
-
+		// Compose the final image
 		if (m_displayedBuffer == 0)
 		{
-			// Compose the final image
-
 			// Bind the client info 
-			m_clientInfo->Bind();
+			m_clientInfoBuffer->Bind(BindStageCS);
 
 			for (int i = 1; i < m_backBufferCount; i++)
 			{
-				EXC_COMINFO(m_context->CSSetShaderResources(i, 1u, m_backBuffers[i].GetResourceView().GetAddressOf()));
+				m_backBufferSRVs[i].Bind(BindStageCS);
 			}
 
 			// Run the lighting pass
 			m_lightingPass.Dispatch(m_window->GetW(), m_window->GetH());
 
 			// Unbind shader resources before next frame
-			ID3D11ShaderResourceView* empty[c_maxRenderTargets] = { nullptr };
-			m_context->CSSetShaderResources(1, m_backBufferCount - 1, empty);
-			m_context->CSSetSamplers(8, 1, m_deferredSamplerState.GetSamplerState().GetAddressOf());
+			for (int i = 1; i < m_backBufferCount; i++)
+			{
+				m_backBufferSRVs[i].Unbind(BindStageCS);
+			}
+
+			m_clientInfoBuffer->Unbind(BindStageCS);
 		}
 		else
 		{
@@ -529,27 +524,26 @@ void SandFox::Graphics::FrameComposite()
 
 			if (m_displayedBuffer >= m_backBufferCount)
 			{
-				target = m_depthStencilTexture.GetResourceView().Get();
-				ci.sampleExp = c_depthStencilExponent;
+				target = m_depthStencilTextureSRV.GetSRV().Get();
+				ci.sampleExp = FOX_C_DEPTH_STENCIL_EXPONENT;
 			}
 			else
 			{
-				target = m_backBuffers[m_displayedBuffer].GetResourceView().Get();
+				target = m_backBufferSRVs[m_displayedBuffer].GetSRV().Get();
 			}
 
 			// Bind the client info 
-			((Bind::ConstBufferC<ClientInfo>*)m_clientInfo)->Write(ci);
-			m_clientInfo->Bind();
+			m_clientInfoBuffer->Write(&ci);
+			m_clientInfoBuffer->Bind(BindStageCS);
 
-			m_context->CSSetShaderResources(0, 1, &target);
+			m_context->CSSetShaderResources(RegSRVCopySource, 1, &target);
 			m_copyPass.Dispatch(m_window->GetW(), m_window->GetH());
 
 			target = nullptr;
-			m_context->CSSetShaderResources(0, 1, &target);
+			m_context->CSSetShaderResources(RegSRVCopySource, 1, &target);
 		}
 
-		ID3D11UnorderedAccessView* emptyUAV = nullptr;
-		m_context->CSSetUnorderedAccessViews(0u, 1u, &emptyUAV, nullptr);
+		m_backBufferUAV.Unbind(BindStageCS);
 
 		// Set the finalized image as render target.
 		m_context->OMSetRenderTargets(1, m_backBuffers[0].GetRenderTarget().GetAddressOf(), m_depthStencilView.Get());
@@ -564,22 +558,20 @@ void SandFox::Graphics::FrameComposite()
 			m_context->OMSetRenderTargets(0, nullptr, nullptr);
 
 			// Bind the client info 
-			m_clientInfo->Bind();
-			m_deferredSamplerState.Bind();
+			m_clientInfoBuffer->Bind(BindStageCS);
 
 			// Bind the new render target as a UAV
-			m_context->CSSetUnorderedAccessViews(0u, 1u, m_backBufferUAV.GetUAV().GetAddressOf(), nullptr);
+			m_backBufferUAV.Bind(BindStageCS);
 
-			ID3D11ShaderResourceView* target = m_depthStencilTexture.GetResourceView().Get();
-			m_context->CSSetShaderResources(0, 1, &target);
+			ID3D11ShaderResourceView* target = m_depthStencilTextureSRV.GetSRV().Get();
+			m_context->CSSetShaderResources(RegSRVCopySource, 1, &target);
 
 			m_copyPass.Dispatch(m_window->GetW(), m_window->GetH());
 
 			target = nullptr;
-			m_context->CSSetShaderResources(0, 1, &target);
+			m_context->CSSetShaderResources(RegSRVCopySource, 1, &target);
 
-			ID3D11UnorderedAccessView* emptyUAV = nullptr;
-			m_context->CSSetUnorderedAccessViews(0u, 1u, &emptyUAV, nullptr);
+			m_backBufferUAV.Unbind(BindStageCS);
 
 			// Set the finalized image as render target.
 			m_context->OMSetRenderTargets(1, m_backBuffers[0].GetRenderTarget().GetAddressOf(), m_depthStencilView.Get());
@@ -623,14 +615,14 @@ void SandFox::Graphics::DrawGraphicsImgui()
 
 		if (m_displayedBuffer != 0)
 		{
-			texture->GetResourceView().Get()->GetDesc(&srvFormat);
+			m_backBufferSRVs[m_displayedBuffer].GetSRV()->GetDesc(&srvFormat);
 		}
 	}
 	else
 	{
 		texture = &m_depthStencilTexture;
 		texture->GetTexture().Get()->GetDesc(&textureFormat);
-		texture->GetResourceView().Get()->GetDesc(&srvFormat);
+		m_depthStencilTextureSRV.GetSRV().Get()->GetDesc(&srvFormat);
 		m_depthStencilView->GetDesc(&dsvFormat);
 	}
 
@@ -677,7 +669,9 @@ inline SandFox::Window* SandFox::Graphics::GetWindow()
 
 void SandFox::Graphics::InitCamera(Vec3 pos, Vec3 rot, float fov, float nearClip, float farClip)
 {
-	m_camera = std::make_shared<Camera>(pos, rot, fov, nearClip, farClip, (float)m_window->GetW() / (float)m_window->GetH());
+	m_camera = std::make_shared<Camera>(pos, rot, fov, nearClip, farClip, (float)m_window->GetW() / (float)m_window->GetH()); 
+	m_cameraInfoBuffer->Bind(BindStagePS);
+	m_cameraInfoBuffer->Bind(BindStageCS);
 }
 
 std::shared_ptr<SandFox::Camera> SandFox::Graphics::GetCamera()
@@ -693,7 +687,9 @@ std::shared_ptr<SandFox::Camera> SandFox::Graphics::GetCamera()
 void SandFox::Graphics::UpdateCamera()
 {
 	m_cameraMatrix = m_camera->GetMatrix();
-	m_sceneInfo.cameraPos = m_camera->position;
+	m_cameraInfo.cameraPos = m_camera->position;
+
+	m_cameraInfoBuffer->Write(&m_cameraInfo);
 }
 
 const dx::XMMATRIX& SandFox::Graphics::GetCameraMatrix()
@@ -719,43 +715,4 @@ std::wstring SandFox::Graphics::ShaderPath(std::wstring shaderName)
 SandFox::Graphics& SandFox::Graphics::Get()
 {
 	return *s_graphics;
-}
-
-SandFox::Graphics::Light SandFox::Graphics::Light::Directional(const cs::Vec3& direction, float intensity, const cs::Color& color)
-{
-	return Light
-	{
-		{ 0, 0, 0 },
-		LightTypeDirectional,
-		direction.Normalized(),
-		0.0f,
-		color,
-		intensity
-	};
-}
-
-SandFox::Graphics::Light SandFox::Graphics::Light::Point(const cs::Vec3& position, float intensity, const cs::Color& color)
-{
-	return Light
-	{
-		position,
-		LightTypePoint,
-		{ 0, 0, 0 },
-		0.0f,
-		color,
-		intensity
-	};
-}
-
-SandFox::Graphics::Light SandFox::Graphics::Light::Spot(const cs::Vec3& position, const cs::Vec3& direction, float spread, float intensity, const cs::Color& color)
-{
-	return Light
-	{
-		position,
-		LightTypeSpot,
-		direction.Normalized(),
-		cosf(spread * 0.5f),
-		color,
-		intensity
-	};
 }

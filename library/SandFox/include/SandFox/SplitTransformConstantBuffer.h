@@ -3,32 +3,35 @@
 #include "SandFoxCore.h"
 #include "IBindable.h"
 #include "ConstantBuffer.h"
-#include "Drawable.h"
+#include "Transform.h"
 
 namespace SandFox
 {
+	class DrawableBase;
+
 	namespace Bind
 	{
 
-		class FOX_API STConstBuffer : public IBindable
+		class FOX_API STConstBuffer : public BindableResource
 		{
 		public:
 			struct MatrixInfo
 			{
 				dx::XMMATRIX world;
 				dx::XMMATRIX projection;
-				PAD(16, 0);
 			};
 
 		public:
-			STConstBuffer(_Drawable& refParent);
+			STConstBuffer(Transform& transform);
+			STConstBuffer(DrawableBase& drawable);
 			virtual ~STConstBuffer();
 
-			void Bind() override;
+			void Bind(BindStage stage = BindStageVS) override;
+			BindType Type() override;
 
 		private:
-			ConstBufferV<MatrixInfo>* m_constBuffer;
-			_Drawable& m_refParent;
+			ConstBuffer* m_constBuffer;
+			Transform& m_transform;
 		};
 
 	}

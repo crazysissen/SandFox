@@ -1,27 +1,45 @@
 #include "pch.h"
 
 #include "TransformConstantBuffer.h"
+#include "Graphics.h"
+#include "Drawable.h"
 
-SandFox::Bind::TConstBuffer::TConstBuffer(_Drawable& refParent)
+SandFox::Bind::TConstBuffer::TConstBuffer(Transform& transform)
 	:
-	m_refParent(refParent)
+	BindableResource(RegCBVObjectInfo),
+	m_transform(transform)
 {
-	m_constBuffer = std::make_unique<ConstBufferV<dx::XMMATRIX>>(dx::XMMatrixIdentity(), 0u, false);
+	dx::XMMATRIX def = dx::XMMatrixIdentity();
+
+	m_constBuffer = new ConstBuffer(RegCBVObjectInfo, &def, sizeof(dx::XMMATRIX));
 }
 
-void SandFox::Bind::TConstBuffer::Bind()
+SandFox::Bind::TConstBuffer::TConstBuffer(DrawableBase& drawable)
+	:
+	TConstBuffer(drawable.transform)
 {
-	DirectX::XMMATRIX transformationMatrix = m_refParent.GetTransformationMatrix();
-	DirectX::XMMATRIX viewMatrix = Graphics::Get().GetCameraMatrix();
+}
 
-	m_constBuffer->Write
+SandFox::Bind::TConstBuffer::~TConstBuffer()
+{
+	delete m_constBuffer;
+}
+
+void SandFox::Bind::TConstBuffer::Bind(BindStage stage)
+{
+	dx::XMMATRIX transformationMatrix = m_transform.GetMatrix();
+	dx::XMMATRIX cameraMatrix = Graphics::Get().GetCameraMatrix();
+	dx::XMMATRIX viewMatrix = dx::XMMatrixTranspose // <- flips matrix cpu-side to make gpu calculations more efficient
 	(
-		dx::XMMatrixTranspose // <- flips matrix cpu-side to make gpu calculations more efficient
-		(
-			transformationMatrix *
-			viewMatrix
-		)
+		transformationMatrix *
+		cameraMatrix
 	);
 
-	m_constBuffer->Bind();
+	m_constBuffer->Write(&viewMatrix);
+	m_constBuffer->Bind(stage);
+}
+
+SandFox::BindType SandFox::Bind::TConstBuffer::Type()
+{
+	return BindTypeConstantBuffer;
 }

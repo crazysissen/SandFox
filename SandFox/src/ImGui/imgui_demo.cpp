@@ -1,5 +1,3 @@
-#include "../pch.h"
-
 // dear imgui, v1.88 WIP
 // (demo code)
 

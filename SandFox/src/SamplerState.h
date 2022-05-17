@@ -8,21 +8,22 @@ namespace SandFox
 	namespace Bind
 	{
 
-		class FOX_API SamplerState : public IBindable
+		class FOX_API SamplerState : public BindableResource
 		{
 		public:
 			SamplerState();
-			SamplerState(unsigned int registerIndex, D3D11_FILTER filter, D3D11_TEXTURE_ADDRESS_MODE addressMode = D3D11_TEXTURE_ADDRESS_CLAMP);
+			SamplerState(RegSampler reg, D3D11_FILTER filter, D3D11_TEXTURE_ADDRESS_MODE addressMode = D3D11_TEXTURE_ADDRESS_CLAMP);
 			virtual ~SamplerState();
 
 			ComPtr<ID3D11SamplerState> GetSamplerState();
 
-			void Load(unsigned int registerIndex, D3D11_FILTER filter, D3D11_TEXTURE_ADDRESS_MODE addressMode = D3D11_TEXTURE_ADDRESS_CLAMP);
+			void Load(RegSampler reg, D3D11_FILTER filter, D3D11_TEXTURE_ADDRESS_MODE addressMode = D3D11_TEXTURE_ADDRESS_CLAMP);
 
-			void Bind() override;
+			void Bind(BindStage stage = BindStageNone) override;
+			BindType Type() override;
+
 
 		private:
-			unsigned int m_registerIndex;
 			ComPtr<ID3D11SamplerState> m_samplerState;
 
 		};

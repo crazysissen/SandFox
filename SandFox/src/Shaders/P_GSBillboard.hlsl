@@ -1,3 +1,6 @@
+
+#include "H_Constants.hlsli"
+
 struct GSIn
 {
     float4 pos : SV_POSITION;
@@ -11,13 +14,17 @@ struct GSOut
     float2 uv : TEXCOORD0;
 };
 
-cbuffer ScaleInfo : register(b0)
+
+
+cbuffer ScaleInfo : REGISTER_CBV_SYSTEM_0
 {
     float2 scale;
     float nearClip;
     float nearClipFeather;
     //float nearClipFeatherInv;
 };
+
+
 
 [maxvertexcount(6)]
 void main(

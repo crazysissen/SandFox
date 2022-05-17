@@ -5,6 +5,8 @@
 
 
 
+#include "H_Constants.hlsli"
+
 // Input struct
 struct PSIn
 {
@@ -23,49 +25,39 @@ struct PSOut
     float4 diffuse : SV_Target3;
     float4 specular : SV_Target4;
 
-    float exponent : SV_Target5;
+    float4 exponent : SV_Target5;
 };
 
-cbuffer SceneInfo : register(b10)
-{
-    float3 viewerPosition;
-    float3 ambient;
 
-    int lightCount;
-    Light lights[LIGHT_CAPACITY];
-};
 
-cbuffer MaterialInfo : register(b2)
+Texture2D shaderTexture     : REGISTER_SRV_TEX_COLOR;
+SamplerState samplerState   : REGISTER_SAMPLER_STANDARD;
+
+cbuffer MaterialInfo        : REGISTER_CBV_MATERIAL_INFO
 {
     float3 materialAmbient;
     float3 materialDiffuse;
     float3 materialSpecular;
     float materialShininess;
-}
-
-cbuffer TextureInfo : register(b3)
-{
+    
     float2 uvScale;
 }
 
-// Textures and sample information
-Texture2D shaderTexture : register(t4);
-SamplerState samplerState : register(s5);
 
 
 PSOut main(PSIn input)
 {
-    float3 color = shaderTexture.Sample(samplerState, input.uv * uvScale).xyz;
+    float3 albedoSample = shaderTexture.Sample(samplerState, input.uv * uvScale).xyz;
 
     PSOut o;
 
     o.position = float4(input.position.xyz, 1.0f);
     o.normal = float4(normalize(input.normal.xyz), 1.0f);
 
-    o.ambient = float4(color * materialAmbient, 1.0f);
-    o.diffuse = float4(color * materialDiffuse, 1.0f);
-    o.specular = float4(color * materialSpecular, 1.0f);
-    o.exponent = materialShininess;
+    o.ambient = float4(albedoSample * materialAmbient, 1.0f);
+    o.diffuse = float4(albedoSample * materialDiffuse, 1.0f);
+    o.specular = float4(albedoSample * materialSpecular, 1.0f);
+    o.exponent = float4(materialShininess, materialShininess, materialShininess, 1.0f);
 
     return o;
 }

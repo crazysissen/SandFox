@@ -4,6 +4,7 @@
 
 #include "PixelShader.h"
 #include "Graphics.h"
+#include "BindHandler.h"
 
 SandFox::Bind::PixelShader::PixelShader()
 	:
@@ -33,7 +34,15 @@ void SandFox::Bind::PixelShader::Load(const std::wstring& shaderName, ComPtr<ID3
 	));
 }
 
-void SandFox::Bind::PixelShader::Bind()
+void SandFox::Bind::PixelShader::Bind(BindStage stage)
 {
-	EXC_COMINFO(Graphics::Get().GetContext()->PSSetShader(m_pixelShader.Get(), nullptr, 0u));
+	if (BindHandler::BindPS(this))
+	{
+		EXC_COMINFO(Graphics::Get().GetContext()->PSSetShader(m_pixelShader.Get(), nullptr, 0u));
+	}
+}
+
+SandFox::BindType SandFox::Bind::PixelShader::Type()
+{
+	return BindTypePipeline;
 }

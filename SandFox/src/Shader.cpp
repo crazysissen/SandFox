@@ -2,6 +2,7 @@
 #include "Shader.h"
 
 #include "Graphics.h"
+#include "BindHandler.h"
 
 SandFox::Shader* SandFox::Shader::s_presets[ShaderTypeCount];
 
@@ -41,13 +42,21 @@ void SandFox::Shader::LoadGS(const std::wstring& path, ComPtr<ID3DBlob>& blob)
 	m_gs.Load(path, blob);
 }
 
-void SandFox::Shader::Bind()
+void SandFox::Shader::Bind(BindStage stage)
 {
-	m_pt.Bind();
-	m_il.Bind();
-	m_vs.Bind();
-	m_gs.Bind();
-	m_ps.Bind();
+	if (BindHandler::BindShader(this))
+	{
+		m_pt.Bind(stage);
+		m_il.Bind(stage);
+		m_vs.Bind(stage);
+		m_gs.Bind(stage);
+		m_ps.Bind(stage);
+	}
+}
+
+SandFox::BindType SandFox::Shader::Type()
+{
+	return BindTypePipeline;
 }
 
 SandFox::Shader* SandFox::Shader::Get(ShaderType preset)

@@ -1,3 +1,6 @@
+
+#include "H_Constants.hlsli"
+
 struct VSIn
 {
     float3 pos : POSITION;
@@ -11,15 +14,19 @@ struct VSOut
     float size : SIZE;
 };
 
-cbuffer Matrices : register(b0)
+
+
+cbuffer ObjectInfo  : REGISTER_CBV_OBJECT_INFO
 {
     matrix clip;
 };
 
-cbuffer CameraInfo : register(b1)
+cbuffer CameraInfo  : REGISTER_CBV_CAMERA_INFO
 {
     float3 cameraPosition;
 }
+
+
 
 VSOut main(VSIn input)
 {

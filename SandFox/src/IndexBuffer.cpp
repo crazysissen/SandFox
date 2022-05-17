@@ -2,6 +2,7 @@
 
 #include "IndexBuffer.h"
 #include "Graphics.h"
+#include "BindHandler.h"
 
 inline SandFox::Bind::IndexBuffer::IndexBuffer()
 	:
@@ -82,9 +83,17 @@ void SandFox::Bind::IndexBuffer::Update(const uindex indices[], unsigned int ind
 	EXC_COMINFO(Graphics::Get().GetContext()->Unmap(m_indexBuffer.Get(), 0u));
 }
 
-void SandFox::Bind::IndexBuffer::Bind()
+void SandFox::Bind::IndexBuffer::Bind(BindStage stage)
 {
-	EXC_COMINFO(Graphics::Get().GetContext()->IASetIndexBuffer(m_indexBuffer.Get(), UINDEX_FORMAT, 0u));
+	if (BindHandler::BindIB(this))
+	{
+		EXC_COMINFO(Graphics::Get().GetContext()->IASetIndexBuffer(m_indexBuffer.Get(), UINDEX_FORMAT, 0u));
+	}
+}
+
+SandFox::BindType SandFox::Bind::IndexBuffer::Type()
+{
+	return BindTypePipeline;
 }
 
 uint SandFox::Bind::IndexBuffer::GetCount() const

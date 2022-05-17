@@ -1,3 +1,6 @@
+
+#include "H_Constants.hlsli"
+
 // Input struct
 struct VSIn
 {
@@ -15,12 +18,16 @@ struct VSOut
 	float2 uv : TEXCOORD0;
 };
 
+
+
 // Transform info
-cbuffer CBuf : register(b0)
+cbuffer CBuf : REGISTER_CBV_OBJECT_INFO
 {
 	matrix world;
 	matrix projection;
 };
+
+
 
 VSOut main(VSIn input)
 {

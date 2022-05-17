@@ -59,7 +59,7 @@ SandFox::Debug::~Debug()
 	}
 }
 
-void SandFox::Debug::Init()
+void SandFox::Debug::Init(bool captureStreams)
 {
 	s_debug = this;
 
@@ -72,11 +72,14 @@ void SandFox::Debug::Init()
 
 	m_commands = new std::unordered_map<std::string, CommandItem>();
 
-	CaptureStream(&std::cerr, DebugLevelError);
-	CaptureStream(&std::cout, DebugLevelDebug);
-	CaptureStream(&std::clog, DebugLevelTrace);
-	
-	//CaptureDebugOutput();
+	if (captureStreams)
+	{
+		CaptureStream(&std::cerr, DebugLevelError);
+		CaptureStream(&std::cout, DebugLevelDebug);
+		CaptureStream(&std::clog, DebugLevelTrace);
+
+		//CaptureDebugOutput();
+	}
 
 	RegisterDefaultCommands();
 }
@@ -175,7 +178,7 @@ void SandFox::Debug::PPushMessage(DebugLevel level, const char* format, va_list 
 
 void SandFox::Debug::PPushMessage(const char* message, DebugLevel level)
 {
-	m_mutex->lock();
+	//m_mutex->lock();
 
 	m_items.Add(DebugItem{ level, std::string(message) });
 
@@ -186,7 +189,7 @@ void SandFox::Debug::PPushMessage(const char* message, DebugLevel level)
 
 	TryCommand();
 
-	m_mutex->unlock();
+	//m_mutex->unlock();
 }
 
 void SandFox::Debug::CaptureDebugOutput()

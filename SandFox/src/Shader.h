@@ -3,6 +3,8 @@
 #include "SandFoxCore.h"
 #include "GraphicsEnums.h"
 
+#include "IBindable.h"
+
 #include "PrimitiveTopology.h"
 #include "InputLayout.h"
 #include "VertexShader.h"
@@ -21,7 +23,7 @@ namespace SandFox
 		ShaderTypeCount // <-- Keep last
 	};
 
-	class FOX_API Shader : public IBindable
+	class FOX_API Shader : public Bindable
 	{
 	public:
 		Shader();
@@ -32,7 +34,9 @@ namespace SandFox
 		void LoadPT(D3D_PRIMITIVE_TOPOLOGY topology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		void LoadGS(const std::wstring& path, ComPtr<ID3DBlob>& blob);
 
-		void Bind() override;
+		void Bind(BindStage stage = BindStageNone) override;
+		BindType Type() override;
+
 
 	public:
 		static Shader* Get(ShaderType preset);

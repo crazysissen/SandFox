@@ -1,114 +1,121 @@
 #pragma once
 
 #include "SandFoxCore.h"
+#include "BindHandler.h"
 #include "IBindable.h"
 #include "IndexBuffer.h"
-#include "Transform.h"
 #include "Shader.h"
-
-#include <typeinfo>
-#include <vector>
+#include "Transform.h"
+#include "Debug.h"
 
 namespace SandFox
 {
 
-	class FOX_API _Drawable
+	typedef uint DrawableID;
+
+	class IDrawable
 	{
 	public:
-		Transform m_transform;
+		virtual void Draw() = 0;
+	};
 
+
+
+	// In general, do not inherit from this. Instead use Drawable<>!
+	class FOX_API DrawableBase // : public IDrawable
+	{
 	public:
-		_Drawable(Transform transform);
-		_Drawable(const _Drawable&) = delete;
-		virtual ~_Drawable();
+		Transform transform;
 
-		// Main draw function
-		virtual void Draw();
-
-		// Modify bindables
-		void AddBind(IBindable* bindable);
-		void AddIndexBuffer(Bind::IndexBuffer* indexBuffer);
-		void SetShader(Shader* shader = nullptr);
-
-		// Virtual functions for Drawable<> implementation statics
-		virtual unsigned int BindStatic() const = 0;
-		virtual SandFox::Shader* GetShader() const = 0;
-
-		dx::XMMATRIX GetTransformationMatrix();
-
-		bool operator>(const _Drawable& ref);
+		DrawableBase(Transform transform);
+		DrawableBase(const DrawableBase&) = delete;
+		DrawableBase(DrawableBase&&) = delete;
+		virtual ~DrawableBase();
 
 		static void ReleaseStatics();
 
+
+
 	protected:
-		static int s_typeIndexCounter;
-		static std::vector<std::vector<IBindable*>*>* s_staticBindableVectors;
+		void Execute();
+		void ExecuteIndexed();
 
-		std::vector<IBindable*>* m_bindables;
-		SandFox::Bind::IndexBuffer* m_indexBuffer;
-		SandFox::Shader* m_shader;
+		struct BindConfiguration
+		{
+			IBindable* bindable;
+			BindStage stage;
+		};
 
-		int m_index;
+		static cs::List<IBindable*> s_allStatics;
+		static DrawableID s_idCounter;
+
+		// Owned resources
+		cs::List<IBindable*> m_bindables;
+		BindPipeline m_pipeline;
+
+		// Used in real time
+		cs::List<BindConfiguration> m_configurations;
+		BindPipeline* m_configuredPipeline;
+
+		DrawableID m_id;
 	};
 
+
+
 	template<class T>
-	class Drawable : public _Drawable
+	class Drawable : public DrawableBase
 	{
 	public:
-		using _Drawable::m_transform;
+		using DrawableBase::transform;
 
-		Drawable(Transform transform = {});
+		Drawable(Transform transform = Transform());
 		virtual ~Drawable();
 
-		virtual unsigned int BindStatic() const override;
-		virtual SandFox::Shader* GetShader() const override;
 
-		void AddStaticBind(IBindable* bindable);
-		void AddStaticIndexBuffer(Bind::IndexBuffer* indexBuffer);
-		void SetStaticShader(Shader* shader);
-
-		bool StaticInitialization();
 
 	protected:
-		static int s_typeIndex;
-		static int s_currentTypeIndex;
-		static std::vector<IBindable*>* s_staticBindables;
-		static SandFox::Bind::IndexBuffer* s_staticIndexBuffer;
-		static SandFox::Shader* s_staticShader;
+		bool StaticInit();
 
-		using _Drawable::m_index;
-		using _Drawable::m_bindables;
-		using _Drawable::m_indexBuffer;
+		// For adding bindables handled by the system
+		void SetPipeline(const BindPipeline& pipeline);
+		void AddBind(IBindable* bindable, BindStage stage);
+		void AddResource(BindableResource* resource, BindStage stage);
+		void AppendStage(BindStage stage); // Call this immediately after adding a new Resource to add an additional target stage.
+
+		// For adding bindables handled by the system
+		static void StaticSetPipeline(const BindPipeline& pipeline);
+		static void StaticAddBind(IBindable* bindable);
+		static void StaticAddSampler(RegSampler sampler, BindStage stage);
+		static void StaticAddResource(BindableResource* resource, BindStage stage);
+		static void StaticAppendStage(BindStage stage); // Call this immediately after adding a new Resource to add an additional target stage.
+
+		void Bind();
+
+
 
 	private:
-		bool m_staticInit;
+		static cs::List<BindConfiguration> s_configurations;
+		static cs::List<IBindable*> s_bindables;
+		static BindPipeline s_pipeline;
+		static bool s_initialized;
+
+		using DrawableBase::s_allStatics;
+		using DrawableBase::m_bindables;
+		using DrawableBase::m_configurations;
+		using DrawableBase::m_pipeline;
 	};
 
 
 
-	// --------------- Implementation
+
+
+	// ---------------------------------------------- Implementation
 
 	template<class T>
-	Drawable<T>::Drawable(Transform transform)
+	inline Drawable<T>::Drawable(Transform transform)
 		:
-		_Drawable(transform),
-		m_staticInit(false)
+		DrawableBase(transform)
 	{
-		if (s_staticBindables == nullptr)
-		{
-			s_staticBindables = new std::vector<IBindable*>();
-			m_staticInit = true;
-			s_typeIndex = s_typeIndexCounter++;
-
-			if (s_staticBindableVectors == nullptr)
-			{
-				s_staticBindableVectors = new std::vector<std::vector<IBindable*>*>;
-			}
-
-			s_staticBindableVectors->push_back(s_staticBindables);
-		}
-
-		m_index = s_typeIndex;
 	}
 
 	template<class T>
@@ -117,95 +124,134 @@ namespace SandFox
 	}
 
 	template<class T>
-	unsigned int Drawable<T>::BindStatic() const
+	inline bool Drawable<T>::StaticInit()
 	{
-		if (s_currentTypeIndex != s_typeIndex)
+		bool s = !s_initialized;
+		s_initialized = false;
+		return s;
+	}
+
+	template<class T>
+	inline void Drawable<T>::SetPipeline(const BindPipeline& pipeline)
+	{
+		m_configuredPipeline = &m_pipeline;
+		m_pipeline = pipeline;
+		return;
+	}
+
+	template<class T>
+	inline void Drawable<T>::AddBind(IBindable* bindable, BindStage stage)
+	{
+		m_bindables.Add(bindable);
+		m_configurations.Add({ bindable, stage });
+		return;
+	}
+
+	template<class T>
+	inline void Drawable<T>::AddResource(BindableResource* resource, BindStage stage)
+	{
+		m_bindables.Add(resource);
+		m_configurations.Add({ resource, stage });
+		return;
+	}
+
+	template<class T>
+	inline void Drawable<T>::AppendStage(BindStage stage)
+	{
+		m_configurations.Add({ m_bindables.Back(), stage });
+		return;
+	}
+
+	template<class T>
+	inline void Drawable<T>::StaticSetPipeline(const BindPipeline& pipeline)
+	{
+		s_pipeline = pipeline;
+		s_allStatics.Add(s_pipeline.vb);
+
+		if (s_pipeline.ib)
 		{
-			for (IBindable* b : *s_staticBindables)
+			s_allStatics.Add(s_pipeline.vb);
+		}
+	}
+
+	template<class T>
+	inline void Drawable<T>::StaticAddBind(IBindable* bindable)
+	{
+		s_bindables.Add(bindable);
+		s_allStatics.Add(bindable);
+		s_configurations.Add({ bindable, BindStageNone });
+	}
+
+	template<class T>
+	inline void Drawable<T>::StaticAddSampler(RegSampler sampler, BindStage stage)
+	{
+		BindHandler::ApplyPresetSampler(sampler, stage);
+	}
+
+	template<class T>
+	inline void Drawable<T>::StaticAddResource(BindableResource* resource, BindStage stage)
+	{
+		s_bindables.Add(resource);
+		s_allStatics.Add(resource);
+		s_configurations.Add({ resource, stage });
+	}
+
+	template<class T>
+	inline void Drawable<T>::StaticAppendStage(BindStage stage)
+	{
+		s_configurations.Add({ s_bindables.Back(), stage });
+	}
+
+	template<class T>
+	inline void Drawable<T>::Bind()
+	{
+		if (m_configuredPipeline == nullptr)
+		{
+			if (s_pipeline.shader != nullptr)
 			{
-				b->Bind();
+				m_configuredPipeline = &s_pipeline;
 			}
-
-			if (s_staticShader != nullptr)
+			else
 			{
-				s_staticShader->Bind();
+				FOX_WARN("Cannot bind Drawable without configured pipeline.");
+				return;
 			}
+		}
 
-			if (s_staticIndexBuffer != nullptr)
+		if (BindHandler::BindPipeline(m_configuredPipeline))
+		{
+			m_configuredPipeline->shader->Bind();
+			m_configuredPipeline->vb->Bind();
+
+			if (m_configuredPipeline->ib)
 			{
-				s_staticIndexBuffer->Bind();
-				return s_staticIndexBuffer->GetCount();
+				m_configuredPipeline->ib->Bind();
 			}
 		}
 
-		if (s_staticIndexBuffer != nullptr)
+		for (BindConfiguration& b : s_configurations)
 		{
-			return s_staticIndexBuffer->GetCount();
+			b.bindable->Bind(b.stage);
 		}
 
-		return -1;
-	}
-
-	template<class T>
-	inline SandFox::Shader* Drawable<T>::GetShader() const
-	{
-		if (s_staticShader)
+		for (BindConfiguration& b : m_configurations)
 		{
-			return s_staticShader;
-		}
-
-		return m_shader;
-	}
-
-	template<class T>
-	void Drawable<T>::AddStaticBind(IBindable* bindable)
-	{
-		if (m_staticInit)
-		{
-			s_staticBindables->push_back(bindable);
+			b.bindable->Bind(b.stage);
 		}
 	}
 
-	template<class T>
-	void Drawable<T>::AddStaticIndexBuffer(Bind::IndexBuffer* indexBuffer)
-	{
-		if (m_staticInit)
-		{
-			s_staticIndexBuffer = indexBuffer;
 
-			AddStaticBind(indexBuffer);
-		}
-	}
 
 	template<class T>
-	inline void Drawable<T>::SetStaticShader(Shader* shader)
-	{
-		s_staticShader = shader;
-	}
+	cs::List<DrawableBase::BindConfiguration> Drawable<T>::s_configurations;
 
 	template<class T>
-	inline bool Drawable<T>::StaticInitialization()
-	{
-		return m_staticInit;
-	}
-
-
-
-	// Initializations of static members in template classes will be run only once by the compiler.
+	cs::List<IBindable*> Drawable<T>::s_bindables;
 
 	template<class T>
-	int Drawable<T>::s_typeIndex = 0;
+	BindPipeline Drawable<T>::s_pipeline;
 
 	template<class T>
-	int Drawable<T>::s_currentTypeIndex = -1;
-
-	template<class T>
-	std::vector<IBindable*>* Drawable<T>::s_staticBindables = nullptr;
-
-	template<class T>
-	Bind::IndexBuffer* Drawable<T>::s_staticIndexBuffer = nullptr;
-
-	template<class T>
-	SandFox::Shader* Drawable<T>::s_staticShader = nullptr;
+	bool Drawable<T>::s_initialized = false;
 
 }

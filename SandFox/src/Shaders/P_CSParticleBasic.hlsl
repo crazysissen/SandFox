@@ -1,7 +1,5 @@
 
-#define PARTICLES_PER_THREAD 32
-
-
+#include "H_Constants.hlsli"
 
 struct Particle
 {
@@ -19,18 +17,16 @@ struct ParticleData
     float lifetime;
 };
 
+RWStructuredBuffer<Particle> particles      : REGISTER_UAV_DEFAULT;
+StructuredBuffer<ParticleData> particleData : REGISTER_SRV_PARTICLE_DATA;
 
-
-RWStructuredBuffer<Particle> particles : register(u0);
-StructuredBuffer<ParticleData> particleData : register(t1);
-
-cbuffer ComputeInfo : register(b2)
+cbuffer ComputeInfo                         : REGISTER_CBV_SYSTEM_1
 {
     float deltaTime;
     float maxLifetime;
 };
 
-cbuffer UpdateInfo : register(b3)
+cbuffer UpdateInfo                          : REGISTER_CBV_USER_0
 {
     float4 noise[4];
     float3 cameraPosition;
@@ -38,7 +34,7 @@ cbuffer UpdateInfo : register(b3)
 
 
 
-[numthreads(PARTICLES_PER_THREAD, 1, 1)]
+[numthreads(FOX_C_PARTICLES_PER_THREAD, 1, 1)]
 void main( uint3 id : SV_DispatchThreadID )
 {
     ParticleData d = particleData[id.x];

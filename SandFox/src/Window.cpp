@@ -9,6 +9,8 @@
 
 int SandFox::Window::s_classIndexCounter = 0;
 
+SandFox::Window* g_win = nullptr;
+
 
 
 SandFox::Window::Window()

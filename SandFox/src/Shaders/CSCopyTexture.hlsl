@@ -1,9 +1,12 @@
 
-RWTexture2D<float4> tTarget : register(u0);
-Texture2D tSource : register(t0);
+#include "H_Constants.hlsli"
 
-SamplerState samplerState : register(s8);
-cbuffer ClientInfo : register(b11)
+RWTexture2D<float4> tTarget : REGISTER_UAV_DEFAULT;
+Texture2D tSource           : REGISTER_SRV_COPY_SOURCE;
+
+SamplerState samplerState   : REGISTER_SAMPLER_STANDARD;
+
+cbuffer ClientInfo          : REGISTER_CBV_CLIENT_INFO
 {
     uint2 screen;
     float2 screenInverse;

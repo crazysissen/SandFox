@@ -65,12 +65,6 @@ namespace SandFox
 		Transform transform;
 
 	private:
-		struct CameraInfo
-		{
-			cs::Vec3 position;
-			PAD(4, 0);
-		};
-
 		struct ScaleInfo
 		{
 			cs::Vec2 scale;
@@ -85,16 +79,14 @@ namespace SandFox
 			PAD(8, 0);
 		};
 
-		static constexpr int c_capacityBuffer = 16;
+		static constexpr int c_capacityBuffer = 64;
 		static constexpr int c_particlesPerThread = 32;
 
 		Shader* m_shader;
-		Bind::TextureBindable m_texture;
-		Bind::SamplerState m_samplerState;
+		TextureSRV m_texture;
 		Bind::VertexBuffer m_vertexBuffer;
-		Bind::ConstBufferV<dx::XMMATRIX> m_transformConstantBuffer;
-		Bind::ConstBufferV<CameraInfo> m_cameraInfo;
-		Bind::ConstBufferG<ScaleInfo> m_scaleInfo;
+		Bind::TConstBuffer m_tConstBuffer;
+		Bind::ConstBuffer m_scaleInfo;
 		Bind::IndexBuffer m_indexBuffer;
 
 		Particle* m_particles;
@@ -112,7 +104,7 @@ namespace SandFox
 		ComputeShader m_computeShader;
 		StructuredBufferUAV m_particleBuffer;
 		StructuredBufferSRV m_particleDataBuffer;
-		Bind::ConstBufferC<ComputeInfo> m_computeInfo;
+		Bind::ConstBuffer m_computeInfo;
 
 	};
 	

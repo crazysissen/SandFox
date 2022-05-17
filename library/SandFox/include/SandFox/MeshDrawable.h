@@ -1,6 +1,7 @@
 #pragma once
 
 #include "SandFoxCore.h"
+#include "ConstantBuffer.h"
 #include "Drawable.h"
 #include "Mesh.h"
 
@@ -17,12 +18,12 @@ namespace SandFox
 			MeshDrawable(Transform transform, const Mesh& mesh);
 			~MeshDrawable();
 
+			void Draw();
+
 			void Load(const Mesh& mesh);
 
 			Transform GetTransform();
 			void SetTransform(Transform t);
-
-			void Draw();
 
 		private:
 			struct MaterialInfo
@@ -30,18 +31,22 @@ namespace SandFox
 				cs::Color ambient;		PAD(4, 0);
 				cs::Color diffuse;		PAD(4, 1);
 				cs::Color specular;		
-				float shininess;		
+				float shininess;	
+
+				Vec2 uvScale;			PAD(8, 2);
 			};
 
-			class SubmeshDrawable : public Drawable<SubmeshDrawable>
+			class FOX_API SubmeshDrawable : public Drawable<SubmeshDrawable>, public IDrawable
 			{
 			public:
 				SubmeshDrawable(Transform t, Mesh* m, int index);
 
+				void Draw() override;
+
 			private:
 				Mesh* m_mesh;
-				IBindable* m_materialInfo;
 				int m_index;
+				Bind::ConstBuffer* m_materialInfo;
 			};
 
 		private:

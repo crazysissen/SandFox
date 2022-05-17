@@ -30,8 +30,6 @@ SandFox::ImGuiHandler::ImGuiHandler(Graphics* graphics, ImGuiStyleBasic style)
 	m_graphics->GetWindow()->LoadPrioritizedWndProc(ImGui_ImplWin32_WndProcHandler);
 
 	SetStyle(style);
-
-	Graphics::Get().InitImgui();
 }
 
 SandFox::ImGuiHandler::~ImGuiHandler()

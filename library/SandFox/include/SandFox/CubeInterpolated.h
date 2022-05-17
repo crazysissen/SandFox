@@ -8,10 +8,12 @@ namespace SandFox
 	namespace Prim
 	{
 
-		class FOX_API TestCube : public Drawable<TestCube>
+		class FOX_API TestCube : public Drawable<TestCube>, public IDrawable
 		{
 		public:
 			TestCube(cs::Vec3 position, cs::Vec3 rotation, cs::Vec3 scale);
+
+			void Draw() override;
 		};
 
 	}

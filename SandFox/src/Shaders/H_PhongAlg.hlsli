@@ -1,4 +1,6 @@
 
+#include "H_Constants.hlsli"
+
 // Light struct
 struct Light
 {
@@ -9,6 +11,14 @@ struct Light
     float3 color;
     float intensity;
 };
+
+
+
+Texture2D tLightMaps[FOX_C_MAX_LIGHTS] : REGISTER_SRV_SHADOW_DEPTH;
+
+
+
+
 
 float3 phong(Light l, float3 viewerPosition, float3 position, float3 normal, float3 mDiffuse, float3 mSpecular, float mExponent)
 {

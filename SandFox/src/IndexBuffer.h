@@ -14,7 +14,7 @@ namespace SandFox
 	namespace Bind
 	{
 
-		class FOX_API IndexBuffer : public IBindable
+		class FOX_API IndexBuffer : public Bindable
 		{
 		public:
 			IndexBuffer();
@@ -25,7 +25,8 @@ namespace SandFox
 			void Resize(unsigned int count);
 			void Update(const uindex indices[], unsigned int indexCount);
 
-			void Bind() override;
+			void Bind(BindStage stage = BindStageNone) override;
+			BindType Type() override;
 
 			unsigned int GetCount() const;
 

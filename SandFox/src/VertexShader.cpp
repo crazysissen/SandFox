@@ -4,6 +4,7 @@
 
 #include "VertexShader.h"
 #include "Graphics.h"
+#include "BindHandler.h"
 
 SandFox::Bind::VertexShader::VertexShader()
 	:
@@ -33,7 +34,15 @@ void SandFox::Bind::VertexShader::Load(const std::wstring& shaderName, ComPtr<ID
 	));
 }
 
-void SandFox::Bind::VertexShader::Bind()
+void SandFox::Bind::VertexShader::Bind(BindStage stage)
 {
-	EXC_COMINFO(Graphics::Get().GetContext()->VSSetShader(m_vertexShader.Get(), nullptr, 0u));
+	if (BindHandler::BindVS(this))
+	{
+		EXC_COMINFO(Graphics::Get().GetContext()->VSSetShader(m_vertexShader.Get(), nullptr, 0u));
+	}
+}
+
+SandFox::BindType SandFox::Bind::VertexShader::Type()
+{
+	return BindTypePipeline;
 }

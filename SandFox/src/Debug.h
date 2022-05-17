@@ -45,7 +45,7 @@ namespace SandFox
 		Debug();
 		~Debug();
 
-		void Init();
+		void Init(bool captureStreams);
 		void DeInit(bool writeLog = false);
 
 		void CreateConsole();

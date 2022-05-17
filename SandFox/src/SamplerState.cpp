@@ -2,20 +2,20 @@
 
 #include "SamplerState.h"
 #include "Graphics.h"
+#include "BindHandler.h"
 
 SandFox::Bind::SamplerState::SamplerState()
 	:
-	m_registerIndex(0),
 	m_samplerState(nullptr)
 {
 }
 
-SandFox::Bind::SamplerState::SamplerState(unsigned int registerIndex, D3D11_FILTER filter, D3D11_TEXTURE_ADDRESS_MODE addressMode)
+SandFox::Bind::SamplerState::SamplerState(RegSampler reg, D3D11_FILTER filter, D3D11_TEXTURE_ADDRESS_MODE addressMode)
 	:
-	m_registerIndex(registerIndex),
+	BindableResource(reg),
 	m_samplerState(nullptr)
 {
-	Load(registerIndex, filter, addressMode);
+	Load(reg, filter, addressMode);
 }
 
 SandFox::Bind::SamplerState::~SamplerState()
@@ -27,9 +27,9 @@ ComPtr<ID3D11SamplerState> SandFox::Bind::SamplerState::GetSamplerState()
 	return m_samplerState;
 }
 
-void SandFox::Bind::SamplerState::Load(unsigned int registerIndex, D3D11_FILTER filter, D3D11_TEXTURE_ADDRESS_MODE addressMode)
+void SandFox::Bind::SamplerState::Load(RegSampler reg, D3D11_FILTER filter, D3D11_TEXTURE_ADDRESS_MODE addressMode)
 {
-	m_registerIndex = registerIndex;
+	SetReg(reg);
 
 	D3D11_SAMPLER_DESC d;
 
@@ -50,7 +50,15 @@ void SandFox::Bind::SamplerState::Load(unsigned int registerIndex, D3D11_FILTER 
 	Graphics::Get().GetDevice()->CreateSamplerState(&d, &m_samplerState);
 }
 
-void SandFox::Bind::SamplerState::Bind()
+void SandFox::Bind::SamplerState::Bind(BindStage stage)
 {
-	Graphics::Get().GetContext()->PSSetSamplers(m_registerIndex, 1u, m_samplerState.GetAddressOf());
+	if (BindHandler::BindSampler(stage, this))
+	{
+		BindSampler(stage, GetRegSampler(), m_samplerState);
+	}
+}
+
+SandFox::BindType SandFox::Bind::SamplerState::Type()
+{
+	return BindTypeSampler;
 }

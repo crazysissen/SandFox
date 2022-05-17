@@ -1,6 +1,5 @@
 #pragma once
 
-#include "TextureBindable.h"
 #include "SamplerState.h"
 #include "ConstantBuffer.h"
 #include "IndexBuffer.h"

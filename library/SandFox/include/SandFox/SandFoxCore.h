@@ -23,3 +23,5 @@ using Microsoft::WRL::ComPtr;
 #define CHSL_LINEAR
 #define CHSL_DX
 #include <CHSL.h>
+
+#include "Constants.h"

@@ -2,28 +2,28 @@
 
 #include "Buffer.h"
 #include "Graphics.h"
+#include "BindHandler.h"
 
 
 
 SandFox::StructuredBuffer::StructuredBuffer()
 	:
-	m_buffer(nullptr),
-	m_bufferIndex(0)
+	m_buffer(nullptr)
 {
 }
 
-SandFox::StructuredBuffer::StructuredBuffer(void* data, int count, int structureSize, int bufferIndex, bool dynamic, D3D11_BIND_FLAG bindFlags)
+SandFox::StructuredBuffer::StructuredBuffer(char reg, void* data, int count, int structureSize, bool dynamic, D3D11_BIND_FLAG bindFlags)
 	:
-	m_buffer(nullptr),
-	m_bufferIndex(0)
+	BindableResource(reg),
+	m_buffer(nullptr)
 {
-	LoadBuffer(data, count, structureSize, bufferIndex, dynamic, bindFlags);
+	LoadBuffer(reg, data, count, structureSize, dynamic, bindFlags);
 }
 
-void SandFox::StructuredBuffer::LoadBuffer(void* data, int count, int structureSize, int bufferIndex, bool dynamic, D3D11_BIND_FLAG bindFlags)
+void SandFox::StructuredBuffer::LoadBuffer(char reg, void* data, int count, int structureSize, bool dynamic, D3D11_BIND_FLAG bindFlags)
 {
-	m_bufferIndex = bufferIndex;
 	m_stride = structureSize;
+	SetReg(reg);
 
 	D3D11_BUFFER_DESC bd = {};
 	bd.BindFlags = bindFlags;
@@ -78,27 +78,35 @@ SandFox::StructuredBufferUAV::StructuredBufferUAV()
 {
 }
 
-SandFox::StructuredBufferUAV::StructuredBufferUAV(void* data, int count, int structureSize, int bufferIndex)
+SandFox::StructuredBufferUAV::StructuredBufferUAV(RegUAV reg, void* data, int count, int structureSize)
 	:
-	StructuredBuffer(data, count, structureSize, bufferIndex, false, D3D11_BIND_UNORDERED_ACCESS)
+	StructuredBuffer(reg, data, count, structureSize, false, D3D11_BIND_UNORDERED_ACCESS)
 {
 	LoadUAV(count, structureSize);
 }
 
-void SandFox::StructuredBufferUAV::Bind()
+void SandFox::StructuredBufferUAV::Unbind(BindStage stage)
 {
-	EXC_COMINFO(Graphics::Get().GetContext()->CSSetUnorderedAccessViews(m_bufferIndex, 1u, m_uav.GetAddressOf(), nullptr));
+	BindHandler::UnbindUAV(stage, GetRegUAV());
+	UnbindUAV(stage, GetRegUAV());
 }
 
-void SandFox::StructuredBufferUAV::Unbind()
+void SandFox::StructuredBufferUAV::Bind(BindStage stage)
 {
-	ID3D11UnorderedAccessView* nullArray[] = { nullptr };
-	EXC_COMINFO(Graphics::Get().GetContext()->CSSetUnorderedAccessViews(m_bufferIndex, 1u, nullArray, nullptr));
+	if (BindHandler::BindUAV(stage, this))
+	{
+		BindUAV(stage, GetRegUAV(), m_uav);
+	}
 }
 
-void SandFox::StructuredBufferUAV::Load(void* data, int count, int structureSize, int bufferIndex)
+SandFox::BindType SandFox::StructuredBufferUAV::Type()
 {
-	StructuredBuffer::LoadBuffer(data, count, structureSize, bufferIndex, false, D3D11_BIND_UNORDERED_ACCESS);
+	return BindTypeUnorderedAccess;
+}
+
+void SandFox::StructuredBufferUAV::Load(RegUAV reg, void* data, int count, int structureSize)
+{
+	StructuredBuffer::LoadBuffer(reg, data, count, structureSize, false, D3D11_BIND_UNORDERED_ACCESS);
 	LoadUAV(count, structureSize);
 }
 
@@ -180,27 +188,35 @@ SandFox::StructuredBufferSRV::StructuredBufferSRV()
 {
 }
 
-SandFox::StructuredBufferSRV::StructuredBufferSRV(void* data, int count, int structureSize, int bufferIndex)
+SandFox::StructuredBufferSRV::StructuredBufferSRV(RegSRV reg, void* data, int count, int structureSize)
 	:
-	StructuredBuffer(data, count, structureSize, bufferIndex, true, D3D11_BIND_SHADER_RESOURCE)
+	StructuredBuffer(reg, data, count, structureSize, true, D3D11_BIND_SHADER_RESOURCE)
 {
 	LoadSRV(count, structureSize);
 }
 
-void SandFox::StructuredBufferSRV::Bind()
+void SandFox::StructuredBufferSRV::Unbind(BindStage stage)
 {
-	EXC_COMINFO(Graphics::Get().GetContext()->CSSetShaderResources(m_bufferIndex, 1u, m_srv.GetAddressOf()));
+	BindHandler::UnbindSRV(stage, GetRegSRV());
+	UnbindSRV(stage, GetRegSRV());
 }
 
-void SandFox::StructuredBufferSRV::Unbind()
+void SandFox::StructuredBufferSRV::Bind(BindStage stage)
 {
-	ID3D11ShaderResourceView* nullArray[] = { nullptr };
-	EXC_COMINFO(Graphics::Get().GetContext()->CSSetShaderResources(m_bufferIndex, 1u, nullArray));
+	if (BindHandler::BindSRV(stage, this))
+	{
+		BindSRV(stage, GetRegSRV(), m_srv);
+	}
 }
 
-void SandFox::StructuredBufferSRV::Load(void* data, int count, int structureSize, int bufferIndex)
+SandFox::BindType SandFox::StructuredBufferSRV::Type()
 {
-	StructuredBuffer::LoadBuffer(data, count, structureSize, bufferIndex, true, D3D11_BIND_SHADER_RESOURCE);
+	return BindTypeShaderResource;
+}
+
+void SandFox::StructuredBufferSRV::Load(RegSRV reg, void* data, int count, int structureSize)
+{
+	StructuredBuffer::LoadBuffer(reg, data, count, structureSize, true, D3D11_BIND_SHADER_RESOURCE);
 	LoadSRV(count, structureSize);
 }
 

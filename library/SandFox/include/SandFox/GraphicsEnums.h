@@ -3,17 +3,23 @@
 namespace SandFox
 {
 
+	enum PipelineStage
+	{
+		PipelineStageInputAssembler,
+		PipelineStageVertexShader,
+		PipelineStageHullShader,
+		PipelineStageTesselator,
+		PipelineStageDomainShader,
+		PipelineStageGeometryShader,
+		PipelineStageRasterizer,
+		PipelineStagePixelShader,
+		PipelineStageOutputMerger
+	};
+
 	enum GraphicsTechnique
 	{
 		GraphicsTechniqueImmediate,
 		GraphicsTechniqueDeferred
-	};
-
-	enum LightType
-	{
-		LightTypeDirectional,
-		LightTypePoint,
-		LightTypeSpot,
 	};
 
 	static constexpr cstr c_dxgiFormatCstr[] = 

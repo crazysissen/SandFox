@@ -46,9 +46,9 @@ Mat3 HandleInput(float dTime)
 
 	if (locked)
 	{
-		look = (cs::Vec2)sx::Input::MousePositionDiff() * c_lookSpeed; 
+		look = (cs::Vec2)sx::Input::MousePositionDiff() * c_lookSpeed;
 		c->rotation = cs::Vec3(
-			cs::fclamp(c->rotation.x - look.y, -cs::c_pi * 0.5f, cs::c_pi * 0.5f),
+			cs::fclamp(c->rotation.x - look.y, -cs::c_pi * 0.5f, cs::c_pi * 0.5f), 
 			cs::fwrap(c->rotation.y - look.x, -cs::c_pi, cs::c_pi),
 			0
 		);
@@ -75,56 +75,49 @@ int SafeWinMain(
 	char*		lpCmdLine,
 	int			nCmdShow)
 {
-	// DXGI debugger
-
-	cs::dxgiInfo::init();
-
-
-
 	// Variables
 
 	float fov = cs::c_pi * 0.5f; 
 	float nearClip = 0.01f;
 	float farClip = 1000.0f;
-	cs::Point aspectRatio = { 16, 9 };
+	cs::Point aspectRatio = { 16, 9 }; 
 
 	bool frustumEnable = true;
 	float frustumFov = cs::c_pi * 0.5f; 
 	float frustumNearClip = 0.01f;
 	float frustumFarClip = 100.0f;
-	cs::Point frustumAspectRatio = { 16, 9 };
+	cs::Point frustumAspectRatio = { 16, 9 }; 
 
-	int monkeyDisplayCount = 0; // Set later to max
+	int monkeyDisplayCount = 0; // Set later to max 
 
 
 
 	// Initial setup of base resources 
 
 	sx::Debug debug;
-	debug.Init();
+	debug.Init(false); 
 	 
 	sx::Window window;
-	sx::Graphics graphics;
-	cs::Random r;
-
 	window.InitClass(hInstance);
- 	window.InitWindow(hInstance, 1920, 1080, "SandBox", true);
+ 	window.InitWindow(hInstance, 1280, 720, "SandBox", true); 
 
-	sx::GraphicsTechnique technique = sx::GraphicsTechniqueImmediate;
+	sx::Graphics graphics;
+	sx::GraphicsTechnique technique = sx::GraphicsTechniqueDeferred;
 	graphics.Init(&window, L"Assets\\Shaders", technique);
-	graphics.InitCamera({ 0, 0, 0 }, { 0, 0, 0 }, fov, nearClip, farClip);
+	graphics.InitCamera({ 0, 0, 0 }, { 0, 0, 0 }, fov, nearClip, farClip); 
 
-	input.LoadWindow(&window); 
+	// Input created statically
+	input.LoadWindow(&window);
+	input.MouseLocked(false);
 
-	sx::ImGuiHandler imgui(&graphics);
+	sx::ImGuiHandler imgui(&graphics); 
 
-	sx::Input::MouseLocked(false);
-
-	cs::ViewFrustum frustum(Vec3(0, 0, 0), Vec3(0, 0, 0), frustumNearClip, frustumFarClip, frustumFov);
-
-	window.Show();
+	window.Show(); 
 	debug.CreateConsole();
 	
+	cs::Random r;
+	cs::ViewFrustum frustum(Vec3(0, 0, 0), Vec3(0, 0, 0), frustumNearClip, frustumFarClip, frustumFov);
+
 
 
 	// Creating drawables
@@ -133,18 +126,22 @@ int SafeWinMain(
 	
 	// Lights
 
-	cs::List<sx::Graphics::Light> lights;
+	cs::List<sx::Light> lights;
 	float ambientLight = 0.2f;
 	cs::Color ambientColor(0xFFFFFF);
 
-	lights.Add(sx::Graphics::Light::Directional({ -0.1f, -1.0f, 0.1f }, 0.9f, cs::Color(0xFFFFF0)));
-	lights.Add(sx::Graphics::Light::Spot({ 0, 0, 0 }, { 0, 0, 1 }, 0.6f, 20.0f));
+	sx::LightHandler lightHandler;
+	lightHandler.Init(technique, ambientColor, ambientLight);
+
+	lights.Add(sx::Light::Directional({ -0.1f, -1.0f, 0.1f }, 0.9f, cs::Color(0xFFFFF0)));
+	lights.Add(sx::Light::Spot({ 0, 0, 0 }, { 0, 0, 1 }, 0.6f, 20.0f));
 
 	int lightLockIndex = -1;
 	Vec3 lightLockOffset = { 0, 0, 0 };
-	
-	graphics.SetLights(lights.Data(), lights.Size());
-	graphics.SetLightAmbient(ambientColor, ambientLight);
+
+	lightHandler.SetLights(lights.Data(), lights.Size());
+	lightHandler.SetLightAmbient(ambientColor, ambientLight);
+	lightHandler.Bind(technique);
 
 #pragma endregion
 
@@ -154,7 +151,7 @@ int SafeWinMain(
 
 	sx::Mesh mSphere1;
 	mSphere1.Load(L"Assets/Models/Sphere1.obj");
-	sx::Prim::MeshDrawable sphere1(sx::Transform({ 0, 0, 10 }), mSphere1);
+	sx::Prim::MeshDrawable sphere1(sx::Transform({ 0, 0, 10 }), mSphere1); 
 
 	sx::Mesh mTerrain1;
 	mTerrain1.Load(L"Assets/Models/Terrain1.obj");
@@ -173,8 +170,8 @@ int SafeWinMain(
 		8
 	);
 
-	const int c_monkeyCount = 1000;
-	monkeyDisplayCount = c_monkeyCount;
+	const int c_monkeyCount = 1000; 
+	monkeyDisplayCount = 10;
 
  	sx::Mesh mMonkey; 
 	mMonkey.Load(L"Assets/Models/MonkeyTexture.obj");
@@ -182,7 +179,7 @@ int SafeWinMain(
 	cs::Box baseBox(-mMonkey.vertexFurthest, -mMonkey.vertexFurthest, -mMonkey.vertexFurthest, mMonkey.vertexFurthest * 2, mMonkey.vertexFurthest * 2, mMonkey.vertexFurthest * 2);
 	for (int i = 0; i < c_monkeyCount; i++)
 	{
-		suzannes[i].Load(mMonkey);
+		suzannes[i].Load(mMonkey); 
 		suzannes[i].SetTransform(
 			sx::Transform(
 				{ r.Getf(-100, 100), r.Getf(-50, 50), r.Getf(50, 250) }, 
@@ -191,7 +188,7 @@ int SafeWinMain(
 			)
 		);
 
-		monkeyTree->Add(&suzannes[i], cs::Box(baseBox.position + suzannes[i].GetTransform().GetPosition(), baseBox.size));
+		monkeyTree->Add(&suzannes[i], cs::Box(baseBox.position + suzannes[i].GetTransform().GetPosition(), baseBox.size)); 
 	}
 
 	//sx::Prim::TexturePlane ground(sx::Transform({ 0, -20, 0 }, { cs::c_pi * 0.5f, 0, 0 }, { 100, 100, 100 }), L"Assets/Textures/Stone.jpg", { 30, 30 });
@@ -226,7 +223,7 @@ int SafeWinMain(
 		cs::NoiseSimplex(r.GetUnsigned(100000)), cs::NoiseSimplex(r.GetUnsigned(100000)), cs::NoiseSimplex(r.GetUnsigned(100000))
 	};
 
-	sx::ParticleStream particles(
+	sx::ParticleStream particles( 
 		sx::Transform(), 
 		L"Assets/Textures/ParticleSofter.png", 
 		L"P_CSParticleBasic", 
@@ -236,7 +233,7 @@ int SafeWinMain(
 		2.0f,
 		1.0f
 	);
-	sx::Bind::ConstBufferC<UpdateInfo> noiseInfoBuffer(updateInfo, 3, false);
+	sx::Bind::ConstBuffer noiseInfoBuffer(sx::RegCBVUser0, &updateInfo, sizeof(UpdateInfo));
 
 	float noiseTimer = 0.0f;
 	float particleTimer = 0.0f;
@@ -297,10 +294,16 @@ int SafeWinMain(
 		fpsAverage16 = 1.0f / dTimeAverage16;
 		fpsAverage256 = 1.0f / dTimeAverage256;
 
+		if (frame % 32 == 0)
+		{
+			std::string s = std::to_string(fpsAverage256) + "\n";
+			OutputDebugStringA(s.c_str());
+		}
+
 #pragma endregion
 
 #pragma region Core stuff
-		debug.ClearFrameTrace();
+		debug.ClearFrameTrace(); 
 
 		// Exit code optional evaluates to true if it contains a value
 		if (const std::optional<int> optExitCode = window.ProcessMessages())
@@ -325,8 +328,8 @@ int SafeWinMain(
 			lights[lightLockIndex].position = position + orientation * lightLockOffset;
 			lights[lightLockIndex].direction = direction;
 		}
-		graphics.SetLights(lights.Data(), lights.Size());
-		graphics.SetLightAmbient(ambientColor, ambientLight);
+		lightHandler.SetLights(lights.Data(), lights.Size());
+		lightHandler.SetLightAmbient(ambientColor, ambientLight);
 
 		frustum.SetPosition(position);
 		frustum.SetViewDirection(orientation);
@@ -336,50 +339,50 @@ int SafeWinMain(
 
 		// Update particles
 
-		noiseTimer += dTime;
-		for (int i = 0; i < 4; i++)
-		{
-			updateInfo.noise[i] = Vec4(
-				noise[i * 3 + 0].Gen1D(noiseTimer),
-				noise[i * 3 + 1].Gen1D(noiseTimer),
-				noise[i * 3 + 2].Gen1D(noiseTimer),
-				0.0f
-			);
-		}
+		//noiseTimer += dTime;
+		//for (int i = 0; i < 4; i++)
+		//{
+		//	updateInfo.noise[i] = Vec4(
+		//		noise[i * 3 + 0].Gen1D(noiseTimer),
+		//		noise[i * 3 + 1].Gen1D(noiseTimer),
+		//		noise[i * 3 + 2].Gen1D(noiseTimer),
+		//		0.0f
+		//	);
+		//}
 
 		updateInfo.cameraPos = sx::Graphics::Get().GetCamera()->position;
 
-		noiseInfoBuffer.Write(updateInfo);
-		noiseInfoBuffer.Bind();
+		noiseInfoBuffer.Write(&updateInfo);
+		noiseInfoBuffer.Bind(sx::BindStageCS);
 
-		particleTimer += dTime;
-		while (particleTimer > particleTargetTime)
-		{
-			PData pd =
-			{
-				{ r.Getf(-1.0f, 1.0f), r.Getf(-1.0f, 1.0f), r.Getf(-1.0f, 1.0f), r.Getf(-1.0f, 1.0f)},
-				particleVelocity + Vec3(r.Getf(-1, 1), r.Getf(-1, 1), r.Getf(-1, 1)) % particleVelocityVariability,
-				particleDampening,
-				particleAcceleration,
-				r.Getf(particleSizeMin, particleSizeMax)
-			};
+		//particleTimer += dTime;
+		//while (particleTimer > particleTargetTime)
+		//{
+		//	PData pd =
+		//	{
+		//		{ r.Getf(-1.0f, 1.0f), r.Getf(-1.0f, 1.0f), r.Getf(-1.0f, 1.0f), r.Getf(-1.0f, 1.0f)},
+		//		particleVelocity + Vec3(r.Getf(-1, 1), r.Getf(-1, 1), r.Getf(-1, 1)) % particleVelocityVariability, 
+		//		particleDampening,
+		//		particleAcceleration,
+		//		r.Getf(particleSizeMin, particleSizeMax)
+		//	};
 
-			particles.CreateParticle(particleSpawn + particleSpawnArea % Vec3(r.Getf(-1.0f, 1.0f), r.Getf(-1.0f, 1.0f), r.Getf(-1.0f, 1.0f)), pd.size, &pd);
-			particleTimer -= particleTargetTime;
-		}
+		//	particles.CreateParticle(particleSpawn + particleSpawnArea % Vec3(r.Getf(-1.0f, 1.0f), r.Getf(-1.0f, 1.0f), r.Getf(-1.0f, 1.0f)), pd.size, &pd);
+		//	particleTimer -= particleTargetTime;
+		//}
 
-		particles.Update(dTime);
+		//particles.Update(dTime);
 
 #pragma endregion
 
 		// Draw the frame 
 
-		graphics.FrameBegin(cs::Color(0x301090));
-		graphics.ChangeDepthStencil(true, true); 
+		graphics.FrameBegin(cs::Color(0x301090)); 
+		graphics.ChangeDepthStencil(true, true);
 
-		if (frustumEnable)
+		if (frustumEnable) 
 		{
-			monkeyTree->Search(&frustum, CullFrustum, CullFrustum);
+			monkeyTree->Search(&frustum, CullFrustum, CullFrustum); 
 			int i = 0;
 			for (sx::Prim::MeshDrawable* m : *monkeyTree)
 			{
@@ -401,13 +404,13 @@ int SafeWinMain(
 		
 		//ground.Draw();
 		watchtower.Draw();
-		sphere1.Draw();
+		sphere1.Draw();  
 		terrain1.Draw();
 
-		graphics.FrameComposite();
+		graphics.FrameComposite(); 
 
 		graphics.ChangeDepthStencil(true, false);
-		particles.Draw();
+		//particles.Draw();
 
 #pragma region Imgui
 
@@ -420,7 +423,7 @@ int SafeWinMain(
 			ImGui::Begin("Info"); 
 
 
-			// Main information 
+			// Main information
 			ImGui::Text("Client");
 			ImGui::Spacing();
 			int res[] = { window.GetW(), window.GetH() };
@@ -542,17 +545,17 @@ int SafeWinMain(
 
 						if (ImGui::Button("Directional Light"))
 						{
-							lights.Add(sx::Graphics::Light::Directional(direction));
+							lights.Add(sx::Light::Directional(direction));
 						}
 
 						if (ImGui::Button("Point Light"))
 						{
-							lights.Add(sx::Graphics::Light::Point(pos));
+							lights.Add(sx::Light::Point(pos));
 						}
 
 						if (ImGui::Button("Spot Light"))
 						{
-							lights.Add(sx::Graphics::Light::Spot(pos, direction));
+							lights.Add(sx::Light::Spot(pos, direction));
 						}
 
 						ImGui::Text("Light will, as applicable,");
@@ -623,12 +626,12 @@ int SafeWinMain(
 
 #pragma endregion
 
-		graphics.FrameFinalize();
+		graphics.FrameFinalize(); 
 	}
 
 	graphics.DeInit();
-	debug.DeInit(); 
-	window.DeInitWindow(); 
+	debug.DeInit();
+	window.DeInitWindow();
 
 	delete monkeyTree; 
 	delete[] suzannes;
@@ -654,29 +657,29 @@ int WINAPI WinMain(
 
 //#ifndef _RELEASE
 
-	try
-	{
-		SafeWinMain(hInstance, hPrevInstance, lpCmdLine, nCmdShow);
-	}
-	catch (const cs::Exception& e)
-	{
-		input.MouseVisible(true);
-		MessageBoxA(nullptr, e.what(), e.GetType(), MB_OK | MB_ICONERROR);
-	}
-	catch (const std::exception& e)
-	{
-		input.MouseVisible(true);
-		MessageBoxA(nullptr, e.what(), "Standard Exception", MB_OK | MB_ICONERROR);
-	}
-	catch (...)
-	{
-		input.MouseVisible(true);
-		MessageBoxA(nullptr, "No details", "Unknown Exception", MB_OK | MB_ICONERROR);
-	}
+	//try
+	//{
+	//	SafeWinMain(hInstance, hPrevInstance, lpCmdLine, nCmdShow);
+	//}
+	//catch (const cs::Exception& e)
+	//{
+	//	input.MouseVisible(true);
+	//	MessageBoxA(nullptr, e.what(), e.GetType(), MB_OK | MB_ICONERROR);
+	//}
+	//catch (const std::exception& e)
+	//{
+	//	input.MouseVisible(true);
+	//	MessageBoxA(nullptr, e.what(), "Standard Exception", MB_OK | MB_ICONERROR);
+	//}
+	//catch (...)
+	//{
+	//	input.MouseVisible(true);
+	//	MessageBoxA(nullptr, "No details", "Unknown Exception", MB_OK | MB_ICONERROR);
+	//}
 
 //#else
 //
-//	SafeWinMain(hInstance, hPrevInstance, lpCmdLine, nCmdShow);
+	SafeWinMain(hInstance, hPrevInstance, lpCmdLine, nCmdShow);
 //
 //#endif
 

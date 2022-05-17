@@ -52,9 +52,6 @@
     <ClCompile Include="src\Texture.cpp">
       <Filter>Source\%2a Data Structures\Texture</Filter>
     </ClCompile>
-    <ClCompile Include="src\TextureBindable.cpp">
-      <Filter>Source\%2a Graphics\%2a Bindable\TextureBindable</Filter>
-    </ClCompile>
     <ClCompile Include="src\TexturePlane.cpp">
       <Filter>Source\%2a Graphics\%2a Drawable\TexturePlane</Filter>
     </ClCompile>
@@ -118,7 +115,18 @@
     <ClCompile Include="src\Debug.cpp">
       <Filter>Source\%2a Core\Debug</Filter>
     </ClCompile>
-    <ClCompile Include="src\Light.cpp" />
+    <ClCompile Include="src\Light.cpp">
+      <Filter>Source\%2a Graphics\%2a Light\Light</Filter>
+    </ClCompile>
+    <ClCompile Include="src\LightHandler.cpp">
+      <Filter>Source\%2a Graphics\%2a Light\LightHandler</Filter>
+    </ClCompile>
+    <ClCompile Include="src\BindHandler.cpp">
+      <Filter>Source\%2a Graphics\BindHandler</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TexSRVArray.cpp">
+      <Filter>Source\%2a Data Structures\TexSRVArray</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Graphics.h">
@@ -171,9 +179,6 @@
     </ClInclude>
     <ClInclude Include="src\Texture.h">
       <Filter>Source\%2a Data Structures\Texture</Filter>
-    </ClInclude>
-    <ClInclude Include="src\TextureBindable.h">
-      <Filter>Source\%2a Graphics\%2a Bindable\TextureBindable</Filter>
     </ClInclude>
     <ClInclude Include="src\TexturePlane.h">
       <Filter>Source\%2a Graphics\%2a Drawable\TexturePlane</Filter>
@@ -253,7 +258,24 @@
     <ClInclude Include="src\Debug.h">
       <Filter>Source\%2a Core\Debug</Filter>
     </ClInclude>
-    <ClInclude Include="src\Light.h" />
+    <ClInclude Include="src\Light.h">
+      <Filter>Source\%2a Graphics\%2a Light\Light</Filter>
+    </ClInclude>
+    <ClInclude Include="src\LightHandler.h">
+      <Filter>Source\%2a Graphics\%2a Light\LightHandler</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Constants.h">
+      <Filter>Source\%2a Core\Constants</Filter>
+    </ClInclude>
+    <ClInclude Include="src\BindHandler.h">
+      <Filter>Source\%2a Graphics\BindHandler</Filter>
+    </ClInclude>
+    <ClInclude Include="src\BindInfo.h">
+      <Filter>Source\%2a Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TexSRVArray.h">
+      <Filter>Source\%2a Data Structures\TexSRVArray</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Source">
@@ -337,9 +359,6 @@
     <Filter Include="Source\%2a Graphics\%2a Bindable\ConstantBuffer %28Transform%29">
       <UniqueIdentifier>{a4812037-9ef9-42dd-b6de-591288afc56f}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\%2a Graphics\%2a Bindable\TextureBindable">
-      <UniqueIdentifier>{e7ffe4a2-18da-474d-97ab-41813a44c574}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source\%2a Graphics\%2a Bindable\VertexBuffer">
       <UniqueIdentifier>{1bddbff6-5b78-44a5-a07f-ed3efc68cddd}</UniqueIdentifier>
     </Filter>
@@ -391,6 +410,24 @@
     <Filter Include="Source\%2a Core\Debug">
       <UniqueIdentifier>{c4da21e1-c609-4fad-b165-1d14c3f4eb29}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\%2a Graphics\%2a Light">
+      <UniqueIdentifier>{e0a917d0-565a-4020-aab5-9f0851f7a912}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\%2a Graphics\%2a Light\Light">
+      <UniqueIdentifier>{7fdcf0bc-0bee-4ada-92bd-35e287918be0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\%2a Graphics\%2a Light\LightHandler">
+      <UniqueIdentifier>{494e7bf0-a922-46fd-9fee-8a464243ead4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\%2a Core\Constants">
+      <UniqueIdentifier>{2146d53e-2909-4713-9578-b154720302e1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\%2a Graphics\BindHandler">
+      <UniqueIdentifier>{885f6a36-8b26-4107-b38a-b763dd44c1ce}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\%2a Data Structures\TexSRVArray">
+      <UniqueIdentifier>{4125e99c-c8d1-40a6-a79d-9ad67e4de7f3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="Exclude.txt" />
@@ -435,12 +472,15 @@
     <FxCompile Include="src\Shaders\D_P_PSBillboard.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="CSCopyTexture.hlsl">
+    <FxCompile Include="src\Shaders\CSCopyTexture.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="src\Shaders\H_PhongAlg.hlsli">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="src\Shaders\H_Constants.hlsli">
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>

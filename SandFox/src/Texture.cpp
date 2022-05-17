@@ -6,6 +6,7 @@
 
 #include "Texture.h"
 #include "Graphics.h"
+#include "BindHandler.h"
 
 
 
@@ -13,29 +14,25 @@
 
 SandFox::Texture::Texture()
 	:
-	m_texture(nullptr),
-	m_resourceView(nullptr)
+	m_texture(nullptr)
 {
 }
 
-SandFox::Texture::Texture(ID3D11Texture2D* texture, ID3D11ShaderResourceView* srv)
+SandFox::Texture::Texture(ID3D11Texture2D* texture)
 	:
-	m_texture(texture),
-	m_resourceView(srv)
+	m_texture(texture)
 {
 }
 
 SandFox::Texture::Texture(const Texture& copy)
 	:
-	m_texture(copy.m_texture),
-	m_resourceView(copy.m_resourceView)
+	m_texture(copy.m_texture)
 {
 }
 
 SandFox::Texture::Texture(const std::wstring& name /*std::wstring name*/)
 	:
-	m_texture(nullptr),
-	m_resourceView(nullptr)
+	m_texture(nullptr)
 {
 	Load(name);
 }
@@ -44,10 +41,9 @@ SandFox::Texture::~Texture()
 {
 }
 
-void SandFox::Texture::Load(ID3D11Texture2D* texture, ID3D11ShaderResourceView* srv)
+void SandFox::Texture::Load(ID3D11Texture2D* texture)
 {
 	*m_texture.ReleaseAndGetAddressOf() = texture;
-	*m_resourceView.ReleaseAndGetAddressOf() = srv;
 }
 
 void SandFox::Texture::Load(const std::wstring& name, bool immutable, D3D11_BIND_FLAG bindFlags)
@@ -73,17 +69,10 @@ void SandFox::Texture::Load(const std::wstring& name, bool immutable, D3D11_BIND
 
 	resource->QueryInterface(IID_ID3D11Texture2D, (void**)m_texture.GetAddressOf());
 
-	// Create shader resource view
 
-	D3D11_SHADER_RESOURCE_VIEW_DESC srvd;
-	srvd.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-	srvd.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-	srvd.Texture2D = { 0, 1 };
-
-	EXC_COMCHECKINFO(Graphics::Get().GetDevice()->CreateShaderResourceView(m_texture.Get(), &srvd, &m_resourceView));
 }
 
-void SandFox::Texture::Load(unsigned char* data, int width, int height, bool immutable, int stride, DXGI_FORMAT format, D3D11_BIND_FLAG bindFlags, int srvFormatOverride)
+void SandFox::Texture::Load(unsigned char* data, int width, int height, bool immutable, int stride, DXGI_FORMAT format, D3D11_BIND_FLAG bindFlags)
 {
 	// Create Texture resource
 	D3D11_TEXTURE2D_DESC td;
@@ -103,26 +92,11 @@ void SandFox::Texture::Load(unsigned char* data, int width, int height, bool imm
 	srd.SysMemPitch = width * stride;
 
 	EXC_COMCHECKINFO(Graphics::Get().GetDevice()->CreateTexture2D(&td, (data == nullptr) ? nullptr : &srd, &m_texture));
-
-	// Create shader resource view
-
-	D3D11_SHADER_RESOURCE_VIEW_DESC srvd;
-	srvd.Format = (srvFormatOverride > -1) ? (DXGI_FORMAT)srvFormatOverride : format;
-	srvd.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-	srvd.Texture2D = { 0, 1 };
-
-	m_resourceView.Detach();
-	EXC_COMCHECKINFO(Graphics::Get().GetDevice()->CreateShaderResourceView(m_texture.Get(), &srvd, &m_resourceView));
 }
 
 ComPtr<ID3D11Texture2D> SandFox::Texture::GetTexture()
 {
 	return m_texture;
-}
-
-ComPtr<ID3D11ShaderResourceView> SandFox::Texture::GetResourceView()
-{
-	return m_resourceView;
 }
 
 
@@ -138,7 +112,7 @@ SandFox::RenderTexture::RenderTexture()
 
 SandFox::RenderTexture::RenderTexture(ID3D11Texture2D* texture, ID3D11ShaderResourceView* srv, ID3D11RenderTargetView* rtv)
 	:
-	Texture(texture, srv),
+	Texture(texture),
 	m_renderTarget(rtv)
 {
 }
@@ -171,9 +145,9 @@ SandFox::RenderTexture::~RenderTexture()
 {
 }
 
-void SandFox::RenderTexture::Load(ID3D11Texture2D* texture, ID3D11ShaderResourceView* srv, ID3D11RenderTargetView* rtv)
+void SandFox::RenderTexture::Load(ID3D11Texture2D* texture, ID3D11RenderTargetView* rtv)
 {
-	Texture::Load(texture, srv);
+	Texture::Load(texture);
 	*m_renderTarget.ReleaseAndGetAddressOf() = rtv;
 }
 
@@ -183,9 +157,9 @@ void SandFox::RenderTexture::Load(const std::wstring& name, bool immutable, D3D1
 	CreateRenderTarget(DXGI_FORMAT_R8G8B8A8_UNORM);
 }
 
-void SandFox::RenderTexture::Load(unsigned char* data, int width, int height, bool immutable, int stride, DXGI_FORMAT format, D3D11_BIND_FLAG additionalBindFlags, int srvFormatOverride)
+void SandFox::RenderTexture::Load(unsigned char* data, int width, int height, bool immutable, int stride, DXGI_FORMAT format, D3D11_BIND_FLAG additionalBindFlags)
 {
-	Texture::Load(data, width, height, false, stride, format, (D3D11_BIND_FLAG)(additionalBindFlags | D3D11_BIND_RENDER_TARGET), srvFormatOverride);
+	Texture::Load(data, width, height, false, stride, format, (D3D11_BIND_FLAG)(additionalBindFlags | D3D11_BIND_RENDER_TARGET));
 	CreateRenderTarget(format);
 }
 
@@ -220,24 +194,50 @@ void SandFox::RenderTexture::CreateRenderTarget(DXGI_FORMAT format)
 
 // UAV
 
-SandFox::UAVTexture::UAVTexture()
+SandFox::TextureUAV::TextureUAV()
 	:
 	m_texture(nullptr),
-	m_uav(nullptr)
+	m_uav(nullptr),
+	m_owner(false)
 {
 }
 
-SandFox::UAVTexture::UAVTexture(Texture* texture)
-	:
-	m_texture(nullptr),
-	m_uav(nullptr)
+SandFox::TextureUAV::~TextureUAV()
 {
-	Load(texture);
+	if (m_owner)
+	{
+		delete m_texture;
+	}
 }
 
-void SandFox::UAVTexture::Load(Texture* texture)
+SandFox::TextureUAV::TextureUAV(Texture* texture, RegUAV reg, bool ownTexture)
+	:
+	BindableResource(reg),
+	m_texture(nullptr),
+	m_uav(nullptr),
+	m_owner(ownTexture)
+{
+	Load(texture, reg, ownTexture);
+}
+
+void SandFox::TextureUAV::Bind(BindStage stage)
+{
+	if (BindHandler::BindUAV(stage, this))
+	{
+		BindUAV(stage, GetRegUAV(), m_uav);
+	}
+}
+
+SandFox::BindType SandFox::TextureUAV::Type()
+{
+	return BindTypeUnorderedAccess;
+}
+
+void SandFox::TextureUAV::Load(Texture* texture, RegUAV reg, bool ownTexture)
 {
 	m_texture = texture;
+	m_owner = ownTexture;
+	SetReg(reg);
 
 	D3D11_TEXTURE2D_DESC textureDesc;
 	m_texture->GetTexture()->GetDesc(&textureDesc);
@@ -251,7 +251,111 @@ void SandFox::UAVTexture::Load(Texture* texture)
 	EXC_COMCHECKINFO(Graphics::Get().GetDevice()->CreateUnorderedAccessView(m_texture->GetTexture().Get(), &desc, &m_uav));
 }
 
-ComPtr<ID3D11UnorderedAccessView> SandFox::UAVTexture::GetUAV()
+void SandFox::TextureUAV::SetOwner(bool owner)
+{
+	m_owner = owner;
+}
+
+void SandFox::TextureUAV::Unbind(BindStage stage)
+{
+	BindHandler::UnbindUAV(stage, GetRegUAV());
+	UnbindUAV(stage, GetRegUAV());
+}
+
+SandFox::Texture* SandFox::TextureUAV::GetTexture()
+{
+	return m_texture;
+}
+
+SandFox::RenderTexture* SandFox::TextureUAV::GetRenderTexture()
+{
+	return (RenderTexture*)m_texture;
+}
+
+ComPtr<ID3D11UnorderedAccessView> SandFox::TextureUAV::GetUAV()
 {
 	return m_uav;
+}
+
+SandFox::TextureSRV::TextureSRV()
+	:
+	m_texture(nullptr),
+	m_srv(nullptr),
+	m_owner(false)
+{
+}
+
+SandFox::TextureSRV::~TextureSRV()
+{
+	if (m_owner)
+	{
+		delete m_texture;
+	}
+}
+
+SandFox::TextureSRV::TextureSRV(Texture* texture, RegSRV reg, bool ownTexture, int formatOverride)
+	:
+	BindableResource(reg),
+	m_texture(nullptr),
+	m_srv(nullptr),
+	m_owner(ownTexture)
+{
+	Load(texture, reg, ownTexture, formatOverride);
+}
+
+void SandFox::TextureSRV::Bind(BindStage stage)
+{
+	if (BindHandler::BindSRV(stage, this))
+	{
+		BindSRV(stage, GetRegSRV(), m_srv);
+	}
+}
+
+SandFox::BindType SandFox::TextureSRV::Type()
+{
+	return BindTypeShaderResource;
+}
+
+void SandFox::TextureSRV::Load(Texture* texture, RegSRV reg, bool ownTexture, int formatOverride)
+{
+	m_texture = texture;
+	SetReg(reg);
+
+	D3D11_TEXTURE2D_DESC desc = { 0 };
+	m_texture->GetTexture()->GetDesc(&desc);
+	
+
+	D3D11_SHADER_RESOURCE_VIEW_DESC srvd;
+	srvd.Format = (formatOverride > -1) ? (DXGI_FORMAT)formatOverride : desc.Format;
+	srvd.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+	srvd.Texture2D = { 0, 1 };
+
+	m_srv.Detach();
+	EXC_COMCHECKINFO(Graphics::Get().GetDevice()->CreateShaderResourceView(m_texture->GetTexture().Get(), &srvd, &m_srv));
+}
+
+void SandFox::TextureSRV::SetOwner(bool owner)
+{
+	m_owner = owner;
+}
+
+void SandFox::TextureSRV::Unbind(BindStage stage)
+{
+	BindHandler::UnbindSRV(stage, GetRegSRV());
+	UnbindSRV(stage, GetRegSRV());
+}
+
+SandFox::Texture* SandFox::TextureSRV::GetTexture()
+{
+	return m_texture;
+}
+
+SandFox::RenderTexture* SandFox::TextureSRV::GetRenderTexture()
+{
+	return (RenderTexture*)m_texture;
+}
+
+ComPtr<ID3D11ShaderResourceView> SandFox::TextureSRV::GetSRV()
+{
+	return m_srv;
 }

@@ -2,6 +2,7 @@
 #include "ParticleStream.h"
 
 #include "Window.h"
+#include "BindHandler.h"
 
 #include <algorithm>
 
@@ -18,11 +19,9 @@ SandFox::ParticleStream::ParticleStream(
 	transform(t),
 
 	m_shader(Shader::Get(ShaderTypeParticleBasic)),
-	m_texture(particleTexture, 4u),
-	m_samplerState(5u, D3D11_FILTER_MIN_MAG_MIP_POINT, D3D11_TEXTURE_ADDRESS_CLAMP),
-	m_transformConstantBuffer(),
+	m_texture(new Texture(particleTexture), RegSRVTexColor, true),
+	m_tConstBuffer(transform),
 	m_vertexBuffer(),
-	m_cameraInfo(),
 	m_scaleInfo(),
 	m_indexBuffer(),
 
@@ -43,6 +42,10 @@ SandFox::ParticleStream::ParticleStream(
 	m_computeInfo()
 
 {
+	BindHandler::ApplyPresetSampler(RegSamplerStandard, BindStagePS);
+
+
+
 	ComPtr<ID3DBlob> blob;
 
 	D3D11_INPUT_ELEMENT_DESC inputElements[] =
@@ -66,19 +69,16 @@ SandFox::ParticleStream::ParticleStream(
 	m_indexBuffer.Load(m_indices, m_capacity, false);
 
 	// Pixel buffer resources
-	m_cameraInfo.Load({}, 1, false);
-	m_scaleInfo.Load({}, 0, false);
+	m_scaleInfo.Load(RegCBVSystem0, {}, sizeof(ScaleInfo), false);
 	
 	// Vertex buffer resources
-	dx::XMMATRIX zeroMatrix;
-	m_vertexBuffer.Load(m_particles, m_capacity, true);
-	m_transformConstantBuffer.Load(zeroMatrix, 0u, false);
+	m_vertexBuffer.Load(m_particles, m_capacity, sizeof(Particle), true);
 
 	// Compute buffer resources
 	m_computeShader.Load(Graphics::Get().ShaderPath(computeShader));
-	m_particleBuffer.Load(nullptr, m_capacity, sizeof(Particle), 0);
-	m_particleDataBuffer.Load(nullptr, m_capacity, m_pDataStructureSize, 1);
-	m_computeInfo.Load({}, 2, false);
+	m_particleBuffer.Load(RegUAVDefault, nullptr, m_capacity, sizeof(Particle));
+	m_particleDataBuffer.Load(RegSRVParticleData, nullptr, m_capacity, m_pDataStructureSize);
+	m_computeInfo.Load(RegCBVSystem1, nullptr, sizeof(ComputeInfo), false);
 }
 
 SandFox::ParticleStream::~ParticleStream()
@@ -117,25 +117,25 @@ void SandFox::ParticleStream::Update(float dTime)
 	};
 
 	// Bind compute info constant buffer
-	m_computeInfo.Write(computeInfo);
-	m_computeInfo.Bind();
+	m_computeInfo.Write(&computeInfo);
+	m_computeInfo.Bind(BindStageCS);
 
 	// Bind structured buffers
 	m_particleBuffer.Write(m_particles + m_start, m_count * sizeof(Particle));
-	m_particleBuffer.Bind();
+	m_particleBuffer.Bind(BindStageCS);
 
 	m_particleDataBuffer.Write(m_particleData + m_start * m_pDataStructureSize, m_count * m_pDataStructureSize);
-	m_particleDataBuffer.Bind();
+	m_particleDataBuffer.Bind(BindStageCS);
 
 	// Run the compute shader
 	m_computeShader.Dispatch(m_count / c_particlesPerThread, 1, 1);
 
-	// Unbind the potentially large buffers from the GPU
-	m_particleBuffer.Unbind();
-	m_particleDataBuffer.Unbind();
-
 	// Retrieve the particle data
 	m_particleBuffer.Read(m_particles + m_start, m_count * sizeof(Particle));
+
+	// Unbind the potentially large buffers from the GPU
+	m_particleBuffer.Unbind(BindStageCS);
+	m_particleDataBuffer.Unbind(BindStageCS);
 }
 
 void SandFox::ParticleStream::CreateParticle(const cs::Vec3& position, float size, const void* data)
@@ -235,10 +235,6 @@ void SandFox::ParticleStream::Draw()
 
 	float averageScreen = (Graphics::Get().GetWindow()->GetH() + Graphics::Get().GetWindow()->GetW()) * 0.5f;
 
-	CameraInfo cameraInfo =
-	{
-		Graphics::Get().GetCamera()->position
-	};
 	ScaleInfo scaleInfo =
 	{
 		{ averageScreen / Graphics::Get().GetWindow()->GetW(), averageScreen / Graphics::Get().GetWindow()->GetH() },
@@ -246,19 +242,15 @@ void SandFox::ParticleStream::Draw()
 		m_nearClipFeather
 	};
 	m_vertexBuffer.Update((void*)(m_particles + m_start), m_count);
-	m_transformConstantBuffer.Write(matrix);
-	m_cameraInfo.Write(cameraInfo);
-	m_scaleInfo.Write(scaleInfo);
+	m_scaleInfo.Write(&scaleInfo);
 
 	m_shader->Bind();
-	m_texture.Bind();
-	m_samplerState.Bind();
 	m_vertexBuffer.Bind();
-	m_transformConstantBuffer.Bind();
-	m_cameraInfo.Bind();
-	m_scaleInfo.Bind();
-
 	m_indexBuffer.Bind();
+
+	m_texture.Bind(BindStagePS);
+	m_tConstBuffer.Bind(BindStageVS);
+	m_scaleInfo.Bind(BindStageGS);
 
 	Graphics::Get().GetContext()->DrawIndexed(m_count, 0u, 0u);
 }

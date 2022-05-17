@@ -1,3 +1,6 @@
+
+#include "H_Constants.hlsli"
+
 // Input struct
 struct PSIn
 {
@@ -19,7 +22,13 @@ struct PSOut
     float4 exponent : SV_Target5;
 };
 
-cbuffer MaterialInfo : register(b2)
+
+
+SamplerState samplerState   : REGISTER_SAMPLER_STANDARD;
+Texture2D tAlbedo           : REGISTER_SRV_TEX_COLOR;
+Texture2D tExponent         : REGISTER_SRV_TEX_SPECULARITY;
+
+cbuffer MaterialInfo        : REGISTER_CBV_MATERIAL_INFO
 {
     float3 materialAmbient;
     float3 materialDiffuse;
@@ -27,10 +36,7 @@ cbuffer MaterialInfo : register(b2)
     float materialShininess;
 }
 
-// Textures and sample information
-SamplerState samplerState : register(s4);
-Texture2D tAlbedo : register(t5);
-Texture2D tExponent : register(t6);
+
 
 PSOut main(PSIn input)
 {

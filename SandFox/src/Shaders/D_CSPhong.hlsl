@@ -1,32 +1,37 @@
 
 #include "H_PhongAlg.hlsli"
+#include "H_Constants.hlsli"
 
-RWTexture2D<float4> tTarget  : register(u0);
+RWTexture2D<float4> tTarget     : REGISTER_UAV_DEFAULT;
 
-Texture2D tPosition     : register(t1);
-Texture2D tNormal       : register(t2);
+Texture2D tPosition             : REGISTER_SRV_DEF_POSITION;
+Texture2D tNormal               : REGISTER_SRV_DEF_NORMAL;
 
-Texture2D tAmbient     : register(t3);
-Texture2D tDiffuse     : register(t4);
-Texture2D tSpecular    : register(t5);
-Texture2D tExponent    : register(t6);
+Texture2D tAmbient              : REGISTER_SRV_DEF_AMBIENT;
+Texture2D tDiffuse              : REGISTER_SRV_DEF_DIFFUSE;
+Texture2D tSpecular             : REGISTER_SRV_DEF_SPECULAR;
+Texture2D tExponent             : REGISTER_SRV_DEF_EXPONENT;
 
-SamplerState samplerState   : register(s8);
+SamplerState samplerState       : REGISTER_SAMPLER_STANDARD;
 
 
 
-#define LIGHT_CAPACITY 16
 
-cbuffer SceneInfo : register(b10)
+
+cbuffer CameraInfo              : REGISTER_CBV_CAMERA_INFO
 {
     float3 viewerPosition;
+};
+
+cbuffer LightInfo               : REGISTER_CBV_LIGHT_INFO
+{
     float3 ambient;
 
     int lightCount;
-    Light lights[LIGHT_CAPACITY];
+    Light lights[FOX_C_MAX_LIGHTS];
 };
 
-cbuffer ClientInfo : register(b11)
+cbuffer ClientInfo              : REGISTER_CBV_CLIENT_INFO
 {
     uint2 screen;
     float2 screenInverse;
@@ -37,7 +42,7 @@ cbuffer ClientInfo : register(b11)
 
 
 
-[numthreads(1, 1, 1)]
+[numthreads(FOX_C_DEFERRED_PER_THREAD_X, FOX_C_DEFERRED_PER_THREAD_Y, 1)]
 void main(uint3 id : SV_DispatchThreadID)
 {
     float2 uv = float2(id.x * screenInverse.x, id.y * screenInverse.y);

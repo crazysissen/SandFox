@@ -6,7 +6,10 @@
 #include "Texture.h"
 #include "SamplerState.h"
 #include "ComputeShader.h"
+#include "ConstantBuffer.h"
 #include "Window.h"
+#include "BindHandler.h"
+#include "LightHandler.h"
 
 #include "GraphicsEnums.h"
 
@@ -50,87 +53,62 @@ namespace SandFox
 	class FOX_API Graphics sealed
 	{
 	public:
-		static constexpr bool c_usePPFX = false;
-		static constexpr float c_nearClipDefault = 0.05f;
-		static constexpr float c_farClipDefault = 1000.0f;
-		static constexpr int c_maxRenderTargets = 7;
-		static constexpr int c_maxLights = 16;
-
-		static constexpr float c_depthStencilExponent = 25.0f;
-
-		static constexpr uint c_registerSceneInfo = 10;
-		static constexpr uint c_registerClientInfo = 11;
-
-	public:
-		struct Light
-		{
-			Vec3 position;	// Relevant for point and spot lights
-			LightType type;
-
-			Vec3 direction;			// Relevant for directional and spot lights
-			float spreadDotLimit;	// Relevant for spot lights
-
-			Vec3 color;
-			float intensity;
-
-			static FOX_API Light Directional(const cs::Vec3& direction, float intensity = 10.0f, const cs::Color& color = cs::Color(1.0f, 1.0f, 1.0f));
-			static FOX_API Light Point(const cs::Vec3& position, float intensity = 10.0f, const cs::Color& color = cs::Color(1.0f, 1.0f, 1.0f));
-			static FOX_API Light Spot(const cs::Vec3& position, const cs::Vec3& direction, float spread = 1.0f, float intensity = 10.0f, const cs::Color& color = cs::Color(1.0f, 1.0f, 1.0f));
-		};
-
-		struct SceneInfo
-		{
-			Vec3 cameraPos;
-			PAD(1, 0);
-
-			Vec3 ambient;
-			int lightCount;
-
-			Light lights[c_maxLights];
-		};
-
-
-
-	public:
 		Graphics();
 		~Graphics();
 
+
+
 		// Initialization/deinitialization logic
+
 		void Init(Window* window, std::wstring shaderDir, GraphicsTechnique technique = GraphicsTechniqueImmediate);
 		void DeInit();
 
-		void InitImgui();
 
-		void SetLights(const Light* lights, int count);
-		void SetLightAmbient(const cs::Color& color, float intensity);
 
-		// Finalize drawing to back buffer and flip
+		// Frame drawing
+
 		void FrameBegin(const cs::Color& color);
 		void FrameComposite();
 		void FrameFinalize();
-
-		void DrawGraphicsImgui();
-
-		void ChangeDepthStencil(bool enable, bool write);
-
 		void PostProcess();
 
-		Window* GetWindow();
+		void DrawGraphicsImgui();
+		void ChangeDepthStencil(bool enable, bool write);
 
-		void InitCamera(cs::Vec3 pos, cs::Vec3 rot, float fov, float nearClip = c_nearClipDefault, float farClip = c_farClipDefault);
+
+
+		// Fetch configured resources and graphics singleton
+
+		ComPtr<ID3D11Device>& GetDevice();
+		ComPtr<ID3D11DeviceContext>& GetContext();
+		
+		Window* GetWindow();
+		std::wstring ShaderPath(std::wstring shaderName);
+
+		static Graphics& Get();
+
+
+
+		// Camera
+
+		void InitCamera(cs::Vec3 pos, cs::Vec3 rot, float fov, float nearClip = FOX_C_NEAR_CLIP_DEFAULT, float farClip = FOX_C_FAR_CLIP_DEFAULT);
 		void UpdateCamera();
 		std::shared_ptr<Camera> GetCamera();
 		const dx::XMMATRIX& GetCameraMatrix();
 
-		ComPtr<ID3D11Device>& GetDevice();
-		ComPtr<ID3D11DeviceContext>& GetContext();
 
-		std::wstring ShaderPath(std::wstring shaderName);
 
-	public:
-		static Graphics& Get();
+
+
+		// Private implementation
 
 	private:
+		struct CameraInfo
+		{
+			Vec3 cameraPos;
+			PAD(4, 0);
+		};
+
 		struct ClientInfo
 		{
 			uint screenWidth;
@@ -144,7 +122,6 @@ namespace SandFox
 		static Graphics* s_graphics;
 
 		bool m_initialized;
-		bool m_imgui;
 		bool m_frameComposited;
 
 		int m_displayedBuffer;
@@ -152,31 +129,33 @@ namespace SandFox
 		// Window information
 		Window* m_window;
 
+		// Handlers
+		BindHandler* m_bindHandler;
+
 		// Device and associate objects
 		ComPtr<ID3D11Device>		m_device;
 		ComPtr<IDXGISwapChain>		m_swapChain;
 		ComPtr<ID3D11DeviceContext> m_context;
 
 		// Depth stencil
-		Texture								m_depthStencilTexture;
-		//ComPtr<ID3D11Texture2D>				m_depthStencilTexture;
-		ComPtr<ID3D11DepthStencilView>		m_depthStencilView;
-		//ComPtr<ID3D11ShaderResourceView>	m_depthStencilShaderResourceView;
+		Texture							m_depthStencilTexture;
+		TextureSRV						m_depthStencilTextureSRV;
+		ComPtr<ID3D11DepthStencilView>	m_depthStencilView;
 
 		// Technique
 		GraphicsTechnique m_technique;
 
 		// Back buffer(s)
 		RenderTexture*	m_backBuffers;
+		TextureSRV*		m_backBufferSRVs;
 		int				m_backBufferCount;
-		UAVTexture		m_backBufferUAV;
+		TextureUAV		m_backBufferUAV;
 		ComputeShader   m_lightingPass;
 		ComputeShader	m_copyPass;
 
-		Bind::SamplerState	m_deferredSamplerState;
-		IBindable*			m_clientInfo;
-		IBindable*			m_sceneInfoBuffer;
-		SceneInfo			m_sceneInfo;
+		Bind::ConstBuffer*	m_clientInfoBuffer;
+		Bind::ConstBuffer*	m_cameraInfoBuffer;
+		CameraInfo			m_cameraInfo;
 
 		wrl::ComPtr<ID3D11Debug> m_debug;
 

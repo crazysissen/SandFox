@@ -10,7 +10,7 @@ namespace SandFox
 	namespace Bind
 	{
 
-		class FOX_API PixelShader : public IBindable
+		class FOX_API PixelShader : public Bindable
 		{
 		public:
 			PixelShader();
@@ -19,7 +19,8 @@ namespace SandFox
 
 			void Load(const std::wstring& shaderName, ComPtr<ID3DBlob>& pBlob);
 
-			void Bind() override;
+			void Bind(BindStage stage = BindStageNone) override;
+			BindType Type() override;
 
 		private:
 			ComPtr<ID3D11PixelShader> m_pixelShader;

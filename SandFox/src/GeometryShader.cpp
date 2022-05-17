@@ -3,6 +3,7 @@
 
 #include "GeometryShader.h"
 #include "Graphics.h"
+#include "BindHandler.h"
 
 SandFox::Bind::GeometryShader::GeometryShader()
 	:
@@ -15,7 +16,7 @@ SandFox::Bind::GeometryShader::GeometryShader(const std::wstring& shaderName, Co
 	m_geometryShader(nullptr)
 {
 	Load(shaderName, blob);
-}
+}	
 
 SandFox::Bind::GeometryShader::~GeometryShader()
 {
@@ -32,7 +33,15 @@ void SandFox::Bind::GeometryShader::Load(const std::wstring& shaderName, ComPtr<
 	));
 }
 
-void SandFox::Bind::GeometryShader::Bind()
+void SandFox::Bind::GeometryShader::Bind(BindStage stage)
 {
-	EXC_COMINFO(Graphics::Get().GetContext()->GSSetShader(m_geometryShader.Get(), nullptr, 0u));
+	if (BindHandler::BindGS(this))
+	{
+		EXC_COMINFO(Graphics::Get().GetContext()->GSSetShader(m_geometryShader.Get(), nullptr, 0u));
+	}
+}
+
+SandFox::BindType SandFox::Bind::GeometryShader::Type()
+{
+	return BindTypePipeline;
 }

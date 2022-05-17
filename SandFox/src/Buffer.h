@@ -6,23 +6,21 @@
 namespace SandFox
 {
 
-	class FOX_API StructuredBuffer : public IBindable
+	class FOX_API StructuredBuffer : public BindableResource
 	{
 	public:
 		StructuredBuffer();
-		StructuredBuffer(void* data, int count, int structureSize, int bufferIndex, bool dynamic, D3D11_BIND_FLAG bindFlags);
+		StructuredBuffer(char reg, void* data, int count, int structureSize, bool dynamic, D3D11_BIND_FLAG bindFlags);
 
-		void LoadBuffer(void* data, int count, int structureSize, int bufferIndex, bool dynamic, D3D11_BIND_FLAG bindFlags);
+		void LoadBuffer(char reg, void* data, int count, int structureSize, bool dynamic, D3D11_BIND_FLAG bindFlags);
 
 		ComPtr<ID3D11Buffer> GetBuffer();
 
 		virtual void Resize(int count);
 		virtual void Write(void* data, int size) = 0;
-		virtual void Bind() = 0;
-		virtual void Unbind() = 0;
+		virtual void Unbind(BindStage stage) = 0;
 
 	protected:
-		int m_bufferIndex;
 		int m_stride;
 
 	private:
@@ -33,17 +31,19 @@ namespace SandFox
 	{
 	public:
 		StructuredBufferUAV();
-		StructuredBufferUAV(void* data, int count, int structureSize, int bufferIndex);
+		StructuredBufferUAV(RegUAV reg, void* data, int count, int structureSize);
 
-		void Load(void* data, int count, int structureSize, int bufferIndex);
+		void Load(RegUAV reg, void* data, int count, int structureSize);
 		void LoadUAV(int count, int structureSize);
 
 		void Read(void* destination, int size);
 
 		void Resize(int count) override;
 		void Write(void* data, int size) override;
-		void Bind() override;
-		void Unbind() override;
+		void Unbind(BindStage stage) override;
+
+		void Bind(BindStage stage) override;
+		BindType Type() override;
 
 	private:
 		ComPtr<ID3D11Buffer> m_stageBuffer;
@@ -54,15 +54,17 @@ namespace SandFox
 	{
 	public:
 		StructuredBufferSRV();
-		StructuredBufferSRV(void* data, int count, int structureSize, int bufferIndex);
+		StructuredBufferSRV(RegSRV reg, void* data, int count, int structureSize);
 
-		void Load(void* data, int count, int structureSize, int bufferIndex);
+		void Load(RegSRV reg, void* data, int count, int structureSize);
 		void LoadSRV(int count, int structureSize);
 
 		void Resize(int count) override;
 		void Write(void* data, int size) override;
-		void Bind() override;
-		void Unbind() override;
+		void Unbind(BindStage stage) override;
+
+		void Bind(BindStage stage) override;
+		BindType Type() override;
 
 	private:
 		ComPtr<ID3D11ShaderResourceView> m_srv;

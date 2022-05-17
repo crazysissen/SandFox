@@ -1,5 +1,6 @@
 
 #include "H_PhongAlg.hlsli"
+#include "H_Constants.hlsli"
 
 #define LIGHT_CAPACITY 16
 
@@ -14,33 +15,33 @@ struct PSIn
 	float2 uv : TEXCOORD;
 };
 
-cbuffer SceneInfo : register(b10)
-{
-	float3 viewerPosition;
-	float3 ambient;
 
-    int lightCount;
-    Light lights[LIGHT_CAPACITY];
+
+SamplerState samplerState   : REGISTER_SAMPLER_STANDARD;
+Texture2D shaderTexture     : REGISTER_SRV_TEX_COLOR;
+
+cbuffer CameraInfo          : REGISTER_CBV_CAMERA_INFO
+{
+    float3 viewerPosition;
 };
 
-cbuffer MaterialInfo : register(b2)
+cbuffer LightInfo           : REGISTER_CBV_LIGHT_INFO
 {
-	float3 materialAmbient;
-	float3 materialDiffuse;
-	float3 materialSpecular;
-    float materialShininess;
-}
+    float3 ambient;
 
-cbuffer TextureInfo : register(b3)
+    int lightCount;
+    Light lights[FOX_C_MAX_LIGHTS];
+};
+
+cbuffer MaterialInfo        : REGISTER_CBV_MATERIAL_INFO
 {
+    float3 materialAmbient;
+    float3 materialDiffuse;
+    float3 materialSpecular;
+    float materialShininess;
+    
     float2 uvScale;
 }
-
-// Textures and sample information
-Texture2D shaderTexture : register(t4);
-SamplerState samplerState : register(s5);
-
-
 
 
 

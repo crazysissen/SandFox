@@ -1,3 +1,6 @@
+
+#include "H_Constants.hlsli"
+
 struct VSOut
 {
 	float3 color : COLOR;
@@ -5,10 +8,14 @@ struct VSOut
 	//nointerpolation float3 normal : NORMAL;
 };
 
-cbuffer CBuf
+
+
+cbuffer CBuf : REGISTER_CBV_OBJECT_INFO
 {
 	matrix transform;
 };
+
+
 
 VSOut main(float3 pos : POSITION, float3 color : COLOR)
 {

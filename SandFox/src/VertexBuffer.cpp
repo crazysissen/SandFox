@@ -1,17 +1,49 @@
 #include "pch.h"
 
 #include "VertexBuffer.h"
+#include "Graphics.h"
+#include "BindHandler.h"
 
 SandFox::Bind::VertexBuffer::VertexBuffer() 
 	:
 	m_vertexBuffer(nullptr),
 	m_stride(0),
+	m_count(0),
 	m_dynamic(false)
 {
 }
 
+SandFox::Bind::VertexBuffer::VertexBuffer(const void* vertices, unsigned int vertexCount, unsigned int vertexSize, bool dynamic)
+	:
+	m_stride(),
+	m_count(),
+	m_dynamic()
+{
+	Load(vertices, vertexCount, vertexSize, dynamic);
+}
+
 SandFox::Bind::VertexBuffer::~VertexBuffer()
 {
+}
+
+void SandFox::Bind::VertexBuffer::Load(const void* vertices, unsigned int vertexCount, unsigned int vertexSize, bool dynamic)
+{
+	m_stride = vertexSize;
+	m_count = vertexCount;
+	m_dynamic = dynamic;
+
+	D3D11_BUFFER_DESC bd = {};
+	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	bd.Usage = dynamic ? D3D11_USAGE_DYNAMIC : D3D11_USAGE_DEFAULT;
+	bd.CPUAccessFlags = dynamic * D3D11_CPU_ACCESS_WRITE;
+	bd.MiscFlags = 0u;
+	bd.ByteWidth = m_stride * vertexCount;
+	bd.StructureByteStride = m_stride;
+
+	D3D11_SUBRESOURCE_DATA srd = {};
+	srd.pSysMem = vertices;
+
+	EXC_COMCHECKINFO(Graphics::Get().GetDevice()->CreateBuffer(&bd, &srd, &m_vertexBuffer));
 }
 
 void SandFox::Bind::VertexBuffer::Resize(unsigned int vertexCount)
@@ -60,9 +92,22 @@ void SandFox::Bind::VertexBuffer::Update(void* data, int vertexCount)
 	EXC_COMINFO(Graphics::Get().GetContext()->Unmap(m_vertexBuffer.Get(), 0u));
 }
 
-void SandFox::Bind::VertexBuffer::Bind()
+void SandFox::Bind::VertexBuffer::Bind(BindStage stage)
 {
-	uint offset = 0;
+	if (BindHandler::BindVB(this))
+	{
+		uint offset = 0;
 
-	EXC_COMINFO(Graphics::Get().GetContext()->IASetVertexBuffers(0u, 1u, m_vertexBuffer.GetAddressOf(), &m_stride, &offset));
+		EXC_COMINFO(Graphics::Get().GetContext()->IASetVertexBuffers(0u, 1u, m_vertexBuffer.GetAddressOf(), &m_stride, &offset));
+	}
+}
+
+SandFox::BindType SandFox::Bind::VertexBuffer::Type()
+{
+	return BindTypePipeline;
+}
+
+unsigned int SandFox::Bind::VertexBuffer::GetCount() const
+{
+	return m_count;
 }

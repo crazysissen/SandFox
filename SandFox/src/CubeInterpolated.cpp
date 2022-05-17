@@ -7,7 +7,9 @@ SandFox::Prim::TestCube::TestCube(Vec3 position, Vec3 rotation, Vec3 size)
 	:
 	Drawable({ position, rotation, size })
 {
-	if (StaticInitialization())
+	FOX_WARN("TestCube currently not supported.");
+
+	if (StaticInit())
 	{
 		uindex indices[]
 		{
@@ -24,7 +26,7 @@ SandFox::Prim::TestCube::TestCube(Vec3 position, Vec3 rotation, Vec3 size)
 			Vec3 pos;
 			Vec3 color;
 		};
-		
+
 		Vertex vertices[]
 		{
 			{ { -1.0f, -1.0f, -1.0f },	{ 1.0f, 1.0f, 1.0f } },
@@ -45,14 +47,18 @@ SandFox::Prim::TestCube::TestCube(Vec3 position, Vec3 rotation, Vec3 size)
 
 		ComPtr<ID3DBlob> pBlob;
 
-		AddStaticBind(new SandFox::Bind::VertexBuffer(vertices, 8));
-		AddStaticBind(new SandFox::Bind::PixelShader(Graphics::Get().ShaderPath(L"PSBasicOpaque"), pBlob));
-		AddStaticBind(new SandFox::Bind::VertexShader(Graphics::Get().ShaderPath(L"VSColor"), pBlob));
-		AddStaticBind(new SandFox::Bind::InputLayout(inputElements, 2, pBlob));
-		AddStaticBind(new SandFox::Bind::PrimitiveTopology());
-		AddStaticIndexBuffer(new SandFox::Bind::IndexBuffer(indices, 36));
+		BindPipeline p;
+		p.vb = new SandFox::Bind::VertexBuffer(vertices, 8, sizeof(Vertex));
+		p.ib = new SandFox::Bind::IndexBuffer(indices, 36);
+		p.shader = nullptr;														// TODO
+
+		StaticSetPipeline(p);
 	}
 
-	AddBind(new SandFox::Bind::TConstBuffer(*this));
+	AddBind(new SandFox::Bind::TConstBuffer(*this), BindStageVS);
+}
 
+void SandFox::Prim::TestCube::Draw()
+{
+	FOX_FTRACE("TestCube currently not supported, drawing disabled.");
 }

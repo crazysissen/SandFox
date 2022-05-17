@@ -55,7 +55,7 @@ void SandFox::Prim::MeshDrawable::SetTransform(Transform t)
 	m_transform = t;
 	for (SubmeshDrawable* s : m_submeshes)
 	{
-		s->m_transform = t;
+		s->transform = t;
 	}
 }
 
@@ -67,15 +67,17 @@ void SandFox::Prim::MeshDrawable::Draw()
 	}
 }
 
+
+
 SandFox::Prim::MeshDrawable::SubmeshDrawable::SubmeshDrawable(Transform t, Mesh* m, int index)
 	:
 	Drawable(t),
 	m_mesh(m),
 	m_index(index)
 {
-	if (StaticInitialization())
+	if (StaticInit())
 	{
-		SetStaticShader(Shader::Get(ShaderTypePhongMapped));
+		StaticAddSampler(RegSamplerStandard, BindStagePS);
 	}
 
 	MeshSubmesh& s = m->submeshes[index];
@@ -86,18 +88,32 @@ SandFox::Prim::MeshDrawable::SubmeshDrawable::SubmeshDrawable(Transform t, Mesh*
 		mt.ambient, {},
 		mt.diffuse, {},
 		mt.specular,
-		mt.exponent
-	};
+		mt.exponent,
 
-	AddBind(new SandFox::Bind::SamplerState(4u, D3D11_FILTER_MIN_MAG_MIP_POINT));
-	AddBind(new SandFox::Bind::TextureBindable(m->textures[mt.albedoIndex], 5u));
-	AddBind(new SandFox::Bind::TextureBindable(m->textures[mt.exponentIndex], 6u));
+		{ 1, 1 }
+	}; 
 
-	m_materialInfo = new SandFox::Bind::ConstBufferP<MaterialInfo>(mi, 2, false);
-	AddBind(m_materialInfo);
+	BindPipeline p;
+	p.vb = new SandFox::Bind::VertexBuffer(m->vertices, m->vertexCount, sizeof(MeshVertex));
+	p.ib = new SandFox::Bind::IndexBuffer(s.indices, s.indexCount);
+	p.shader = Shader::Get(ShaderTypePhongMapped);
 
-	AddBind(new SandFox::Bind::VertexBuffer(m->vertices, m->vertexCount));
-	AddIndexBuffer(new SandFox::Bind::IndexBuffer(s.indices, s.indexCount));
+	m_materialInfo = new SandFox::Bind::ConstBuffer(RegCBVMaterialInfo, &mi, sizeof(MaterialInfo), false);
 
-	AddBind(new SandFox::Bind::STConstBuffer(*this));
+
+
+	// Configure Drawable
+
+	SetPipeline(p);
+
+	AddBind(new SandFox::Bind::STConstBuffer(*this), BindStageVS);
+	AddResource(m_materialInfo, BindStagePS);
+	AddResource(new SandFox::TextureSRV(&m->textures[mt.albedoIndex], RegSRVTexColor, false), BindStagePS);
+	AddResource(new SandFox::TextureSRV(&m->textures[mt.exponentIndex], RegSRVTexSpecularity, false), BindStagePS);
+}
+
+void SandFox::Prim::MeshDrawable::SubmeshDrawable::Draw()
+{
+	Bind();
+	ExecuteIndexed();
 }
