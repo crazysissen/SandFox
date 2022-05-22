@@ -344,6 +344,8 @@ echo Debug copying complete!</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\Projection.cpp" />
+    <ClCompile Include="src\DrawQueue.cpp" />
     <ClCompile Include="src\BindHandler.cpp" />
     <ClCompile Include="src\LightHandler.cpp" />
     <ClCompile Include="src\Debug.cpp" />
@@ -518,6 +520,8 @@ echo Debug copying complete!</Command>
     <ClCompile Include="src\SamplerState.cpp" />
     <ClCompile Include="src\Buffer.cpp" />
     <ClCompile Include="src\TexSRVArray.cpp" />
+    <ClInclude Include="src\Projection.h" />
+    <ClInclude Include="src\DrawQueue.h" />
     <ClInclude Include="src\BindHandler.h" />
     <ClInclude Include="src\BindInfo.h" />
     <ClInclude Include="src\Constants.h" />
@@ -741,6 +745,14 @@ echo Debug copying complete!</Command>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='DebugSafe|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+    </FxCompile>
+    <FxCompile Include="src\Shaders\VSShadow.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='DebugSafe|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='DebugSafe|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>

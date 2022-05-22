@@ -81,6 +81,8 @@ void SandFox::Graphics::Init(Window* window, std::wstring shaderDir, GraphicsTec
 	m_window = window;
 	m_shaderDir = shaderDir + L'\\';
 
+	m_backgroundColor = cs::Color(0.1f, 0.1f, 0.2f);
+
 	cs::dxgiInfo::init();
 
 
@@ -438,6 +440,8 @@ void SandFox::Graphics::FrameBegin(const cs::Color& color)
 {
 	UpdateCamera();
 
+	SetProjection(GetCameraMatrix());
+
 	m_context->ClearDepthStencilView(m_depthStencilView.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0u); 
 
 	m_cameraInfoBuffer->Write(&m_cameraInfo);
@@ -579,7 +583,16 @@ void SandFox::Graphics::FrameComposite()
 	}
 }
 
-void SandFox::Graphics::FrameFinalize()
+void SandFox::Graphics::DrawFrame(DrawQueue* drawQueue)
+{
+	FrameBegin(m_backgroundColor);
+	drawQueue->DrawMain();
+	FrameComposite();
+	drawQueue->DrawPost();
+	PostProcess();
+}
+
+void SandFox::Graphics::Present()
 {
 	if (m_technique == GraphicsTechniqueDeferred && !m_frameComposited)
 	{
@@ -637,7 +650,7 @@ void SandFox::Graphics::DrawGraphicsImgui()
 	//ImGui::End();
 }
 
-void SandFox::Graphics::ChangeDepthStencil(bool enable, bool write)
+void SandFox::Graphics::SetDepthStencil(bool enable, bool write)
 {
 	D3D11_DEPTH_STENCIL_DESC dssDesc = {};
 	dssDesc.DepthEnable = enable; 
@@ -649,6 +662,11 @@ void SandFox::Graphics::ChangeDepthStencil(bool enable, bool write)
 
 	// Bind
 	EXC_COMINFO(m_context->OMSetDepthStencilState(pDSState.Get(), 1u));
+}
+
+void SandFox::Graphics::SetBackgroundColor(const cs::Color& color)
+{
+	m_backgroundColor = color;
 }
 
 void SandFox::Graphics::PostProcess()
@@ -715,4 +733,23 @@ std::wstring SandFox::Graphics::ShaderPath(std::wstring shaderName)
 SandFox::Graphics& SandFox::Graphics::Get()
 {
 	return *s_graphics;
+}
+
+
+
+dx::XMMATRIX SandFox::Graphics::s_projection;
+
+const dx::XMMATRIX& SandFox::Graphics::GetProjection()
+{
+	return s_projection;
+}
+
+void SandFox::Graphics::SetProjection(const dx::XMMATRIX& matrix)
+{
+	s_projection = matrix;
+}
+
+void SandFox::Graphics::ClearProjection()
+{
+	s_projection = dx::XMMatrixIdentity();
 }

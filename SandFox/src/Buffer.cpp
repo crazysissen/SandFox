@@ -223,7 +223,7 @@ void SandFox::StructuredBufferSRV::Load(RegSRV reg, void* data, int count, int s
 void SandFox::StructuredBufferSRV::LoadSRV(int count, int structureSize)
 {
 	D3D11_SHADER_RESOURCE_VIEW_DESC srvd = {};
-	srvd.Format = DXGI_FORMAT_UNKNOWN;;
+	srvd.Format = DXGI_FORMAT_UNKNOWN;
 	srvd.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
 
 	srvd.Buffer.FirstElement = 0u;

@@ -127,6 +127,9 @@
     <ClCompile Include="src\TexSRVArray.cpp">
       <Filter>Source\%2a Data Structures\TexSRVArray</Filter>
     </ClCompile>
+    <ClCompile Include="src\DrawQueue.cpp">
+      <Filter>Source\%2a Graphics\DrawQueue</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Graphics.h">
@@ -275,6 +278,9 @@
     </ClInclude>
     <ClInclude Include="src\TexSRVArray.h">
       <Filter>Source\%2a Data Structures\TexSRVArray</Filter>
+    </ClInclude>
+    <ClInclude Include="src\DrawQueue.h">
+      <Filter>Source\%2a Graphics\DrawQueue</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -428,6 +434,9 @@
     <Filter Include="Source\%2a Data Structures\TexSRVArray">
       <UniqueIdentifier>{4125e99c-c8d1-40a6-a79d-9ad67e4de7f3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\%2a Graphics\DrawQueue">
+      <UniqueIdentifier>{9d18e836-6823-42b7-973c-665541b978a6}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="Exclude.txt" />
@@ -473,6 +482,9 @@
       <Filter>Shaders</Filter>
     </FxCompile>
     <FxCompile Include="src\Shaders\CSCopyTexture.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="src\Shaders\VSShadow.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
   </ItemGroup>

@@ -28,11 +28,11 @@ SandFox::Bind::TConstBuffer::~TConstBuffer()
 void SandFox::Bind::TConstBuffer::Bind(BindStage stage)
 {
 	dx::XMMATRIX transformationMatrix = m_transform.GetMatrix();
-	dx::XMMATRIX cameraMatrix = Graphics::Get().GetCameraMatrix();
+	dx::XMMATRIX projectionMatrix = Graphics::GetProjection();
 	dx::XMMATRIX viewMatrix = dx::XMMatrixTranspose // <- flips matrix cpu-side to make gpu calculations more efficient
 	(
 		transformationMatrix *
-		cameraMatrix
+		projectionMatrix
 	);
 
 	m_constBuffer->Write(&viewMatrix);
