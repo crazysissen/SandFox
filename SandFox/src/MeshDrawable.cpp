@@ -59,6 +59,14 @@ void SandFox::Prim::MeshDrawable::SetTransform(Transform t)
 	}
 }
 
+void SandFox::Prim::MeshDrawable::SetUVScaleAll(Vec2 scale)
+{
+	for (SubmeshDrawable* s : m_submeshes)
+	{
+		s->SetUVScale(scale);
+	}
+}
+
 void SandFox::Prim::MeshDrawable::Draw()
 {
 	for (SubmeshDrawable* s : m_submeshes)
@@ -73,7 +81,8 @@ SandFox::Prim::MeshDrawable::SubmeshDrawable::SubmeshDrawable(Transform t, Mesh*
 	:
 	Drawable(t),
 	m_mesh(m),
-	m_index(index)
+	m_index(index),
+	m_uvScale(1, 1)
 {
 	if (StaticInit())
 	{
@@ -89,8 +98,7 @@ SandFox::Prim::MeshDrawable::SubmeshDrawable::SubmeshDrawable(Transform t, Mesh*
 		mt.diffuse, {},
 		mt.specular,
 		mt.exponent,
-
-		{ 1, 1 }
+		m_uvScale
 	}; 
 
 	BindPipeline p;
@@ -116,4 +124,23 @@ void SandFox::Prim::MeshDrawable::SubmeshDrawable::Draw()
 {
 	Bind();
 	ExecuteIndexed();
+}
+
+void SandFox::Prim::MeshDrawable::SubmeshDrawable::SetUVScale(Vec2 scale)
+{
+	m_uvScale = scale;
+	
+	MeshSubmesh& s = m_mesh->submeshes[m_index];
+	MeshMaterial& mt = m_mesh->materials[s.materialIndex];
+
+	MaterialInfo mi =
+	{
+		mt.ambient, {},
+		mt.diffuse, {},
+		mt.specular,
+		mt.exponent,
+		m_uvScale
+	};
+
+	m_materialInfo->Write(&mi);
 }

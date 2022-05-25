@@ -12,7 +12,7 @@
 #pragma warning( disable : 4251 )
 #pragma warning( disable : 4275 )
 
-#include <ch>
+#include <CHSL\WindowsExt.h>
 #include <DirectXMath.h>
 #include <wrl.h>
 #include <d3d11.h>

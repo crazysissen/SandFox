@@ -21,6 +21,8 @@ namespace SandFox
 		virtual void Load(const std::wstring& name, bool immutable = true, D3D11_BIND_FLAG bindFlags = D3D11_BIND_SHADER_RESOURCE);
 		virtual void Load(unsigned char* data, int width, int height, bool immutable = true, int stride = 4, DXGI_FORMAT format = DXGI_FORMAT_R8G8B8A8_UNORM, D3D11_BIND_FLAG bindFlags = D3D11_BIND_SHADER_RESOURCE);
 
+		virtual void Unload();
+
 		ComPtr<ID3D11Texture2D> GetTexture();
 
 	private:
@@ -44,6 +46,8 @@ namespace SandFox
 		virtual void Load(const cs::ColorA& color, int width, int height, DXGI_FORMAT format = DXGI_FORMAT_R8G8B8A8_UNORM, D3D11_BIND_FLAG additionalBindFlags = D3D11_BIND_SHADER_RESOURCE);
 		virtual void Clear(const cs::ColorA& color);
 
+		virtual void Unload() override;
+		
 		void CreateRenderTarget(DXGI_FORMAT format);
 
 		ComPtr<ID3D11RenderTargetView> GetRenderTarget();

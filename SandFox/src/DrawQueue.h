@@ -6,7 +6,7 @@
 namespace SandFox
 {
 
-	class DrawQueue
+	class FOX_API DrawQueue
 	{
 	public:
 		DrawQueue();
@@ -15,14 +15,17 @@ namespace SandFox
 		void Init(bool autoClear);
 		void DeInit();
 
+		void AddPre(IDrawable* drawable);
 		void AddMain(IDrawable* drawable);
 		void AddPost(IDrawable* drawable);
 		void Clear();
 
+		void DrawPre();
 		void DrawMain();
 		void DrawPost();
 
 	private:
+		cs::List<IDrawable*> m_preDrawables;
 		cs::List<IDrawable*> m_mainDrawables;
 		cs::List<IDrawable*> m_postDrawables;
 

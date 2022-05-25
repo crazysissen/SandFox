@@ -34,6 +34,8 @@ cbuffer MaterialInfo        : REGISTER_CBV_MATERIAL_INFO
     float3 materialDiffuse;
     float3 materialSpecular;
     float materialShininess;
+    
+    float2 uvScale;
 }
 
 
@@ -45,8 +47,8 @@ PSOut main(PSIn input)
     o.position = float4(input.position.xyz, 1.0f);
     o.normal = float4(normalize(input.normal.xyz), 1.0f);
     
-    float4 albedoSample = tAlbedo.Sample(samplerState, input.uv).xyzw;
-    float exponentSample = materialShininess * tExponent.Sample(samplerState, input.uv).x;
+    float4 albedoSample = tAlbedo.Sample(samplerState, input.uv * uvScale).xyzw;
+    float exponentSample = materialShininess * tExponent.Sample(samplerState, input.uv * uvScale).x;
     
     o.ambient = albedoSample * float4(materialAmbient, 1.0f);
     o.diffuse = albedoSample * float4(materialDiffuse, 1.0f);

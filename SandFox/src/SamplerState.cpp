@@ -18,6 +18,10 @@ SandFox::Bind::SamplerState::SamplerState(RegSampler reg, D3D11_FILTER filter, D
 	Load(reg, filter, addressMode);
 }
 
+SandFox::Bind::SamplerState::SamplerState(RegSampler reg, D3D11_FILTER filter, cs::Color borderColor)
+{
+}
+
 SandFox::Bind::SamplerState::~SamplerState()
 {
 }
@@ -44,6 +48,29 @@ void SandFox::Bind::SamplerState::Load(RegSampler reg, D3D11_FILTER filter, D3D1
 	d.BorderColor[1] = 0.0f;
 	d.BorderColor[2] = 0.0f;
 	d.BorderColor[3] = 0.0f;
+	d.MinLOD = 0.0f;
+	d.MaxLOD = D3D11_FLOAT32_MAX;
+
+	Graphics::Get().GetDevice()->CreateSamplerState(&d, &m_samplerState);
+}
+
+void SandFox::Bind::SamplerState::Load(RegSampler reg, D3D11_FILTER filter, cs::Color borderColor)
+{
+	SetReg(reg);
+
+	D3D11_SAMPLER_DESC d;
+
+	d.Filter = filter;
+	d.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
+	d.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
+	d.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP /*D3D11_TEXTURE_ADDRESS_MIRROR*/;
+	d.MipLODBias = 0.0f;
+	d.MaxAnisotropy = 1u/*0u*/;
+	d.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
+	d.BorderColor[0] = borderColor.r;
+	d.BorderColor[1] = borderColor.g;
+	d.BorderColor[2] = borderColor.b;
+	d.BorderColor[3] = 1.0f;
 	d.MinLOD = 0.0f;
 	d.MaxLOD = D3D11_FLOAT32_MAX;
 

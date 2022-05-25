@@ -1,10 +1,4 @@
 
-#include "H_PhongAlg.hlsli"
-
-#define LIGHT_CAPACITY 16
-
-
-
 #include "H_Constants.hlsli"
 
 // Input struct

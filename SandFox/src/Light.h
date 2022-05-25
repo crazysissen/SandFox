@@ -22,16 +22,21 @@ namespace SandFox
 		float intensity;
 
 		Vec3 angles;
-		bool shadow;
-
 		float fov;
 
-		dx::XMMATRIX GetViewDirectional(cs::Vec3 samplePoints[], int count, float nearPlane, float farPlane);
-		dx::XMMATRIX GetViewSpot(float nearPlane, float farPlane);
+		bool shadow;
+		float nearClip;
+		float farClip;
+		int shadowIndex;
 
-		static FOX_API Light Directional(const cs::Vec3& angles, bool shadows, float intensity = 10.0f, const cs::Color& color = cs::Color(1.0f, 1.0f, 1.0f));
-		static FOX_API Light Point(const cs::Vec3& position, bool shadows, float intensity = 10.0f, const cs::Color& color = cs::Color(1.0f, 1.0f, 1.0f));
-		static FOX_API Light Spot(const cs::Vec3& position, const cs::Vec3& angles, float spread, bool shadows, float intensity = 10.0f, const cs::Color& color = cs::Color(1.0f, 1.0f, 1.0f));
+		dx::XMMATRIX projection;
+
+		dx::XMMATRIX GetViewDirectional(const cs::Vec3* samplePoints, int count);
+		dx::XMMATRIX GetViewSpot();
+
+		static FOX_API Light Directional(const cs::Vec3& angles, float intensity = 10.0f, const cs::Color& color = cs::Color(1.0f, 1.0f, 1.0f));
+		static FOX_API Light Point(const cs::Vec3& position, float intensity = 10.0f, const cs::Color& color = cs::Color(1.0f, 1.0f, 1.0f));
+		static FOX_API Light Spot(const cs::Vec3& position, const cs::Vec3& angles, float spread, float intensity = 10.0f, const cs::Color& color = cs::Color(1.0f, 1.0f, 1.0f));
 	};
 
 }

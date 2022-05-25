@@ -19,6 +19,8 @@ namespace SandFox
 		ShaderTypePhong,
 		ShaderTypePhongMapped,
 		ShaderTypeParticleBasic,
+		ShaderTypeShadow,
+		ShaderTypeCubemap,
 		
 		ShaderTypeCount // <-- Keep last
 	};
@@ -41,11 +43,14 @@ namespace SandFox
 	public:
 		static Shader* Get(ShaderType preset);
 
+		static void ShaderOverride(bool enabled);
+
 		static void LoadPresets(GraphicsTechnique technique);
 		static void UnloadPresets();
 
 	private:
 		static Shader* s_presets[ShaderTypeCount];
+		static bool s_override;
 
 	private:
 		Bind::PrimitiveTopology m_pt;

@@ -10,6 +10,8 @@
 #include "Window.h"
 #include "BindHandler.h"
 #include "LightHandler.h"
+#include "DrawQueue.h"
+#include "Viewport.h"
 
 #include "GraphicsEnums.h"
 
@@ -69,11 +71,17 @@ namespace SandFox
 
 		void FrameBegin(const cs::Color& color);
 		void FrameComposite();
-		void FrameFinalize();
 		void PostProcess();
 
+		// Automatic system
+		// Calls FrameBegin, FrameComposite, and PostProcess.
+		void DrawFrame(DrawQueue* drawQueue);	
+		void Present();
+
 		void DrawGraphicsImgui();
-		void ChangeDepthStencil(bool enable, bool write);
+		void SetDepthStencil(bool enable, bool write, D3D11_COMPARISON_FUNC function = D3D11_COMPARISON_LESS);
+		void SetDepthStencilWrite(bool write);
+		void SetBackgroundColor(const cs::Color& color);
 
 
 
@@ -100,6 +108,15 @@ namespace SandFox
 
 
 
+		// Projection
+
+		static const dx::XMMATRIX& GetProjection();
+		static void SetProjection(const dx::XMMATRIX& matrix);
+		static void ClearProjection();
+
+
+
+
 		// Private implementation
 
 	private:
@@ -119,7 +136,9 @@ namespace SandFox
 			PAD(12, 0);
 		};
 
+	private:
 		static Graphics* s_graphics;
+		static dx::XMMATRIX s_projection;
 
 		bool m_initialized;
 		bool m_frameComposited;
@@ -144,6 +163,7 @@ namespace SandFox
 
 		// Technique
 		GraphicsTechnique m_technique;
+		cs::Color m_backgroundColor;
 
 		// Back buffer(s)
 		RenderTexture*	m_backBuffers;
@@ -152,6 +172,8 @@ namespace SandFox
 		TextureUAV		m_backBufferUAV;
 		ComputeShader   m_lightingPass;
 		ComputeShader	m_copyPass;
+
+		Viewport	m_viewport;
 
 		Bind::ConstBuffer*	m_clientInfoBuffer;
 		Bind::ConstBuffer*	m_cameraInfoBuffer;

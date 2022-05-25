@@ -10,20 +10,26 @@ struct Light
     float spreadDotLimit;
     float3 color;
     float intensity;
+    float3 angles;
+    float fov;
+    bool shadow;
+    float nearClip;
+    float farClip;
+    int shadowIndex;
+    row_major matrix projection;
 };
 
-
-
-Texture2D tLightMaps[FOX_C_MAX_LIGHTS] : REGISTER_SRV_SHADOW_DEPTH;
-
-
+SamplerState samplerShadow              : REGISTER_SAMPLER_SHADOW;
+Texture2D tLightMaps[FOX_C_MAX_SHADOWS] : REGISTER_SRV_SHADOW_DEPTH;
 
 
 
 float3 phong(Light l, float3 viewerPosition, float3 position, float3 normal, float3 mDiffuse, float3 mSpecular, float mExponent)
 {
+    float3 phongValue = float3(0, 0, 0);
+
     // Direction towards light
-    float3 towardsLight = 
+    float3 towardsLight =
         (l.type == 0) * -(l.direction) +
         (l.type != 0) * (l.position - position);
 
@@ -38,7 +44,6 @@ float3 phong(Light l, float3 viewerPosition, float3 position, float3 normal, flo
     // Scalar by angle of incidence, where 1.0f is straight-on, and <=0.0f is parallell or behind 
     float incidence = dot(normal, towardsLight);
 
-    float3 phongValue = float3(0, 0, 0);
 
     // Return no light for backsides of objects, or parts outside the spread of a spotlight
     if (!(incidence < 0.0f || (l.type == 2 && dot(-l.direction, towardsLight) < l.spreadDotLimit)))
@@ -55,8 +60,30 @@ float3 phong(Light l, float3 viewerPosition, float3 position, float3 normal, flo
         float3 diffuse = mDiffuse * l.color * incidence;
         float3 specular = max(mSpecular * l.color * pow(specularBase, mExponent), float3(0, 0, 0));
 
-        phongValue =  l.intensity * (diffuse + specular) * distScalar;
+        phongValue = l.intensity * (diffuse + specular) * distScalar;
     }
 
+    return phongValue;
+}
+
+float3 phongShadowed(int index, Light l, float3 viewerPosition, float3 position, float3 normal, float3 mDiffuse, float3 mSpecular, float mExponent)
+{
+    float3 phongValue = float3(0, 0, 0);
+    bool ignoreRest = false;
+
+    if (l.shadowIndex != -1)
+    {
+        float4 projPos = mul(float4(position, 1.0f), l.projection);
+        projPos /= projPos.w;
+
+        float depth = tLightMaps[0].SampleLevel(samplerShadow, (projPos.xy * float2(0.5f, -0.5f)) + float2(0.5f, 0.5f), 0).x;
+        ignoreRest = depth > (projPos.z + 0.00001f);
+    }
+
+    if (!ignoreRest)
+    {
+        phongValue += phong(l, viewerPosition, position, normal, mDiffuse, mSpecular, mExponent);
+    }
+    
     return phongValue;
 }

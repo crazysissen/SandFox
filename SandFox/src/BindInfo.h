@@ -101,7 +101,8 @@ namespace SandFox
 		RegSRVCopySource		= 20,
 		RegSRVParticleData		= 21,
 
-		RegSRVShadowDepth		= 24, // Array of up to FOX_C_MAX_LIGHTS lights
+		RegSRVCubemap			= 22,
+		RegSRVShadowDepth		= 24, // Array of up to FOX_C_MAX_SHADOWS shadowed lights
 
 		RegSRVCount = 32	// <-- Keep last!
 	};

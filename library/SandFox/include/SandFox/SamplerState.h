@@ -13,11 +13,13 @@ namespace SandFox
 		public:
 			SamplerState();
 			SamplerState(RegSampler reg, D3D11_FILTER filter, D3D11_TEXTURE_ADDRESS_MODE addressMode = D3D11_TEXTURE_ADDRESS_CLAMP);
+			SamplerState(RegSampler reg, D3D11_FILTER filter, cs::Color borderColor);
 			virtual ~SamplerState();
 
 			ComPtr<ID3D11SamplerState> GetSamplerState();
 
 			void Load(RegSampler reg, D3D11_FILTER filter, D3D11_TEXTURE_ADDRESS_MODE addressMode = D3D11_TEXTURE_ADDRESS_CLAMP);
+			void Load(RegSampler reg, D3D11_FILTER filter, cs::Color borderColor);
 
 			void Bind(BindStage stage = BindStageNone) override;
 			BindType Type() override;

@@ -12,9 +12,7 @@ Texture2D tDiffuse              : REGISTER_SRV_DEF_DIFFUSE;
 Texture2D tSpecular             : REGISTER_SRV_DEF_SPECULAR;
 Texture2D tExponent             : REGISTER_SRV_DEF_EXPONENT;
 
-SamplerState samplerState       : REGISTER_SAMPLER_STANDARD;
-
-
+SamplerState samplerState : REGISTER_SAMPLER_STANDARD;
 
 
 
@@ -26,8 +24,9 @@ cbuffer CameraInfo              : REGISTER_CBV_CAMERA_INFO
 cbuffer LightInfo               : REGISTER_CBV_LIGHT_INFO
 {
     float3 ambient;
-
     int lightCount;
+    
+    
     Light lights[FOX_C_MAX_LIGHTS];
 };
 
@@ -60,17 +59,20 @@ void main(uint3 id : SV_DispatchThreadID)
 
         float3 color = ambient * ambientSample;
 
-        for (int i = 0; i < lightCount; i++)
+        for (int i = 0; i < FOX_C_MAX_LIGHTS; i++)
         {
-            color += phong(
-                lights[i],
-                viewerPosition,
-                position,
-                normal,
-                diffuseSample.xyz,
-                specularSample,
-                exponentSample
-            );
+            if (i < lightCount)
+            {
+                color += phong(
+                    lights[i],
+                    viewerPosition,
+                    position,
+                    normal,
+                    diffuseSample.xyz,
+                    specularSample,
+                    exponentSample
+                   );
+            }
         }
 
         tTarget[id.xy] = saturate(float4(color, 1.0f));

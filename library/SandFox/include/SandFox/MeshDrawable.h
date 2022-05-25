@@ -11,19 +11,20 @@ namespace SandFox
 	namespace Prim
 	{
 
-		class FOX_API MeshDrawable
+		class FOX_API MeshDrawable : public IDrawable
 		{
 		public:
 			MeshDrawable(Transform transform = Transform());
 			MeshDrawable(Transform transform, const Mesh& mesh);
 			~MeshDrawable();
 
-			void Draw();
+			void Draw() override;
 
 			void Load(const Mesh& mesh);
 
 			Transform GetTransform();
 			void SetTransform(Transform t);
+			void SetUVScaleAll(Vec2 scale);
 
 		private:
 			struct MaterialInfo
@@ -43,9 +44,12 @@ namespace SandFox
 
 				void Draw() override;
 
+				void SetUVScale(Vec2 scale);
+
 			private:
 				Mesh* m_mesh;
 				int m_index;
+				Vec2 m_uvScale;
 				Bind::ConstBuffer* m_materialInfo;
 			};
 

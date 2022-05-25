@@ -133,10 +133,10 @@ void SandFox::Graphics::Init(Window* window, std::wstring shaderDir, GraphicsTec
 	scd.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
 	scd.SampleDesc.Count = sampleCount;
 	scd.SampleDesc.Quality = sampleQuality;
-	scd.BufferCount = 2;
+	scd.BufferCount = 3;
 	scd.OutputWindow = m_window->GetHwnd() /*(HWND)67676*/;
 	scd.Windowed = true;
-	scd.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+	scd.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
 	scd.Flags = 0;
 	scd.BufferUsage = DXGI_USAGE_UNORDERED_ACCESS | DXGI_USAGE_RENDER_TARGET_OUTPUT;
 
@@ -235,9 +235,11 @@ void SandFox::Graphics::Init(Window* window, std::wstring shaderDir, GraphicsTec
 	m_cameraInfo.cameraPos = { 0, 0, 0 };
 	
 	m_clientInfoBuffer = new Bind::ConstBuffer(RegCBVClientInfo, &ci, sizeof(ClientInfo), false);
+	m_clientInfoBuffer->Bind(BindStagePS);
 	m_clientInfoBuffer->Bind(BindStageCS);
 
 	m_cameraInfoBuffer = new Bind::ConstBuffer(RegCBVCameraInfo, &m_cameraInfo, sizeof(CameraInfo), false);
+	m_cameraInfoBuffer->Bind(BindStageVS);
 	m_cameraInfoBuffer->Bind(BindStagePS);
 	m_cameraInfoBuffer->Bind(BindStageCS);
 
@@ -345,14 +347,13 @@ void SandFox::Graphics::Init(Window* window, std::wstring shaderDir, GraphicsTec
 
 	// --- Configure viewport
 
-	D3D11_VIEWPORT vp = {};
-	vp.Width = (float)m_window->GetW();
-	vp.Height = (float)m_window->GetH();
-	vp.MinDepth = 0;
-	vp.MaxDepth = 1;
-	vp.TopLeftX = 0;
-	vp.TopLeftY = 0;
-	EXC_COMINFO(m_context->RSSetViewports(1u, &vp));
+	m_viewport.Load(
+		(float)m_window->GetW(),
+		(float)m_window->GetH(),
+		{ 0, 0 },
+		0.0f,
+		1.0f
+	);
 
 
 
@@ -441,6 +442,9 @@ void SandFox::Graphics::FrameBegin(const cs::Color& color)
 	UpdateCamera();
 
 	SetProjection(GetCameraMatrix());
+	Shader::ShaderOverride(false);
+
+	m_viewport.Apply();
 
 	m_context->ClearDepthStencilView(m_depthStencilView.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0u); 
 
@@ -650,18 +654,34 @@ void SandFox::Graphics::DrawGraphicsImgui()
 	//ImGui::End();
 }
 
-void SandFox::Graphics::SetDepthStencil(bool enable, bool write)
+void SandFox::Graphics::SetDepthStencil(bool enable, bool write, D3D11_COMPARISON_FUNC function)
 {
-	D3D11_DEPTH_STENCIL_DESC dssDesc = {};
-	dssDesc.DepthEnable = enable; 
-	dssDesc.DepthWriteMask = write ? D3D11_DEPTH_WRITE_MASK_ALL : D3D11_DEPTH_WRITE_MASK_ZERO;
-	dssDesc.DepthFunc = D3D11_COMPARISON_LESS;
+	D3D11_DEPTH_STENCIL_DESC dssd = {};
+	dssd.DepthEnable = enable;
+	dssd.DepthWriteMask = write ? D3D11_DEPTH_WRITE_MASK_ALL : D3D11_DEPTH_WRITE_MASK_ZERO;
+	dssd.DepthFunc = function;
 
 	ComPtr<ID3D11DepthStencilState> pDSState;
-	EXC_COMCHECKINFO(m_device->CreateDepthStencilState(&dssDesc, &pDSState));
+	EXC_COMCHECKINFO(m_device->CreateDepthStencilState(&dssd, &pDSState));
 
 	// Bind
 	EXC_COMINFO(m_context->OMSetDepthStencilState(pDSState.Get(), 1u));
+}
+
+void SandFox::Graphics::SetDepthStencilWrite(bool write)
+{
+	ID3D11DepthStencilState* dss;
+	uint ref;
+	m_context->OMGetDepthStencilState(&dss, &ref);
+
+	D3D11_DEPTH_STENCIL_DESC dssd = {};
+	dss->GetDesc(&dssd);
+	
+	dssd.DepthWriteMask = write ? D3D11_DEPTH_WRITE_MASK_ALL : D3D11_DEPTH_WRITE_MASK_ZERO;
+
+	ComPtr<ID3D11DepthStencilState> newDSS;
+	EXC_COMCHECKINFO(m_device->CreateDepthStencilState(&dssd, &newDSS));
+	EXC_COMINFO(m_context->OMSetDepthStencilState(newDSS.Get(), 1u));
 }
 
 void SandFox::Graphics::SetBackgroundColor(const cs::Color& color)

@@ -252,5 +252,7 @@ void SandFox::ParticleStream::Draw()
 	m_tConstBuffer.Bind(BindStageVS);
 	m_scaleInfo.Bind(BindStageGS);
 
+	Graphics::Get().SetDepthStencil(true, false);
 	Graphics::Get().GetContext()->DrawIndexed(m_count, 0u, 0u);
+	Graphics::Get().SetDepthStencil(true, true);
 }

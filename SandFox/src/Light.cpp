@@ -3,7 +3,7 @@
 #include "Light.h"
 #include <numeric>
 
-dx::XMMATRIX SandFox::Light::GetViewDirectional(cs::Vec3 samplePoints[], int count, float nearPlane, float farPlane)
+dx::XMMATRIX SandFox::Light::GetViewDirectional(const cs::Vec3* samplePoints, int count)
 {
 	// Perpendiculars to the direction
 	Vec3 right = (direction ^ Vec3(0, 1, 0)).Normalize();
@@ -26,7 +26,7 @@ dx::XMMATRIX SandFox::Light::GetViewDirectional(cs::Vec3 samplePoints[], int cou
 		maxY = (currentY > maxY) ? currentY : maxY;
 	}
 
-	dx::XMMATRIX projection = dx::XMMatrixOrthographicLH(maxX - minX, maxY - minY, nearPlane, farPlane);
+	dx::XMMATRIX projection = dx::XMMatrixOrthographicLH(maxX - minX, maxY - minY, farClip, nearClip);
 	
 	Vec3 virtualPosition =
 		right * (0.5f * (minX + maxX)) +
@@ -40,9 +40,9 @@ dx::XMMATRIX SandFox::Light::GetViewDirectional(cs::Vec3 samplePoints[], int cou
 		projection;
 }
 
-dx::XMMATRIX SandFox::Light::GetViewSpot(float nearPlane, float farPlane)
+dx::XMMATRIX SandFox::Light::GetViewSpot()
 {
-	dx::XMMATRIX projection = dx::XMMatrixPerspectiveFovLH(fov, 1, nearPlane, farPlane);;
+	dx::XMMATRIX projection = dx::XMMatrixPerspectiveFovLH(fov, 1, farClip, nearClip);;
 
 	return
 		dx::XMMatrixTranslation(-position.x, -position.y, -position.z) *
@@ -52,7 +52,7 @@ dx::XMMATRIX SandFox::Light::GetViewSpot(float nearPlane, float farPlane)
 		projection;
 }
 
-SandFox::Light SandFox::Light::Directional(const cs::Vec3& angles, bool shadows, float intensity, const cs::Color& color)
+SandFox::Light SandFox::Light::Directional(const cs::Vec3& angles, float intensity, const cs::Color& color)
 {
 	return Light
 	{
@@ -63,18 +63,17 @@ SandFox::Light SandFox::Light::Directional(const cs::Vec3& angles, bool shadows,
 		color,
 		intensity,
 		angles,
-		shadows,
+		0,
+
+		// Shadow-specifics, set by LightHandler. Do not alter if shadows are not properly enabled.
+		false,
+		0,
 		0
 	};
 }
 
-SandFox::Light SandFox::Light::Point(const cs::Vec3& position, bool shadows, float intensity, const cs::Color& color)
+SandFox::Light SandFox::Light::Point(const cs::Vec3& position, float intensity, const cs::Color& color)
 {
-	if (shadows)
-	{
-		FOX_WARN("Shadow mapped point lights not supported, mapping disabled for this light.");
-	}
-
 	return Light
 	{
 		position,
@@ -84,12 +83,16 @@ SandFox::Light SandFox::Light::Point(const cs::Vec3& position, bool shadows, flo
 		color,
 		intensity,
 		{ 0, 0, 0 },
+		0,
+
+		// Shadow-specifics, set by LightHandler. Do not alter if shadows are not properly enabled.
 		false,
+		0,
 		0
 	};
 }
 
-SandFox::Light SandFox::Light::Spot(const cs::Vec3& position, const cs::Vec3& angles, float spread, bool shadows, float intensity, const cs::Color& color)
+SandFox::Light SandFox::Light::Spot(const cs::Vec3& position, const cs::Vec3& angles, float spread, float intensity, const cs::Color& color)
 {
 	return Light
 	{
@@ -100,7 +103,11 @@ SandFox::Light SandFox::Light::Spot(const cs::Vec3& position, const cs::Vec3& an
 		color,
 		intensity,
 		angles,
-		shadows,
-		spread
+		spread,
+
+		// Shadow-specifics, set by LightHandler. Do not alter if shadows are not properly enabled.
+		false,
+		0,
+		0
 	};
 }

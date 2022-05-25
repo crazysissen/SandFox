@@ -41,7 +41,7 @@
 namespace SandFox
 {
 
-	class FOX_API ParticleStream
+	class FOX_API ParticleStream : public IDrawable
 	{
 	public:
 		struct Particle
@@ -59,7 +59,7 @@ namespace SandFox
 		void SetLifetime(float lifetime);
 		void SetNearClip(float nearClip, float nearClipFeather);
 
-		void Draw();
+		void Draw() override;
 
 	public:
 		Transform transform;

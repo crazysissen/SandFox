@@ -18,7 +18,7 @@ struct PSIn
 
 
 SamplerState samplerState   : REGISTER_SAMPLER_STANDARD;
-Texture2D shaderTexture     : REGISTER_SRV_TEX_COLOR;
+Texture2D shaderTexture : REGISTER_SRV_TEX_COLOR;
 
 cbuffer CameraInfo          : REGISTER_CBV_CAMERA_INFO
 {

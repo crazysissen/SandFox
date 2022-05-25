@@ -130,6 +130,12 @@
     <ClCompile Include="src\DrawQueue.cpp">
       <Filter>Source\%2a Graphics\DrawQueue</Filter>
     </ClCompile>
+    <ClCompile Include="src\Viewport.cpp">
+      <Filter>Source\%2a Graphics\Viewport</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Cubemap.cpp">
+      <Filter>Source\%2a Data Structures\Cubemap</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Graphics.h">
@@ -281,6 +287,12 @@
     </ClInclude>
     <ClInclude Include="src\DrawQueue.h">
       <Filter>Source\%2a Graphics\DrawQueue</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Viewport.h">
+      <Filter>Source\%2a Graphics\Viewport</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Cubemap.h">
+      <Filter>Source\%2a Data Structures\Cubemap</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -437,6 +449,12 @@
     <Filter Include="Source\%2a Graphics\DrawQueue">
       <UniqueIdentifier>{9d18e836-6823-42b7-973c-665541b978a6}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\%2a Graphics\Viewport">
+      <UniqueIdentifier>{f26f3082-d573-4ed3-acfd-da00e163f271}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\%2a Data Structures\Cubemap">
+      <UniqueIdentifier>{66895aef-10b3-4fe0-b737-eebaa7c1c87a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="Exclude.txt" />
@@ -485,6 +503,12 @@
       <Filter>Shaders</Filter>
     </FxCompile>
     <FxCompile Include="src\Shaders\VSShadow.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="src\Shaders\VSVertex.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="src\Shaders\PSCubemap.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
   </ItemGroup>

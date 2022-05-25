@@ -11,6 +11,7 @@
 #include "BindHandler.h"
 #include "LightHandler.h"
 #include "DrawQueue.h"
+#include "Viewport.h"
 
 #include "GraphicsEnums.h"
 
@@ -78,7 +79,8 @@ namespace SandFox
 		void Present();
 
 		void DrawGraphicsImgui();
-		void SetDepthStencil(bool enable, bool write);
+		void SetDepthStencil(bool enable, bool write, D3D11_COMPARISON_FUNC function = D3D11_COMPARISON_LESS);
+		void SetDepthStencilWrite(bool write);
 		void SetBackgroundColor(const cs::Color& color);
 
 
@@ -170,6 +172,8 @@ namespace SandFox
 		TextureUAV		m_backBufferUAV;
 		ComputeShader   m_lightingPass;
 		ComputeShader	m_copyPass;
+
+		Viewport	m_viewport;
 
 		Bind::ConstBuffer*	m_clientInfoBuffer;
 		Bind::ConstBuffer*	m_cameraInfoBuffer;

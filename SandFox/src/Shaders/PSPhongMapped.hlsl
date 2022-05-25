@@ -2,8 +2,6 @@
 #include "H_PhongAlg.hlsli"
 #include "H_Constants.hlsli"
 
-#define LIGHT_CAPACITY 16
-
 
 
 // Input struct
@@ -40,6 +38,8 @@ cbuffer MaterialInfo        : REGISTER_CBV_MATERIAL_INFO
     float3 materialDiffuse;
     float3 materialSpecular;
     float materialShininess;
+    
+    float2 uvScale;
 }
 
 
@@ -50,8 +50,8 @@ float4 main(PSIn input) : SV_TARGET
     float3 position = input.position.xyz;
     float3 normal = normalize(input.normal.xyz);
 
-    float3 albedoSample = tAlbedo.Sample(samplerState, input.uv).xyz;
-    float exponentSample = tExponent.Sample(samplerState, input.uv).x;
+    float3 albedoSample = tAlbedo.Sample(samplerState, input.uv * uvScale).xyz;
+    float exponentSample = tExponent.Sample(samplerState, input.uv * uvScale).x;
 
     float3 color = ambient * materialAmbient * albedoSample;
 

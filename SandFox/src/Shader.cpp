@@ -6,6 +6,8 @@
 
 SandFox::Shader* SandFox::Shader::s_presets[ShaderTypeCount];
 
+bool SandFox::Shader::s_override = false;
+
 
 
 SandFox::Shader::Shader()
@@ -47,10 +49,15 @@ void SandFox::Shader::Bind(BindStage stage)
 	if (BindHandler::BindShader(this))
 	{
 		m_pt.Bind(stage);
-		m_il.Bind(stage);
-		m_vs.Bind(stage);
-		m_gs.Bind(stage);
-		m_ps.Bind(stage);
+
+		if (!s_override)
+		{
+			m_il.Bind(stage);
+			
+			m_vs.Bind(stage); 
+			m_gs.Bind(stage);
+			m_ps.Bind(stage);
+		}
 	}
 }
 
@@ -62,6 +69,11 @@ SandFox::BindType SandFox::Shader::Type()
 SandFox::Shader* SandFox::Shader::Get(ShaderType preset)
 {
 	return s_presets[(int)preset];
+}
+
+void SandFox::Shader::ShaderOverride(bool enabled)
+{
+	s_override = enabled;
 }
 
 void SandFox::Shader::LoadPresets(GraphicsTechnique technique)
@@ -79,6 +91,12 @@ void SandFox::Shader::LoadPresets(GraphicsTechnique technique)
 		{ "SIZE", 0, DXGI_FORMAT_R32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
 	};
 
+	D3D11_INPUT_ELEMENT_DESC ieVertex[] =
+	{
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+	};
+
+
 	ComPtr<ID3DBlob> blob;
 
 
@@ -89,6 +107,17 @@ void SandFox::Shader::LoadPresets(GraphicsTechnique technique)
 	s_presets[(int)ShaderTypeParticleBasic]->LoadVS(Graphics::Get().ShaderPath(L"P_VSBillboard"), blob);
 	s_presets[(int)ShaderTypeParticleBasic]->LoadIL(ieParticle, 2, blob);
 	s_presets[(int)ShaderTypeParticleBasic]->LoadPT(D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
+
+	s_presets[(int)ShaderTypeShadow] = new Shader();
+	s_presets[(int)ShaderTypeShadow]->LoadVS(Graphics::Get().ShaderPath(L"VSShadow"), blob);
+	s_presets[(int)ShaderTypeShadow]->LoadIL(iePhong, 3, blob);
+	s_presets[(int)ShaderTypeShadow]->LoadPT();
+
+	s_presets[(int)ShaderTypeCubemap] = new Shader();
+	s_presets[(int)ShaderTypeCubemap]->LoadPS(Graphics::Get().ShaderPath(L"PSCubemap"), blob);
+	s_presets[(int)ShaderTypeCubemap]->LoadVS(Graphics::Get().ShaderPath(L"VSVertex"), blob);
+	s_presets[(int)ShaderTypeCubemap]->LoadIL(ieVertex, 1, blob);
+	s_presets[(int)ShaderTypeCubemap]->LoadPT();
 
 	if (technique == GraphicsTechniqueImmediate)
 	{

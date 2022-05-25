@@ -94,6 +94,11 @@ void SandFox::Texture::Load(unsigned char* data, int width, int height, bool imm
 	EXC_COMCHECKINFO(Graphics::Get().GetDevice()->CreateTexture2D(&td, (data == nullptr) ? nullptr : &srd, &m_texture));
 }
 
+void SandFox::Texture::Unload()
+{
+	m_texture.Reset();
+}
+
 ComPtr<ID3D11Texture2D> SandFox::Texture::GetTexture()
 {
 	return m_texture;
@@ -173,6 +178,12 @@ void SandFox::RenderTexture::Clear(const cs::ColorA& color)
 {
 	float channels[] = { color.r, color.g, color.b, color.a };
 	EXC_COMINFO(Graphics::Get().GetContext()->ClearRenderTargetView(m_renderTarget.Get(), channels));
+}
+
+void SandFox::RenderTexture::Unload()
+{
+	Texture::Unload();
+	m_renderTarget.Reset();
 }
 
 ComPtr<ID3D11RenderTargetView> SandFox::RenderTexture::GetRenderTarget()

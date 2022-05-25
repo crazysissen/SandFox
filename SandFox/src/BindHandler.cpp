@@ -55,7 +55,9 @@ void SandFox::BindHandler::Init()
 {
     s_bindHandler = this;
 
-    m_savedSamplers[RegSamplerStandard - 1] = new Bind::SamplerState(RegSamplerStandard, D3D11_FILTER_MIN_MAG_MIP_POINT);
+    m_savedSamplers[RegSamplerStandard - 1] = new Bind::SamplerState(RegSamplerStandard, D3D11_FILTER_ANISOTROPIC, D3D11_TEXTURE_ADDRESS_WRAP);
+    m_savedSamplers[RegSamplerPoint - 1] = new Bind::SamplerState(RegSamplerStandard, D3D11_FILTER_MIN_MAG_MIP_POINT);
+    m_savedSamplers[RegSamplerShadow - 1] = new Bind::SamplerState(RegSamplerShadow, D3D11_FILTER_ANISOTROPIC, cs::Color(0.0f, 0.0f, 0.0f));
 }
 
 void SandFox::BindHandler::DeInit()
