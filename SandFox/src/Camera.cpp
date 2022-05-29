@@ -15,6 +15,18 @@ SandFox::Camera::Camera(Vec3 position, Vec3 rotation, float fov, float nearClip,
 	m_projectionMatrix = dx::XMMatrixPerspectiveFovLH(fov, aspectRatio, nearClip, farClip);
 	//m_projectionMatrixInv = dx::XMMatrixInverse(nullptr, m_projectionMatrix);
 }
+
+void SandFox::Camera::Load(cs::Vec3 position, cs::Vec3 rotation, float fov, float nearClip, float farClip, float aspectRatio)
+{
+	this->position = position;
+	this->rotation = rotation;
+	m_fov = fov;
+	m_nearClip = nearClip;
+	m_farClip = farClip;
+	m_aspectRatio = aspectRatio;
+
+	m_projectionMatrix = dx::XMMatrixPerspectiveFovLH(m_fov, m_aspectRatio, m_nearClip, m_farClip);
+}
  
 void SandFox::Camera::SetFOV(float fov)
 {
@@ -65,9 +77,9 @@ dx::XMMATRIX SandFox::Camera::GetMatrix()
 {
 	return
 		dx::XMMatrixTranslation(-position.x, -position.y, -position.z) *
-		dx::XMMatrixRotationY(rotation.y) *
-		dx::XMMatrixRotationX(rotation.x) *
-		dx::XMMatrixRotationZ(rotation.z) *
+		dx::XMMatrixRotationY(-rotation.y) *
+		dx::XMMatrixRotationX(-rotation.x) *
+		dx::XMMatrixRotationZ(-rotation.z) *
 		m_projectionMatrix;
 		
 }

@@ -6,22 +6,12 @@
 #include "DrawQueue.h"
 #include "Light.h"
 #include "Viewport.h"
+#include "TextureQuality.h"
 
 namespace SandFox
 {
 
 	typedef int LightID;
-
-	enum LightShadowQuality
-	{
-		LightShadowQualityLowest,
-		LightShadowQualityLower,
-		LightShadowQualityDefault,	
-		LightShadowQualityHigher,
-		LightShadowQualityHighest,	// Danger
-
-		LightShadowQualityCount		// <-- Keep last!
-	};
 
 
 
@@ -31,7 +21,7 @@ namespace SandFox
 		LightHandler();
 		~LightHandler();
 
-		void Init(GraphicsTechnique technique, cs::Color ambient, float ambientIntensity);
+		void Init(TextureQuality quality, GraphicsTechnique technique, cs::Color ambient, float ambientIntensity);
 		void DeInit();
 
 
@@ -43,13 +33,14 @@ namespace SandFox
 			const cs::Color& color = cs::Color(1.0f, 1.0f, 1.0f));
 
 		// Shadowed
-		LightID AddDirectional(
-			LightShadowQuality quality,
-			const cs::Vec3& angles, 
+		LightID AddDirectionalShadowed(
+			//LightShadowQuality quality,
+			const cs::Vec3& angles,
+			float shadowAreaWidth = 100.0f,
 			float intensity = 10.0f, 
+			const cs::Color& color = cs::Color(1.0f, 1.0f, 1.0f),
 			float nearPlane = FOX_C_SHADOW_DEFAULT_NEAR,
-			float farPlane = FOX_C_SHADOW_DEFAULT_FAR,
-			const cs::Color& color = cs::Color(1.0f, 1.0f, 1.0f));
+			float farPlane = FOX_C_SHADOW_DEFAULT_FAR);
 
 
 
@@ -60,13 +51,13 @@ namespace SandFox
 			const cs::Color& color = cs::Color(1.0f, 1.0f, 1.0f));
 
 		// Shadowed
-		LightID AddPoint(
-			LightShadowQuality quality,
+		LightID AddPointShadowed(
+			//LightShadowQuality quality,
 			const cs::Vec3& position,
 			float intensity = 10.0f,
+			const cs::Color& color = cs::Color(1.0f, 1.0f, 1.0f),
 			float nearPlane = FOX_C_SHADOW_DEFAULT_NEAR,
-			float farPlane = FOX_C_SHADOW_DEFAULT_FAR,
-			const cs::Color& color = cs::Color(1.0f, 1.0f, 1.0f));
+			float farPlane = FOX_C_SHADOW_DEFAULT_FAR);
 
 
 
@@ -79,15 +70,15 @@ namespace SandFox
 			const cs::Color& color = cs::Color(1.0f, 1.0f, 1.0f));
 
 		// Shadowed
-		LightID AddSpot(
-			LightShadowQuality quality,
+		LightID AddSpotShadowed(
+			//LightShadowQuality quality,
 			const cs::Vec3& position,
 			const cs::Vec3& angles,
 			float spread = 1.0f,
 			float intensity = 10.0f,
+			const cs::Color& color = cs::Color(1.0f, 1.0f, 1.0f),
 			float nearPlane = FOX_C_SHADOW_DEFAULT_NEAR,
-			float farPlane = FOX_C_SHADOW_DEFAULT_FAR,
-			const cs::Color& color = cs::Color(1.0f, 1.0f, 1.0f));
+			float farPlane = FOX_C_SHADOW_DEFAULT_FAR);
 
 
 
@@ -95,8 +86,8 @@ namespace SandFox
 		LightID AddLight(const Light& light);
 
 		// Shadowed
-		LightID AddLight(
-			LightShadowQuality quality,
+		LightID AddLightShadowed(
+			//LightShadowQuality quality,
 			const Light& light,
 			float nearPlane = FOX_C_SHADOW_DEFAULT_NEAR,
 			float farPlane = FOX_C_SHADOW_DEFAULT_FAR);
@@ -107,7 +98,8 @@ namespace SandFox
 		void RemoveLight(LightID id);
 		void SetAmbient(const cs::Color& color, float intensity);
 		// Does not assume ownership of the points.
-		void SetSamplePoints(const cs::Vec3* points, int count);
+		//void SetSamplePoints(const cs::Vec3* points, int count);
+		void SetFocalPoint(const cs::Vec3& focalPoint, float distance = 50.0f);
 
 		void UpdateMap(LightID id);
 
@@ -131,41 +123,47 @@ namespace SandFox
 		struct LightStruct
 		{
 			LightID id;
-			int shadowIndex;	// -1: no light
+			//int shadowIndex;	// -1: no light
 		};
 
 		struct ShadowStruct
 		{
-			bool initialized;
+			bool used;
 			bool redraw;
-			LightShadowQuality quality;
-			Viewport viewport;
+			//LightShadowQuality quality;
+			//Viewport viewport;
 
-			Texture texture;
-			ComPtr<ID3D11ShaderResourceView> srv;
+			//int targetIndex;
+			//Texture texture;
+			//ComPtr<ID3D11ShaderResourceView> srv;
 			ComPtr<ID3D11DepthStencilView> dsv;
 		};
 
 		struct LightInfo
 		{
 			Vec3 ambient;
-			int lightCount;
+			int totalLightCount;
+
+			int shadowCount;
+			Vec3 nul;
 
 			Light lights[FOX_C_MAX_LIGHTS];
 		};
 
 	private:
 		void DrawMapAtIndex(int index, DrawQueue* drawQueue);
-		int AddShadow(LightShadowQuality quality);
+		int AddShadow(/*LightShadowQuality quality*/);
 		void RemoveShadow(int index);
+		void OrderLights();
+		void PushLights();
 
 		static LightID Predicate(const LightStruct& l);
 
 	private:
 		bool m_flush;
 		LightID m_id;
-		cs::Point m_mapResolutions[LightShadowQualityCount];
 		GraphicsTechnique m_technique;
+		TextureQuality m_quality;
 
 		cs::List<Light> m_lights;
 		cs::List<LightStruct> m_lightStructs;
@@ -174,11 +172,16 @@ namespace SandFox
 
 		Shader* m_shader;
 
-		const cs::Vec3* m_samplePoints;
-		int m_samplePointCount;
+		float m_focalPointDistance;
+		cs::Vec3 m_focalPoint;
+		//const cs::Vec3* m_samplePoints;
+		//int m_samplePointCount;
 		
 		int m_shadowCount;
 		ShadowStruct m_shadows[FOX_C_MAX_SHADOWS];
+		ComPtr<ID3D11Texture2D> m_shadowArray;
+		ComPtr<ID3D11ShaderResourceView> m_shadowSRV;
+		Viewport m_viewport;
 
 		//Texture* m_white;
 		//ID3D11ShaderResourceView* m_whiteSRV;

@@ -11,6 +11,7 @@ namespace cs
 
 	// All matrices are row-major
 	// They transform column vectors in a left-oriented space
+	// Matrix multiplication is resolved in a right-to-left order
 
 	template<typename T, int W, int H = W>
 	class Matrix

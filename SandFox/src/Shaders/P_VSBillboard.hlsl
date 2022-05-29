@@ -18,7 +18,8 @@ struct VSOut
 
 cbuffer ObjectInfo  : REGISTER_CBV_OBJECT_INFO
 {
-    matrix clip;
+    matrix worldMatrix;
+    matrix clipMatrix;
 };
 
 cbuffer CameraInfo  : REGISTER_CBV_CAMERA_INFO
@@ -32,8 +33,7 @@ VSOut main(VSIn input)
 {
     VSOut o =
     {
-        mul(float4(input.pos, 1.0f), clip),
-        //distance(input.pos, cameraPosition),
+        mul(float4(input.pos, 1.0f), clipMatrix),
         input.size
     };
 

@@ -6,6 +6,7 @@
 
 #include <format>
 #include <dxgidebug.h>
+#include <dxgi.h>
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
@@ -519,6 +520,41 @@ void SandFox::Debug::WriteHelp()
 
 void SandFox::Debug::WriteLog()
 {
+}
+
+void SandFox::Debug::DumpDevice()
+{
+	//// define function signature of DXGIGetDebugInterface
+	//typedef HRESULT(WINAPI* DXGIGetDebugInterface)(REFIID, void**);
+
+	//// load the dll that contains the function DXGIGetDebugInterface
+	//const auto hModDxgiDebug = LoadLibraryExA("dxgidebug.dll", nullptr, LOAD_LIBRARY_SEARCH_SYSTEM32);
+
+	//// get address of DXGIGetDebugInterface in dll
+	//const auto DxgiGetDebugInterface = reinterpret_cast<DXGIGetDebugInterface>(
+	//	reinterpret_cast<void*>(GetProcAddress(hModDxgiDebug, "DXGIGetDebugInterface")));
+
+
+
+	//// DXGI dump
+
+	//IDXGIInfoQueue* dxgiDebug;
+	//DxgiGetDebugInterface(__uuidof(IDXGIInfoQueue), (void**)&dxgiDebug);
+	//dxgiDebug->ReportLiveObjects(DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_DETAIL);
+
+	//dxgiDebug->
+
+
+	// D3d11 dump
+
+	ComPtr<ID3D11Debug> d3d11Debug;
+	m_deviceRef->QueryInterface(__uuidof(ID3D11Debug), (void**)(&d3d11Debug));
+	d3d11Debug->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
+}
+
+void SandFox::Debug::LoadDeviceRef(ComPtr<ID3D11Device> device)
+{
+	m_deviceRef = device;
 }
 
 void SandFox::Debug::ExecuteCommand(const char* command)

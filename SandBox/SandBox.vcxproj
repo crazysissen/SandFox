@@ -144,10 +144,10 @@
     <PostBuildEvent />
     <PostBuildEvent>
       <Command>xcopy /y "$(SolutionDir)library\SandFox\dll\SandFox$(PlatformArchitecture)-d.dll" "$(OutDir)"
-::xcopy /y /q /s /i "$(SolutionDir)library\SandFox\Shaders" "$(OutDir)Assets\Shaders"
-::xcopy /y /q /s /i "$(ProjectDir)Assets\" "$(OutDir)Assets\"
+xcopy /y /q /s /i "$(SolutionDir)library\SandFox\Shaders" "$(OutDir)Assets\Shaders"
+xcopy /y /q /s /i "$(ProjectDir)Assets\" "$(OutDir)Assets\"
 
-xcopy /y /q /s /i "$(ProjectDir)Assets\" "$(SolutionDir)SandBoxDebugDir\Assets\"</Command>
+::xcopy /y /q /s /i "$(ProjectDir)Assets\" "$(SolutionDir)SandBoxDebugDir\Assets\"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DebugSafe|Win32'">
@@ -168,10 +168,10 @@ xcopy /y /q /s /i "$(ProjectDir)Assets\" "$(SolutionDir)SandBoxDebugDir\Assets\"
     <PostBuildEvent />
     <PostBuildEvent>
       <Command>xcopy /y "$(SolutionDir)library\SandFox\dll\SandFox$(PlatformArchitecture)-d.dll" "$(OutDir)"
-::xcopy /y /q /s /i "$(SolutionDir)library\SandFox\Shaders" "$(OutDir)Assets\Shaders"
-::xcopy /y /q /s /i "$(ProjectDir)Assets\" "$(OutDir)Assets\"
+xcopy /y /q /s /i "$(SolutionDir)library\SandFox\Shaders" "$(OutDir)Assets\Shaders"
+xcopy /y /q /s /i "$(ProjectDir)Assets\" "$(OutDir)Assets\"
 
-xcopy /y /q /s /i "$(ProjectDir)Assets\" "$(SolutionDir)SandBoxDebugDir\Assets\"</Command>
+::xcopy /y /q /s /i "$(ProjectDir)Assets\" "$(SolutionDir)SandBoxDebugDir\Assets\"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -195,10 +195,10 @@ xcopy /y /q /s /i "$(ProjectDir)Assets\" "$(SolutionDir)SandBoxDebugDir\Assets\"
     </Link>
     <PostBuildEvent>
       <Command>xcopy /y "$(SolutionDir)library\SandFox\dll\SandFox$(PlatformArchitecture).dll" "$(OutDir)"
-::xcopy /y /q /s /i "$(SolutionDir)library\SandFox\Shaders" "$(OutDir)Assets\Shaders"
-::xcopy /y /q /s /i "$(ProjectDir)Assets\" "$(OutDir)Assets\"
+xcopy /y /q /s /i "$(SolutionDir)library\SandFox\Shaders" "$(OutDir)Assets\Shaders"
+xcopy /y /q /s /i "$(ProjectDir)Assets\" "$(OutDir)Assets\"
 
-xcopy /y /q /s /i "$(ProjectDir)Assets\" "$(SolutionDir)SandBoxDebugDir\Assets\"</Command>
+::xcopy /y /q /s /i "$(ProjectDir)Assets\" "$(SolutionDir)SandBoxDebugDir\Assets\"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -219,10 +219,10 @@ xcopy /y /q /s /i "$(ProjectDir)Assets\" "$(SolutionDir)SandBoxDebugDir\Assets\"
     <PostBuildEvent />
     <PostBuildEvent>
       <Command>xcopy /y "$(SolutionDir)library\SandFox\dll\SandFox$(PlatformArchitecture)-d.dll" "$(OutDir)"
-::xcopy /y /q /s /i "$(SolutionDir)library\SandFox\Shaders" "$(OutDir)Assets\Shaders"
-::xcopy /y /q /s /i "$(ProjectDir)Assets\" "$(OutDir)Assets\"
+xcopy /y /q /s /i "$(SolutionDir)library\SandFox\Shaders" "$(OutDir)Assets\Shaders"
+xcopy /y /q /s /i "$(ProjectDir)Assets\" "$(OutDir)Assets\"
 
-xcopy /y /q /s /i "$(ProjectDir)Assets\" "$(SolutionDir)SandBoxDebugDir\Assets\"</Command>
+::xcopy /y /q /s /i "$(ProjectDir)Assets\" "$(SolutionDir)SandBoxDebugDir\Assets\"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DebugSafe|x64'">
@@ -243,10 +243,10 @@ xcopy /y /q /s /i "$(ProjectDir)Assets\" "$(SolutionDir)SandBoxDebugDir\Assets\"
     <PostBuildEvent />
     <PostBuildEvent>
       <Command>xcopy /y "$(SolutionDir)library\SandFox\dll\SandFox$(PlatformArchitecture)-d.dll" "$(OutDir)"
-::xcopy /y /q /s /i "$(SolutionDir)library\SandFox\Shaders" "$(OutDir)Assets\Shaders"
-::xcopy /y /q /s /i "$(ProjectDir)Assets\" "$(OutDir)Assets\"
+xcopy /y /q /s /i "$(SolutionDir)library\SandFox\Shaders" "$(OutDir)Assets\Shaders"
+xcopy /y /q /s /i "$(ProjectDir)Assets\" "$(OutDir)Assets\"
 
-xcopy /y /q /s /i "$(ProjectDir)Assets\" "$(SolutionDir)SandBoxDebugDir\Assets\"</Command>
+::xcopy /y /q /s /i "$(ProjectDir)Assets\" "$(SolutionDir)SandBoxDebugDir\Assets\"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -270,10 +270,10 @@ xcopy /y /q /s /i "$(ProjectDir)Assets\" "$(SolutionDir)SandBoxDebugDir\Assets\"
     </Link>
     <PostBuildEvent>
       <Command>xcopy /y "$(SolutionDir)library\SandFox\dll\SandFox$(PlatformArchitecture).dll" "$(OutDir)"
-::xcopy /y /q /s /i "$(SolutionDir)library\SandFox\Shaders" "$(OutDir)Assets\Shaders"
-::xcopy /y /q /s /i "$(ProjectDir)Assets\" "$(OutDir)Assets\"
+xcopy /y /q /s /i "$(SolutionDir)library\SandFox\Shaders" "$(OutDir)Assets\Shaders"
+xcopy /y /q /s /i "$(ProjectDir)Assets\" "$(OutDir)Assets\"
 
-xcopy /y /q /s /i "$(ProjectDir)Assets\" "$(SolutionDir)SandBoxDebugDir\Assets\"</Command>
+::xcopy /y /q /s /i "$(ProjectDir)Assets\" "$(SolutionDir)SandBoxDebugDir\Assets\"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

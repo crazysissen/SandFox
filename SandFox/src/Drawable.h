@@ -40,6 +40,8 @@ namespace SandFox
 		void Execute();
 		void ExecuteIndexed();
 
+		static void AddToAllStatics(IBindable* bindable);
+
 		struct BindConfiguration
 		{
 			IBindable* bindable;
@@ -166,19 +168,19 @@ namespace SandFox
 	inline void Drawable<T>::StaticSetPipeline(const BindPipeline& pipeline)
 	{
 		s_pipeline = pipeline;
-		s_allStatics.Add(s_pipeline.vb);
+		AddToAllStatics(s_pipeline.vb);
 
 		if (s_pipeline.ib)
 		{
-			s_allStatics.Add(s_pipeline.vb);
+			AddToAllStatics(s_pipeline.ib);
 		}
 	}
 
 	template<class T>
 	inline void Drawable<T>::StaticAddBind(IBindable* bindable)
 	{
+		AddToAllStatics(bindable);
 		s_bindables.Add(bindable);
-		s_allStatics.Add(bindable);
 		s_configurations.Add({ bindable, BindStageNone });
 	}
 
@@ -191,8 +193,8 @@ namespace SandFox
 	template<class T>
 	inline void Drawable<T>::StaticAddResource(BindableResource* resource, BindStage stage)
 	{
+		AddToAllStatics(resource);
 		s_bindables.Add(resource);
-		s_allStatics.Add(resource);
 		s_configurations.Add({ resource, stage });
 	}
 

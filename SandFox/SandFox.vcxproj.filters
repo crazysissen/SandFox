@@ -71,7 +71,7 @@
       <Filter>Source\%2a Data Structures\Mesh</Filter>
     </ClCompile>
     <ClCompile Include="src\MeshDrawable.cpp">
-      <Filter>Source\%2a Graphics\%2a Drawable\Mesh</Filter>
+      <Filter>Source\%2a Graphics\%2a Drawable\MeshDrawable</Filter>
     </ClCompile>
     <ClCompile Include="src\Shader.cpp">
       <Filter>Source\%2a Graphics\Shader</Filter>
@@ -135,6 +135,18 @@
     </ClCompile>
     <ClCompile Include="src\Cubemap.cpp">
       <Filter>Source\%2a Data Structures\Cubemap</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TextureQuality.cpp">
+      <Filter>Source\%2a Utilities\TextureQuality</Filter>
+    </ClCompile>
+    <ClCompile Include="src\HullShader.cpp">
+      <Filter>Source\%2a Graphics\%2a Bindable\HullShader</Filter>
+    </ClCompile>
+    <ClCompile Include="src\DomainShader.cpp">
+      <Filter>Source\%2a Graphics\%2a Bindable\DomainShader</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MirrorDrawable.cpp">
+      <Filter>Source\%2a Graphics\%2a Drawable\MirrorDrawable</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -217,7 +229,7 @@
       <Filter>Source\%2a Data Structures\Mesh</Filter>
     </ClInclude>
     <ClInclude Include="src\MeshDrawable.h">
-      <Filter>Source\%2a Graphics\%2a Drawable\Mesh</Filter>
+      <Filter>Source\%2a Graphics\%2a Drawable\MeshDrawable</Filter>
     </ClInclude>
     <ClInclude Include="src\Shader.h">
       <Filter>Source\%2a Graphics\Shader</Filter>
@@ -293,6 +305,21 @@
     </ClInclude>
     <ClInclude Include="src\Cubemap.h">
       <Filter>Source\%2a Data Structures\Cubemap</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TextureQuality.h">
+      <Filter>Source\%2a Utilities\TextureQuality</Filter>
+    </ClInclude>
+    <ClInclude Include="src\HullShader.h">
+      <Filter>Source\%2a Graphics\%2a Bindable\HullShader</Filter>
+    </ClInclude>
+    <ClInclude Include="src\DomainShader.h">
+      <Filter>Source\%2a Graphics\%2a Bindable\DomainShader</Filter>
+    </ClInclude>
+    <ClInclude Include="src\MirrorDrawable.h">
+      <Filter>Source\%2a Graphics\%2a Drawable\MirrorDrawable</Filter>
+    </ClInclude>
+    <ClInclude Include="src\BufferStructs.h">
+      <Filter>Source\%2a Graphics\%2a Bindable</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -395,9 +422,6 @@
     <Filter Include="Source\%2a Graphics\%2a Drawable\TexturePlane">
       <UniqueIdentifier>{7d3b6d86-2100-4878-99d9-504b5dfeecca}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\%2a Graphics\%2a Drawable\Mesh">
-      <UniqueIdentifier>{464655cb-5ac3-430c-a039-de2c472fdc7f}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source\%2a Graphics\Shader">
       <UniqueIdentifier>{066c92dd-0c04-4bdd-8463-9b4ddfd470a8}</UniqueIdentifier>
     </Filter>
@@ -455,6 +479,21 @@
     <Filter Include="Source\%2a Data Structures\Cubemap">
       <UniqueIdentifier>{66895aef-10b3-4fe0-b737-eebaa7c1c87a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\%2a Utilities\TextureQuality">
+      <UniqueIdentifier>{4663bc74-377e-49af-ad2b-2abed2aca440}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\%2a Graphics\%2a Drawable\MirrorDrawable">
+      <UniqueIdentifier>{614fabdd-8b90-405a-8b0f-d5d85a3819a8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\%2a Graphics\%2a Bindable\HullShader">
+      <UniqueIdentifier>{946ff49d-5527-4425-8b9c-cdc3a044ed18}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\%2a Graphics\%2a Bindable\DomainShader">
+      <UniqueIdentifier>{95a755db-f86d-4feb-895a-e4a253a9e7d5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\%2a Graphics\%2a Drawable\MeshDrawable">
+      <UniqueIdentifier>{464655cb-5ac3-430c-a039-de2c472fdc7f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="Exclude.txt" />
@@ -466,22 +505,16 @@
     <FxCompile Include="src\Shaders\PSBasicOpaque.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="src\Shaders\PSPhongTextured.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
     <FxCompile Include="src\Shaders\VSColor.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
     <FxCompile Include="src\Shaders\D_CSPhong.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="src\Shaders\D_PSPhongMapped.hlsl">
+    <FxCompile Include="src\Shaders\D_PSPhong.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="src\Shaders\PSPhongMapped.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="src\Shaders\D_PSPhongTextured.hlsl">
+    <FxCompile Include="src\Shaders\PSPhong.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
     <FxCompile Include="src\Shaders\P_GSBillboard.hlsl">
@@ -509,6 +542,24 @@
       <Filter>Shaders</Filter>
     </FxCompile>
     <FxCompile Include="src\Shaders\PSCubemap.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="src\Shaders\PSMirror.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="src\Shaders\VSMirror.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="src\Shaders\HSDistance.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="src\Shaders\DSPhong.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="src\Shaders\VSPass.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="src\Shaders\DSPhongMirror.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
   </ItemGroup>

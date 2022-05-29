@@ -21,6 +21,7 @@ SandFox::BindPipeline::BindPipeline(const BindPipeline& copy)
 
 SandFox::BindID SandFox::BindPipeline::GetID() const
 {
+
     return m_id;
 }
 
@@ -35,6 +36,8 @@ SandFox::BindHandler::BindHandler()
     m_shader(0),
     m_vs(0),
     m_gs(0),
+    m_hs(0),
+    m_ds(0),
     m_ps(0),
     m_il(0),
     m_vb(0),
@@ -161,6 +164,20 @@ bool SandFox::BindHandler::BindGS(Bind::GeometryShader* gs)
     return different;
 }
 
+bool SandFox::BindHandler::BindHS(Bind::HullShader* hs)
+{
+    bool different = s_bindHandler->m_hs != hs->GetBindID();
+    s_bindHandler->m_hs = hs->GetBindID();
+    return different;
+}
+
+bool SandFox::BindHandler::BindDS(Bind::DomainShader* ds)
+{
+    bool different = s_bindHandler->m_ds != ds->GetBindID();
+    s_bindHandler->m_ds = ds->GetBindID();
+    return different;
+}
+
 bool SandFox::BindHandler::BindPS(Bind::PixelShader* ps)
 {
     bool different = s_bindHandler->m_ps != ps->GetBindID();
@@ -242,6 +259,16 @@ void SandFox::BindHandler::UnbindVS()
 void SandFox::BindHandler::UnbindGS()
 {
     s_bindHandler->m_gs = 0;
+}
+
+void SandFox::BindHandler::UnbindHS()
+{
+    s_bindHandler->m_hs = 0;
+}
+
+void SandFox::BindHandler::UnbindDS()
+{
+    s_bindHandler->m_ds = 0;
 }
 
 void SandFox::BindHandler::UnbindPS()

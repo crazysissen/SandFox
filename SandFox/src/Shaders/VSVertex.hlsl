@@ -24,7 +24,7 @@ cbuffer CameraInfo : REGISTER_CBV_CAMERA_INFO
 
 VSOut main(float3 pos : POSITION)
 {
-    float4 wp = mul(float4(pos, 1.0f), world);
+    float4 wp = float4(pos + viewerPosition, 1.0f);
     
     VSOut o;
     o.clipPosition = mul(wp, projection);

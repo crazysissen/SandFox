@@ -20,6 +20,7 @@ SandFox::Bind::SamplerState::SamplerState(RegSampler reg, D3D11_FILTER filter, D
 
 SandFox::Bind::SamplerState::SamplerState(RegSampler reg, D3D11_FILTER filter, cs::Color borderColor)
 {
+	Load(reg, filter, borderColor);
 }
 
 SandFox::Bind::SamplerState::~SamplerState()

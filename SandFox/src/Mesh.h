@@ -17,6 +17,7 @@ namespace SandFox
 		cs::Vec3 position;
 		cs::Vec3 normal;
 		cs::Vec2 uv;
+		cs::Vec3 tangent;
 	};
 
 	struct MeshSubmesh
@@ -39,7 +40,10 @@ namespace SandFox
 		float exponent;
 
 		int albedoIndex;
+		int ambientIndex;
+		int specularIndex;
 		int exponentIndex;
+		int normalIndex;
 	};
 
 	struct FOX_API Mesh

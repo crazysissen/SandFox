@@ -10,5 +10,6 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
 illum 2
-map_Kd Grass1\\Grass001_2K_Color.jpg
-map_Ns Grass1\\Grass001_2K_Roughness.jpg
+map_Kd Grass1\\Color.jpg
+map_Ns Grass1\\Specularity.jpg
+map_Bump Grass1\\Normal.jpg

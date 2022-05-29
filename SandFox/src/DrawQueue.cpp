@@ -36,6 +36,7 @@ void SandFox::DrawQueue::AddPost(IDrawable* drawable)
 
 void SandFox::DrawQueue::Clear()
 {
+	m_preDrawables.Clear(false);
 	m_mainDrawables.Clear(false);
 	m_postDrawables.Clear(false);
 }

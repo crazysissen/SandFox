@@ -10,5 +10,5 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
 illum 2
-map_Kd Stone2\\Bricks075B_2K_Color.jpg
-map_Ns Stone2\\Bricks075B_2K_Roughness.jpg
+map_Kd Bricks2\\Color.png
+map_Bump Bricks2\\Normal.png

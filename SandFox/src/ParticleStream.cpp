@@ -226,11 +226,11 @@ void SandFox::ParticleStream::Draw()
 	}
 
 	DirectX::XMMATRIX transformationMatrix = transform.GetMatrix();
-	DirectX::XMMATRIX viewMatrix = Graphics::Get().GetCameraMatrix();
+	DirectX::XMMATRIX projectionMatrix = Graphics::GetProjection();
 	DirectX::XMMATRIX matrix = dx::XMMatrixTranspose // <- flips matrix cpu-side to make gpu calculations more efficient
 	(
 		transformationMatrix *
-		viewMatrix
+		projectionMatrix
 	);
 
 	float averageScreen = (Graphics::Get().GetWindow()->GetH() + Graphics::Get().GetWindow()->GetW()) * 0.5f;

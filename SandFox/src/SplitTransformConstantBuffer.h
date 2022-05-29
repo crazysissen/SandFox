@@ -15,13 +15,6 @@ namespace SandFox
 		class FOX_API STConstBuffer : public BindableResource
 		{
 		public:
-			struct MatrixInfo
-			{
-				dx::XMMATRIX world;
-				dx::XMMATRIX projection;
-			};
-
-		public:
 			STConstBuffer(Transform& transform);
 			STConstBuffer(DrawableBase& drawable);
 			virtual ~STConstBuffer();

@@ -5,6 +5,8 @@
 #include "IndexBuffer.h"
 #include "InputLayout.h"
 #include "PixelShader.h"
+#include "HullShader.h"
+#include "DomainShader.h"
 #include "PrimitiveTopology.h"
 #include "TransformConstantBuffer.h"
 #include "SplitTransformConstantBuffer.h"

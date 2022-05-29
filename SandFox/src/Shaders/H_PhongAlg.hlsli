@@ -12,7 +12,7 @@ struct Light
     float intensity;
     float3 angles;
     float fov;
-    bool shadow;
+    float directionalWidth;
     float nearClip;
     float farClip;
     int shadowIndex;
@@ -20,7 +20,8 @@ struct Light
 };
 
 SamplerState samplerShadow              : REGISTER_SAMPLER_SHADOW;
-Texture2D tLightMaps[FOX_C_MAX_SHADOWS] : REGISTER_SRV_SHADOW_DEPTH;
+Texture2DArray<float> shadowMaps        : REGISTER_SRV_SHADOW_DEPTH;
+//Texture2D tLightMaps[FOX_C_MAX_SHADOWS] : REGISTER_SRV_SHADOW_DEPTH;
 
 
 
@@ -76,8 +77,10 @@ float3 phongShadowed(int index, Light l, float3 viewerPosition, float3 position,
         float4 projPos = mul(float4(position, 1.0f), l.projection);
         projPos /= projPos.w;
 
-        float depth = tLightMaps[0].SampleLevel(samplerShadow, (projPos.xy * float2(0.5f, -0.5f)) + float2(0.5f, 0.5f), 0).x;
-        ignoreRest = depth > (projPos.z + 0.00001f);
+        float2 position = (projPos.xy * float2(0.5f, -0.5f)) + float2(0.5f, 0.5f);
+        float depth = shadowMaps.SampleLevel(samplerShadow, float3(position, (float)l.shadowIndex), 0);
+        //float depth = tLightMaps[index].SampleLevel(samplerShadow, , 0).x;
+        ignoreRest = depth > (projPos.z + 0.000075f);
     }
 
     if (!ignoreRest)

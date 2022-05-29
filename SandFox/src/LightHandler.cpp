@@ -11,6 +11,7 @@ SandFox::LightHandler::LightHandler()
 	m_lights(),
 	m_lightInfo(),
 	m_lightInfoBuffer(),
+	m_shadowCount(0),
 
 	m_shadows{ {} }
 {
@@ -20,33 +21,67 @@ SandFox::LightHandler::~LightHandler()
 {
 }
 
-void SandFox::LightHandler::Init(GraphicsTechnique technique, cs::Color ambient, float ambientIntensity)
+void SandFox::LightHandler::Init(TextureQuality quality, GraphicsTechnique technique, cs::Color ambient, float ambientIntensity)
 {
 	m_id = 1;
+	m_quality = quality;
 	m_flush = false;
+	m_shadowCount = 0;
 
 	m_lightInfo.ambient = (Vec3)ambient * ambientIntensity;
-	m_lightInfo.lightCount = 0;
+	m_lightInfo.totalLightCount = 0;
+	m_lightInfo.shadowCount = 0;
 	m_lightInfoBuffer.Load(RegCBVLightInfo, &m_lightInfo, sizeof(LightInfo), false);
 	UpdateLightInfo();
 
 	m_technique = technique;
 	BindInfo();
 
-	m_mapResolutions[0] = { 512, 512 };
-	m_mapResolutions[1] = { 256, 256 };
-	m_mapResolutions[2] = { 1024, 1024 };
-	m_mapResolutions[3] = { 2048, 2048 };
-	m_mapResolutions[4] = { 4096, 4096 };
+	
+
+	m_shader = Shader::Get(ShaderTypeShadow);
+
+	uint res = GetTextureQuality(quality);
+
+	// Create Texture resource
+	D3D11_TEXTURE2D_DESC td;
+	td.Width = res;
+	td.Height = res;
+	td.MipLevels = 1;
+	td.ArraySize = FOX_C_MAX_SHADOWS;
+	td.Format = DXGI_FORMAT_R32_TYPELESS;
+	td.SampleDesc = { 1, 0 };
+	td.Usage = D3D11_USAGE_DEFAULT;
+	td.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
+	td.CPUAccessFlags = 0;
+	td.MiscFlags = 0;
+
+	EXC_COMCHECKINFO(Graphics::Get().GetDevice()->CreateTexture2D(&td, nullptr, &m_shadowArray));
+
+	D3D11_SHADER_RESOURCE_VIEW_DESC srvd;
+	srvd.Format = DXGI_FORMAT_R32_FLOAT;
+	srvd.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DARRAY;
+	srvd.Texture2DArray.MostDetailedMip = 0;
+	srvd.Texture2DArray.MipLevels = 1;
+	srvd.Texture2DArray.ArraySize = FOX_C_MAX_SHADOWS;
+	srvd.Texture2DArray.FirstArraySlice = 0u;
+	EXC_COMCHECKINFO(Graphics::Get().GetDevice()->CreateShaderResourceView(m_shadowArray.Get(), &srvd, &m_shadowSRV));
+
+	m_viewport.Load(res, res);
 
 	for (int i = 0; i < FOX_C_MAX_SHADOWS; i++)
 	{
-		m_shadows[i].initialized = false;
+		m_shadows[i].used = false;
 		m_shadows[i].redraw = false;
-		m_shadows[i].quality = LightShadowQualityDefault;
-	}
+		//m_shadows[i].quality = TextureQualityDefault;
 
-	m_shader = Shader::Get(ShaderTypeShadow);
+		D3D11_DEPTH_STENCIL_VIEW_DESC dsvd = {};
+		dsvd.Format = DXGI_FORMAT_D32_FLOAT;
+		dsvd.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DMSARRAY;
+		dsvd.Texture2DMSArray.FirstArraySlice = i;
+		dsvd.Texture2DMSArray.ArraySize = 1u;
+		EXC_COMCHECKINFO(Graphics::Get().GetDevice()->CreateDepthStencilView(m_shadowArray.Get(), &dsvd, &m_shadows[i].dsv));
+	}
 
 	BindHandler::ApplyPresetSampler(RegSamplerShadow, (technique == GraphicsTechniqueImmediate) ? BindStagePS : BindStageCS);
 }
@@ -60,9 +95,12 @@ SandFox::LightID SandFox::LightHandler::AddDirectional(const cs::Vec3& angles, f
 	return AddLight(Light::Directional(angles, intensity, color));
 }
 
-SandFox::LightID SandFox::LightHandler::AddDirectional(LightShadowQuality quality, const cs::Vec3& angles, float intensity, float nearPlane, float farPlane, const cs::Color& color)
+SandFox::LightID SandFox::LightHandler::AddDirectionalShadowed(const cs::Vec3& angles, float shadowAreaWidth, float intensity, const cs::Color& color, float nearPlane, float farPlane)
 {
-	return AddLight(quality, Light::Directional(angles, intensity, color), nearPlane, farPlane);
+	Light l = Light::Directional(angles, intensity, color);
+	l.directionalWidth = shadowAreaWidth;
+
+	return AddLightShadowed(l, nearPlane, farPlane);
 }
 
 SandFox::LightID SandFox::LightHandler::AddPoint(const cs::Vec3& position, float intensity, const cs::Color& color)
@@ -70,11 +108,11 @@ SandFox::LightID SandFox::LightHandler::AddPoint(const cs::Vec3& position, float
 	return AddLight(Light::Point(position, intensity, color));
 }
 
-SandFox::LightID SandFox::LightHandler::AddPoint(LightShadowQuality quality, const cs::Vec3& position, float intensity, float nearPlane, float farPlane, const cs::Color& color)
+SandFox::LightID SandFox::LightHandler::AddPointShadowed(const cs::Vec3& position, float intensity, const cs::Color& color, float nearPlane, float farPlane)
 {
 	FOX_WARN("Shadow mapped point lights not supported, mapping disabled for this light.");
 
-	return AddLight(Light::Point(position, intensity, color));
+	return AddLightShadowed(Light::Point(position, intensity, color));
 }
 
 SandFox::LightID SandFox::LightHandler::AddSpot(const cs::Vec3& position, const cs::Vec3& angles, float spread, float intensity, const cs::Color& color)
@@ -82,44 +120,49 @@ SandFox::LightID SandFox::LightHandler::AddSpot(const cs::Vec3& position, const 
 	return AddLight(Light::Spot(position, angles, spread, intensity, color));
 }
 
-SandFox::LightID SandFox::LightHandler::AddSpot(LightShadowQuality quality, const cs::Vec3& position, const cs::Vec3& angles, float spread, float intensity, float nearPlane, float farPlane, const cs::Color& color)
+SandFox::LightID SandFox::LightHandler::AddSpotShadowed(const cs::Vec3& position, const cs::Vec3& angles, float spread, float intensity, const cs::Color& color, float nearPlane, float farPlane)
 {
-	return AddLight(quality, Light::Spot(position, angles, spread, intensity, color), nearPlane, farPlane);
+	return AddLightShadowed(Light::Spot(position, angles, spread, intensity, color), nearPlane, farPlane);
 }
 
 SandFox::LightID SandFox::LightHandler::AddLight(const Light& light)
 {
-	m_lightStructs.Add({ m_id++, -1 });
+	m_lightStructs.Add({ m_id++ });
 	m_lights.Add(light);
 
 	Light& l = m_lights.Back();
 
-	l.shadow = false;
+	//l.shadow = false;
 	l.nearClip = 0;
 	l.farClip = 0;
 	l.shadowIndex = -1;
 	l.projection = dx::XMMatrixIdentity();
 
+	OrderLights();
+
 	return  m_lightStructs.Back().id;
 }
 
-SandFox::LightID SandFox::LightHandler::AddLight(LightShadowQuality quality, const Light& light, float nearPlane, float farPlane)
+SandFox::LightID SandFox::LightHandler::AddLightShadowed(const Light& light, float nearPlane, float farPlane)
 {
-	int index = AddShadow(quality);
+	int index = AddShadow(/*quality*/);
 	if (index == -1)
 	{
+		FOX_ERROR("Failed to add shadow.");
 		return AddLight(light);
 	}
 
-	m_lightStructs.Add({ m_id++, index });
+	m_lightStructs.Add({ m_id++  });
 	m_lights.Add(light);
 
 	Light& l = m_lights.Back();
-	l.shadow = true;
+	//l.shadow = true;
 	l.nearClip = nearPlane;
 	l.farClip = farPlane;
 	l.shadowIndex = index;
 	l.projection = dx::XMMatrixIdentity();
+
+	OrderLights();
 
 	return m_lightStructs.Back().id;
 }
@@ -144,13 +187,16 @@ void SandFox::LightHandler::RemoveLight(LightID id)
 	{
 		if (m_lightStructs[i].id == id)
 		{
-			if (m_lightStructs[i].shadowIndex != -1)
+			if (m_lights[i].shadowIndex != -1)
 			{
-				RemoveShadow(m_lightStructs[i].shadowIndex);
+				RemoveShadow(m_lights[i].shadowIndex);
 			}
 
 			m_lightStructs.Remove(i);
 			m_lights.Remove(i);
+
+			OrderLights();
+
 			return;
 		}
 	}
@@ -163,10 +209,16 @@ void SandFox::LightHandler::SetAmbient(const cs::Color& color, float intensity)
 	m_lightInfo.ambient = (Vec3)color * intensity;
 }
 
-void SandFox::LightHandler::SetSamplePoints(const cs::Vec3* points, int count)
+//void SandFox::LightHandler::SetSamplePoints(const cs::Vec3* points, int count)
+//{
+//	m_samplePoints = points;
+//	m_samplePointCount = count;
+//}
+
+void SandFox::LightHandler::SetFocalPoint(const cs::Vec3& focalPoint, float distance)
 {
-	m_samplePoints = points;
-	m_samplePointCount = count;
+	m_focalPoint = focalPoint;
+	m_focalPointDistance = distance;
 }
 
 void SandFox::LightHandler::UpdateMap(LightID id)
@@ -175,17 +227,17 @@ void SandFox::LightHandler::UpdateMap(LightID id)
 
 	if (i == -1)
 	{
-		FOX_WARN_F("Cannot queue update of shadow map at ID [%i], as the image does not exist.", id);
+		FOX_FTRACE_F("Cannot queue update of shadow map at ID [%i], as the image does not exist.", id);
 		return;
 	}
 
-	if (m_lightStructs[i].shadowIndex == -1)
+	if (m_lights[i].shadowIndex == -1)
 	{
-		FOX_WARN_F("Cannot queue update of shadow map at ID [%i], as the image does not have a shadow attached.", id);
+		FOX_FTRACE_F("Cannot queue update of shadow map at ID [%i], as the image does not have a shadow attached.", id);
 		return;
 	}
 
-	m_shadows[m_lightStructs[i].shadowIndex].redraw = true;
+	m_shadows[m_lights[i].shadowIndex].redraw = true;
 }
 
 
@@ -194,7 +246,7 @@ void SandFox::LightHandler::Update(DrawQueue* drawQueue)
 {
 	for (int i = 0; i < m_lights.Size(); i++)
 	{
-		if (m_lightStructs[i].shadowIndex != -1 && m_shadows[m_lightStructs[i].shadowIndex].redraw)
+		if (m_lights[i].shadowIndex != -1 && m_shadows[m_lights[i].shadowIndex].redraw)
 		{
 			DrawMapAtIndex(i, drawQueue);
 		}
@@ -218,7 +270,7 @@ void SandFox::LightHandler::DrawAllMaps(DrawQueue* drawQueue)
 {
 	for (int i = 0; i < m_lights.Size(); i++)
 	{
-		if (m_lightStructs[i].shadowIndex != -1)
+		if (m_lights[i].shadowIndex != -1)
 		{
 			DrawMapAtIndex(i, drawQueue);
 		}
@@ -230,13 +282,13 @@ void SandFox::LightHandler::DrawMapAtIndex(int index, DrawQueue* drawQueue)
 	LightStruct& ls = m_lightStructs[index];
 	Light& l = m_lights[index];
 
-	if (ls.shadowIndex == -1)
+	if (l.shadowIndex == -1)
 	{
-		FOX_WARN_F("Cannot draw shadow map of image at ID [%i], as it does not have a shadow map.", index);
+		FOX_WARN_F("Cannot draw shadow map of image at ID [%i], as it does not have a shadow map.", ls.id);
 		return;
 	}
 
-	ShadowStruct& s = m_shadows[ls.shadowIndex];
+	ShadowStruct& s = m_shadows[l.shadowIndex];
 
 
 
@@ -245,7 +297,7 @@ void SandFox::LightHandler::DrawMapAtIndex(int index, DrawQueue* drawQueue)
 	switch (l.type)
 	{
 	case LightTypeDirectional:
-		l.projection = l.GetViewDirectional(m_samplePoints, m_samplePointCount);
+		l.projection = l.GetViewDirectional(m_focalPoint, m_focalPointDistance/*m_samplePoints, m_samplePointCount*/);
 		break;
 
 	case LightTypeSpot:
@@ -261,14 +313,14 @@ void SandFox::LightHandler::DrawMapAtIndex(int index, DrawQueue* drawQueue)
 
 	// Drawing
 
-	ID3D11ShaderResourceView* srvs[FOX_C_MAX_SHADOWS] = { nullptr };
+	ID3D11ShaderResourceView* srvs[1u /*FOX_C_MAX_SHADOWS*/] = { nullptr };
 	if (m_technique == GraphicsTechniqueDeferred)
 	{
-		Graphics::Get().GetContext()->CSSetShaderResources(RegSRVShadowDepth, FOX_C_MAX_SHADOWS, srvs);
+		Graphics::Get().GetContext()->CSSetShaderResources(RegSRVShadowDepth, 1u /*FOX_C_MAX_SHADOWS*/ , srvs);
 	}
 	else
 	{
-		Graphics::Get().GetContext()->PSSetShaderResources(RegSRVShadowDepth, FOX_C_MAX_SHADOWS, srvs);
+		Graphics::Get().GetContext()->PSSetShaderResources(RegSRVShadowDepth, 1u /*FOX_C_MAX_SHADOWS*/, srvs);
 	}
 
 	Graphics::SetProjection(l.projection);
@@ -276,7 +328,7 @@ void SandFox::LightHandler::DrawMapAtIndex(int index, DrawQueue* drawQueue)
 	m_shader->Bind();
 	Shader::ShaderOverride(true);
 
-	s.viewport.Apply();
+	m_viewport.Apply();
 
 	Graphics::Get().GetContext()->ClearDepthStencilView(s.dsv.Get(), D3D11_CLEAR_DEPTH, 0.0f, 0);
 	Graphics::Get().GetContext()->OMSetRenderTargets(0, nullptr, nullptr);
@@ -284,7 +336,9 @@ void SandFox::LightHandler::DrawMapAtIndex(int index, DrawQueue* drawQueue)
 
 	Graphics::Get().SetDepthStencil(true, true, D3D11_COMPARISON_GREATER);
 
+	//drawQueue->DrawPre();
 	drawQueue->DrawMain();
+	//drawQueue->DrawPost();
 
 	Graphics::Get().GetContext()->OMSetRenderTargets(0, nullptr, nullptr);
 	Shader::ShaderOverride(false);
@@ -304,24 +358,27 @@ void SandFox::LightHandler::BindMaps()
 {
 	Graphics::Get().GetContext()->OMSetRenderTargets(0, nullptr, nullptr);
 
-	ID3D11ShaderResourceView* srvs[FOX_C_MAX_SHADOWS] = { nullptr };
+	//OrderLights();
+	//PushLights();
+
+	/*ID3D11ShaderResourceView* srvs[FOX_C_MAX_SHADOWS] = { nullptr };
 
 	for (int i = 0; i < FOX_C_MAX_SHADOWS; i++)
 	{
 		if (m_shadows[i].initialized)
 		{
-			srvs[i] = m_shadows[i].srv.Get();
+			srvs[m_shadows[i].targetIndex] = m_shadows[i].srv.Get();
 		}
-	}
+	}*/
 
 	if (m_technique == GraphicsTechniqueDeferred)
 	{
-		Graphics::Get().GetContext()->CSSetShaderResources(RegSRVShadowDepth, FOX_C_MAX_SHADOWS, srvs);
+		Graphics::Get().GetContext()->CSSetShaderResources(RegSRVShadowDepth, 1u /*FOX_C_MAX_SHADOWS*/, m_shadowSRV.GetAddressOf());
 
 		return;
 	}
 
-	Graphics::Get().GetContext()->PSSetShaderResources(RegSRVShadowDepth, FOX_C_MAX_SHADOWS, srvs);
+	Graphics::Get().GetContext()->PSSetShaderResources(RegSRVShadowDepth, 1u /*FOX_C_MAX_SHADOWS*/, m_shadowSRV.GetAddressOf());
 }
 
 void SandFox::LightHandler::BindInfo()
@@ -347,13 +404,15 @@ void SandFox::LightHandler::BindDeferred()
 
 void SandFox::LightHandler::UpdateLightInfo()
 {
-	std::memcpy(m_lightInfo.lights, m_lights.Data(), sizeof(Light) * m_lights.Size());
-	m_lightInfo.lightCount = m_lights.Size();
+	PushLights();
+
+	m_lightInfo.totalLightCount = m_lights.Size();
+	m_lightInfo.shadowCount = m_shadowCount;
 
 	m_lightInfoBuffer.Write(&m_lightInfo);
 }
 
-int SandFox::LightHandler::AddShadow(LightShadowQuality quality)
+int SandFox::LightHandler::AddShadow(/*LightShadowQuality quality*/)
 {
 	if (m_shadowCount >= FOX_C_MAX_SHADOWS)
 	{
@@ -365,32 +424,32 @@ int SandFox::LightHandler::AddShadow(LightShadowQuality quality)
 	int index = 0;
 	for (; index < FOX_C_MAX_SHADOWS; index++)
 	{
-		if (!m_shadows[index].initialized)
+		if (!m_shadows[index].used)
 		{
 			break;
 		}
 	}
 
-	Point res = m_mapResolutions[quality];
+	//Point res = m_mapResolutions[quality];
 
 	ShadowStruct& s = m_shadows[index];
-	s.initialized = true;
-	s.quality = quality;
+	s.used = true;
+	//s.quality = quality;
 	s.redraw = true;
-	s.texture.Load(nullptr, res.x, res.y, false, 0, DXGI_FORMAT_R32_TYPELESS, D3D11_BIND_DEPTH_STENCIL);
-	s.viewport.Load((float)res.x, (float)res.y);
+	//s.texture.Load(nullptr, res.x, res.y, false, 0, DXGI_FORMAT_R32_TYPELESS, D3D11_BIND_DEPTH_STENCIL);
+	//s.viewport.Load((float)res.x, (float)res.y);
 
-	D3D11_SHADER_RESOURCE_VIEW_DESC srvd;
-	srvd.Format = DXGI_FORMAT_R32_FLOAT;
-	srvd.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-	srvd.Texture2D = { 0, 1 };
-	EXC_COMCHECKINFO(Graphics::Get().GetDevice()->CreateShaderResourceView(s.texture.GetTexture().Get(), &srvd, &s.srv));
+	//D3D11_SHADER_RESOURCE_VIEW_DESC srvd;
+	//srvd.Format = DXGI_FORMAT_R32_FLOAT;
+	//srvd.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+	//srvd.Texture2D = { 0, 1 };
+	//EXC_COMCHECKINFO(Graphics::Get().GetDevice()->CreateShaderResourceView(s.texture.GetTexture().Get(), &srvd, &s.srv));
 
-	D3D11_DEPTH_STENCIL_VIEW_DESC dsvd = {};
-	dsvd.Format = DXGI_FORMAT_D32_FLOAT;
-	dsvd.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DMS;
-	dsvd.Texture2D.MipSlice = 0u;
-	EXC_COMCHECKINFO(Graphics::Get().GetDevice()->CreateDepthStencilView(s.texture.GetTexture().Get(), &dsvd, &s.dsv));
+	//D3D11_DEPTH_STENCIL_VIEW_DESC dsvd = {};
+	//dsvd.Format = DXGI_FORMAT_D32_FLOAT;
+	//dsvd.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DMS;
+	//dsvd.Texture2D.MipSlice = 0u;
+	//EXC_COMCHECKINFO(Graphics::Get().GetDevice()->CreateDepthStencilView(s.texture.GetTexture().Get(), &dsvd, &s.dsv));
 
 	Graphics::Get().GetContext()->ClearDepthStencilView(s.dsv.Get(), D3D11_CLEAR_DEPTH, 0.0f, 0);
 
@@ -401,11 +460,43 @@ void SandFox::LightHandler::RemoveShadow(int index)
 {
 	ShadowStruct& s = m_shadows[index];
 
-	s.srv.Reset();
-	s.dsv.Reset();
-	s.texture.Unload();
-	s.initialized = false;
+	//s.srv.Reset();
+	//s.texture.Unload();
+	//s.dsv.Reset();
+	s.used = false;
 	s.redraw = false;
+}
+
+void SandFox::LightHandler::OrderLights()
+{
+	//std::memcpy(m_lightInfo.lights, m_lights.Data(), sizeof(Light) * m_lights.Size());
+
+	//int currentShadow = 0;
+	//for (int i = 0; i < m_lights.Size() && currentShadow < m_shadowCount; i++)
+	//{
+	//	if (m_lightInfo.lights[i].shadowIndex == -1)
+	//	{
+	//		int index = i;
+
+	//		if (i > currentShadow)
+	//		{
+	//			Light l = m_lightInfo.lights[currentShadow];
+	//			m_lightInfo.lights[currentShadow] = m_lightInfo.lights[i];
+	//			m_lightInfo.lights[i] = l;
+
+	//			index = currentShadow;
+	//		}
+
+	//		m_shadows[m_lightInfo.lights[currentShadow].shadowIndex].targetIndex = currentShadow;
+
+	//		currentShadow++;
+	//	}
+	//}
+}
+
+void SandFox::LightHandler::PushLights()
+{
+	std::memcpy(m_lightInfo.lights, m_lights.Data(), sizeof(Light) * m_lights.Size());
 }
 
 SandFox::LightID SandFox::LightHandler::Predicate(const LightStruct& l)

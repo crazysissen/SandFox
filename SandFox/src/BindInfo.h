@@ -36,23 +36,23 @@ namespace SandFox
 	// Constant Buffer View registers
 	enum RegCBV : char
 	{
-		RegCBVDefault		= 0,
+		RegCBVDefault			= 0,
 
-		RegCBVUser0			= 1,
-		RegCBVUser1			= 2,
-		RegCBVUser2			= 3,
-		RegCBVUser3			= 4,
+		RegCBVUser0				= 1,
+		RegCBVUser1				= 2,
+		RegCBVUser2				= 3,
+		RegCBVUser3				= 4,
 
-		RegCBVSystem0		= 5,
-		RegCBVSystem1		= 6,
-		RegCBVSystem2		= 7,
-		RegCBVSystem3		= 8,
+		RegCBVSystem0			= 5,
+		RegCBVSystem1			= 6,
+		RegCBVSystem2			= 7,
 							  
-		RegCBVObjectInfo	= 9,		// Transformation matrix
-		RegCBVMaterialInfo	= 10,	
-		RegCBVCameraInfo	= 11,		// Camera position, etc
-		RegCBVClientInfo	= 12,		// Screen size, etc
-		RegCBVLightInfo		= 13,
+		RegCBVTesselationInfo	= 8,
+		RegCBVObjectInfo		= 9,		// Transformation matrix
+		RegCBVMaterialInfo		= 10,	
+		RegCBVCameraInfo		= 11,		// Camera position, etc
+		RegCBVClientInfo		= 12,		// Screen size, etc
+		RegCBVLightInfo			= 13,
 
 		RegCBVCount	= 14	// <-- Keep last!
 	};
@@ -143,8 +143,8 @@ namespace SandFox
 	{
 		BindStageNone = 0,
 		BindStageVS = 1,
-		BindStageHS = 2,	// N/A
-		BindStageDS = 3,	// N/A
+		BindStageHS = 2,	
+		BindStageDS = 3,	
 		BindStageGS = 4,
 		BindStagePS = 5,
 

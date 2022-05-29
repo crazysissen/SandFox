@@ -69,7 +69,7 @@ SandFox::Graphics::~Graphics()
 	s_graphics = nullptr;
 }
 
-void SandFox::Graphics::Init(Window* window, std::wstring shaderDir, GraphicsTechnique technique)
+void SandFox::Graphics::Init(Window* window, std::wstring shaderDir, GraphicsTechnique technique, Debug* debug)
 {
 	if (m_initialized)
 	{
@@ -159,6 +159,15 @@ void SandFox::Graphics::Init(Window* window, std::wstring shaderDir, GraphicsTec
 
 
 
+	// Debug setup
+
+	m_debug = debug;
+	m_debug->LoadDeviceRef(m_device);
+
+
+
+
+
 	// Handlers setup
 
 	m_bindHandler = new BindHandler();
@@ -223,7 +232,7 @@ void SandFox::Graphics::Init(Window* window, std::wstring shaderDir, GraphicsTec
 
 	// Shader resources
 
-	ClientInfo ci
+	m_clientInfo = ClientInfo
 	{
 		(uint)m_window->GetW(),
 		(uint)m_window->GetH(),
@@ -233,8 +242,19 @@ void SandFox::Graphics::Init(Window* window, std::wstring shaderDir, GraphicsTec
 	};
 
 	m_cameraInfo.cameraPos = { 0, 0, 0 };
-	
-	m_clientInfoBuffer = new Bind::ConstBuffer(RegCBVClientInfo, &ci, sizeof(ClientInfo), false);
+
+	m_tesselationOverride = 1.0f;
+	m_tesselationNearDistance = 2.0f;
+	m_tesselationInterpolFactor = 0.75f;
+	m_tesselationInfo = TesselationInfo
+	{
+		6.0f,
+		m_tesselationInterpolFactor,
+		1.0f / (m_tesselationNearDistance * m_tesselationNearDistance),
+		0.0f
+	};
+
+	m_clientInfoBuffer = new Bind::ConstBuffer(RegCBVClientInfo, &m_clientInfo, sizeof(ClientInfo), false);
 	m_clientInfoBuffer->Bind(BindStagePS);
 	m_clientInfoBuffer->Bind(BindStageCS);
 
@@ -242,6 +262,11 @@ void SandFox::Graphics::Init(Window* window, std::wstring shaderDir, GraphicsTec
 	m_cameraInfoBuffer->Bind(BindStageVS);
 	m_cameraInfoBuffer->Bind(BindStagePS);
 	m_cameraInfoBuffer->Bind(BindStageCS);
+	m_cameraInfoBuffer->Bind(BindStageDS);
+
+	m_tesselationBuffer = new Bind::ConstBuffer(RegCBVTesselationInfo, &m_tesselationInfo, sizeof(TesselationInfo), false);
+	m_tesselationBuffer->Bind(BindStageHS);
+	m_tesselationBuffer->Bind(BindStageDS);
 
 	BindHandler::ApplyPresetSampler(RegSamplerStandard, BindStagePS);
 	BindHandler::ApplyPresetSampler(RegSamplerStandard, BindStageCS);
@@ -262,28 +287,6 @@ void SandFox::Graphics::Init(Window* window, std::wstring shaderDir, GraphicsTec
 
 
 	EXC_COMCHECK(CoInitializeEx(nullptr, COINIT_MULTITHREADED));
-
-
-
-
-
-	//// define function signature of DXGIGetDebugInterface
-	//typedef HRESULT(WINAPI* DXGIGetDebugInterface)(REFIID, void**);
-
-	//// load the dll that contains the function DXGIGetDebugInterface
-	//const auto hModDxgiDebug = LoadLibraryExA("dxgidebug.dll", nullptr, LOAD_LIBRARY_SEARCH_SYSTEM32);
-
-	//// get address of DXGIGetDebugInterface in dll
-	//const auto DxgiGetDebugInterface = reinterpret_cast<DXGIGetDebugInterface>(
-	//	reinterpret_cast<void*>(GetProcAddress(hModDxgiDebug, "DXGIGetDebugInterface")));
-
-	//DxgiGetDebugInterface(__uuidof(IDXGIInfoQueue), &debug);
-
-#ifdef inSAFE
-	m_device->QueryInterface(__uuidof(ID3D11Debug), (void**)(&m_debug));
-	m_debug->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
-#endif
-	//debug->ReportLiveObjects(DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_DETAIL);
 
 
 
@@ -348,8 +351,8 @@ void SandFox::Graphics::Init(Window* window, std::wstring shaderDir, GraphicsTec
 	// --- Configure viewport
 
 	m_viewport.Load(
-		(float)m_window->GetW(),
-		(float)m_window->GetH(),
+		m_window->GetW(),
+		m_window->GetH(),
 		{ 0, 0 },
 		0.0f,
 		1.0f
@@ -425,49 +428,67 @@ void SandFox::Graphics::DeInit()
 {
 	m_initialized = false;
 
-
 	Shader::UnloadPresets();
 	DrawableBase::ReleaseStatics();
 
 	delete[] m_backBuffers;
+	delete[] m_backBufferSRVs;
 
 	delete m_clientInfoBuffer;
 	delete m_cameraInfoBuffer;
+	delete m_tesselationBuffer;
 
+	m_bindHandler->DeInit();
 	delete m_bindHandler;
 }
 
-void SandFox::Graphics::FrameBegin(const cs::Color& color)
+void SandFox::Graphics::FrameBegin(const cs::Color& color, Camera* cameraOverride, Viewport* viewportOverride)
 {
-	UpdateCamera();
-
-	SetProjection(GetCameraMatrix());
-	Shader::ShaderOverride(false);
-
-	m_viewport.Apply();
-
-	m_context->ClearDepthStencilView(m_depthStencilView.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0u); 
+	if (cameraOverride)
+	{
+		ApplyCamera(cameraOverride);
+	}
+	else
+	{
+		ApplyCamera(m_camera.get());
+	}
 
 	m_cameraInfoBuffer->Write(&m_cameraInfo);
 	m_cameraInfoBuffer->Bind(BindStagePS);
 	m_cameraInfoBuffer->Bind(BindStageCS);
 
-	if (m_technique == GraphicsTechniqueImmediate)
+	if (viewportOverride) 
 	{
-		m_backBuffers[0].Clear(color);
-		EXC_COMINFO(m_context->OMSetRenderTargets(1u, m_backBuffers[0].GetRenderTarget().GetAddressOf(), m_depthStencilView.Get()));
+		ApplyViewport(viewportOverride);
 	}
 	else
 	{
-		m_backBuffers[0].Clear(color);
+		ApplyViewport(&m_viewport);
+	}
 
+	Shader::ShaderOverride(false);
+
+	m_context->ClearDepthStencilView(m_depthStencilView.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0u); 
+
+	m_backBuffers[0].Clear(color);
+	EXC_COMINFO(m_context->OMSetRenderTargets(1u, m_backBuffers[0].GetRenderTarget().GetAddressOf(), m_depthStencilView.Get()));
+
+	m_frameComposited = false;
+}
+
+void SandFox::Graphics::FrameMain()
+{
+	//m_context->ClearDepthStencilView(m_depthStencilView.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0u);
+
+	if (m_technique == GraphicsTechniqueDeferred)
+	{
 		m_backBuffers[1].Clear({ 0, 0, 0, 255 });
 		m_backBuffers[2].Clear({ 0, 0, 0, 255 });
 
 		m_backBuffers[3].Clear({ 0, 0, 0, 0 });
 		m_backBuffers[4].Clear({ 0, 0, 0, 0 });
 		m_backBuffers[5].Clear({ 0, 0, 0, 0 });
-						
+
 		m_backBuffers[6].Clear({ 0, 0, 0, 255 });
 		m_backBuffers[7].Clear({ 0, 0, 0, 255 });
 
@@ -480,8 +501,6 @@ void SandFox::Graphics::FrameBegin(const cs::Color& color)
 
 		EXC_COMINFO(m_context->OMSetRenderTargets(m_backBufferCount - 1, rtvs, m_depthStencilView.Get()));
 	}
-
-	m_frameComposited = false;
 }
 
 void SandFox::Graphics::FrameComposite()
@@ -499,15 +518,17 @@ void SandFox::Graphics::FrameComposite()
 		if (m_displayedBuffer == 0)
 		{
 			// Bind the client info 
-			m_clientInfoBuffer->Bind(BindStageCS);
+			//m_clientInfoBuffer->Bind(BindStageCS);
 
 			for (int i = 1; i < m_backBufferCount; i++)
 			{
 				m_backBufferSRVs[i].Bind(BindStageCS);
 			}
 
+			UPoint dim = m_activeViewport->GetDimensions();
+
 			// Run the lighting pass
-			m_lightingPass.Dispatch(m_window->GetW(), m_window->GetH());
+			m_lightingPass.Dispatch(dim.x, dim.y);
 
 			// Unbind shader resources before next frame
 			for (int i = 1; i < m_backBufferCount; i++)
@@ -515,37 +536,26 @@ void SandFox::Graphics::FrameComposite()
 				m_backBufferSRVs[i].Unbind(BindStageCS);
 			}
 
-			m_clientInfoBuffer->Unbind(BindStageCS);
+			//m_clientInfoBuffer->Unbind(BindStageCS);
 		}
 		else
 		{
-			ClientInfo ci
-			{
-				(uint)m_window->GetW(),
-				(uint)m_window->GetH(),
-				1.0f / (m_window->GetW() - 1),
-				1.0f / (m_window->GetH() - 1),
-				0.0f
-			};
-
 			ID3D11ShaderResourceView* target = nullptr;
 
 			if (m_displayedBuffer >= m_backBufferCount)
 			{
 				target = m_depthStencilTextureSRV.GetSRV().Get();
-				ci.sampleExp = FOX_C_DEPTH_STENCIL_EXPONENT;
+				//ci.sampleExp = FOX_C_DEPTH_STENCIL_EXPONENT;
 			}
 			else
 			{
 				target = m_backBufferSRVs[m_displayedBuffer].GetSRV().Get();
 			}
 
-			// Bind the client info 
-			m_clientInfoBuffer->Write(&ci);
-			m_clientInfoBuffer->Bind(BindStageCS);
+			UPoint dim = m_activeViewport->GetDimensions();
 
 			m_context->CSSetShaderResources(RegSRVCopySource, 1, &target);
-			m_copyPass.Dispatch(m_window->GetW(), m_window->GetH());
+			m_copyPass.Dispatch(dim.x, dim.y);
 
 			target = nullptr;
 			m_context->CSSetShaderResources(RegSRVCopySource, 1, &target);
@@ -565,16 +575,15 @@ void SandFox::Graphics::FrameComposite()
 			// Clear render targets and reassign them as shader resources for the compute shader
 			m_context->OMSetRenderTargets(0, nullptr, nullptr);
 
-			// Bind the client info 
-			m_clientInfoBuffer->Bind(BindStageCS);
-
 			// Bind the new render target as a UAV
 			m_backBufferUAV.Bind(BindStageCS);
 
 			ID3D11ShaderResourceView* target = m_depthStencilTextureSRV.GetSRV().Get();
 			m_context->CSSetShaderResources(RegSRVCopySource, 1, &target);
 
-			m_copyPass.Dispatch(m_window->GetW(), m_window->GetH());
+			UPoint dim = m_activeViewport->GetDimensions();
+
+			m_copyPass.Dispatch(dim.x, dim.y);
 
 			target = nullptr;
 			m_context->CSSetShaderResources(RegSRVCopySource, 1, &target);
@@ -590,6 +599,8 @@ void SandFox::Graphics::FrameComposite()
 void SandFox::Graphics::DrawFrame(DrawQueue* drawQueue)
 {
 	FrameBegin(m_backgroundColor);
+	drawQueue->DrawPre();
+	FrameMain();
 	drawQueue->DrawMain();
 	FrameComposite();
 	drawQueue->DrawPost();
@@ -606,13 +617,33 @@ void SandFox::Graphics::Present()
 	EXC_COMCHECKINFO(m_swapChain->Present(0u, 0u));
 }
 
+void SandFox::Graphics::PresentToTexture(ID3D11Texture2D* target, cs::UPoint size, unsigned int arrIndex)
+{
+	if (m_technique == GraphicsTechniqueDeferred && !m_frameComposited)
+	{
+		FrameComposite();
+	}
+
+	EXC_COMINFO(m_context->Flush());
+
+	D3D11_BOX box = {};
+	box.left = 0;
+	box.top = 0;
+	box.front = 0;
+	box.right = size.x;
+	box.bottom = size.y;
+	box.back = 1u;
+
+	EXC_COMINFO(m_context->CopySubresourceRegion(target, arrIndex, 0u, 0u, 0u, m_backBuffers[0].GetTexture().Get(), 0u, &box));
+}
+
 void SandFox::Graphics::DrawGraphicsImgui()
 {
 	//ImGui::Begin("Graphics");
 
 	if (m_technique == GraphicsTechniqueDeferred)
 	{
-		cstr combo = "Composited Image\0Position Buffer\0Normal Buffer\0Albedo Color\0- Color\0- Color\0Specular Exponent\0- Linear\0Depth Stencil";
+		cstr combo = "Composited Image\0Position Buffer\0Normal Buffer\0Color\0Ambient\0Specular\0Specular Exponent\0- Linear\0Depth Stencil";
 		ImGui::Combo("Display Buffer", &m_displayedBuffer, combo, 9);
 	}
 	else
@@ -643,6 +674,8 @@ void SandFox::Graphics::DrawGraphicsImgui()
 		m_depthStencilView->GetDesc(&dsvFormat);
 	}
 
+	ImGui::Text("Buffers");
+
 	ImGui::LabelText("TEX Format", c_dxgiFormatCstr[textureFormat.Format]);
 
 	if (srvFormat.ViewDimension != 0)	ImGui::LabelText("SRV Format", c_dxgiFormatCstr[srvFormat.Format]);
@@ -651,7 +684,54 @@ void SandFox::Graphics::DrawGraphicsImgui()
 	if (dsvFormat.ViewDimension != 0)	ImGui::LabelText("DSV Format", c_dxgiFormatCstr[dsvFormat.Format]);
 	else								ImGui::LabelText("DSV Format", "N/A");
 
-	//ImGui::End();
+	ImGui::Spacing();
+	ImGui::Spacing();
+	ImGui::Spacing();
+
+
+
+	bool tesselationActive = Shader::GetShaderTesselation();
+	int tesselationMode = (1 + 1 * (m_tesselationInfo.overrideTesselation > 0.0f)) * tesselationActive;
+
+	ImGui::Text("Tesselation");
+
+	if (ImGui::Combo("Mode", &tesselationMode, "Disabled\0Distance\0Override"))
+	{
+		switch (tesselationMode)
+		{
+		case 0:
+			Shader::ShaderTesselation(false);
+			break;
+
+		case 1:
+			Shader::ShaderTesselation(true);
+			SetTesselation(m_tesselationInfo.nearTesselation, m_tesselationNearDistance, m_tesselationInterpolFactor);
+			break;
+
+		case 2:
+			Shader::ShaderTesselation(true);
+			SetTesselation(m_tesselationOverride);
+			break;
+		}
+	}
+
+	if (ImGui::DragFloat("Near Tesselation (Max)", &m_tesselationInfo.nearTesselation, 0.2f, 1.0f, 10.0f) ||
+		ImGui::DragFloat("Near Distance", &m_tesselationNearDistance, 0.05f, 0.1f, 100.0f) &&
+		tesselationMode == 1)
+	{
+		SetTesselation(m_tesselationInfo.nearTesselation, m_tesselationNearDistance, m_tesselationInterpolFactor);
+	}
+
+	if (ImGui::DragFloat("Interpolation Factor", &m_tesselationInterpolFactor, 0.01f, 0.0f, 1.0f))
+	{
+		SetTesselation(m_tesselationInfo.overrideTesselation, m_tesselationInterpolFactor);
+	}
+
+	if (ImGui::DragFloat("Override", &m_tesselationOverride, 0.2f, 1.0f, 10.0f) &&
+		tesselationMode == 2)
+	{
+		SetTesselation(m_tesselationOverride);
+	}
 }
 
 void SandFox::Graphics::SetDepthStencil(bool enable, bool write, D3D11_COMPARISON_FUNC function)
@@ -670,7 +750,7 @@ void SandFox::Graphics::SetDepthStencil(bool enable, bool write, D3D11_COMPARISO
 
 void SandFox::Graphics::SetDepthStencilWrite(bool write)
 {
-	ID3D11DepthStencilState* dss;
+	ComPtr<ID3D11DepthStencilState> dss;
 	uint ref;
 	m_context->OMGetDepthStencilState(&dss, &ref);
 
@@ -687,6 +767,37 @@ void SandFox::Graphics::SetDepthStencilWrite(bool write)
 void SandFox::Graphics::SetBackgroundColor(const cs::Color& color)
 {
 	m_backgroundColor = color;
+}
+
+void SandFox::Graphics::SetTesselation(float nearTesselation, float nearDistance, float interpolationFactor)
+{
+	m_tesselationNearDistance = nearDistance;
+	m_tesselationInterpolFactor = interpolationFactor;
+
+	m_tesselationInfo = TesselationInfo
+	{
+		nearTesselation,
+		interpolationFactor,
+		1.0f / (nearDistance * nearDistance),
+		0.0f
+	};
+
+	m_tesselationBuffer->Write(&m_tesselationInfo);
+}
+
+void SandFox::Graphics::SetTesselation(float tesselationOverride, float interpolationFactor)
+{
+	m_tesselationOverride = tesselationOverride;
+	m_tesselationInterpolFactor = interpolationFactor;
+
+	m_tesselationInfo.overrideTesselation = tesselationOverride;
+	m_tesselationInfo.interpolationFactor = interpolationFactor;
+	m_tesselationBuffer->Write(&m_tesselationInfo);
+}
+
+void SandFox::Graphics::EnableTesselation(bool enable)
+{
+	Shader::ShaderTesselation(enable);
 }
 
 void SandFox::Graphics::PostProcess()
@@ -708,8 +819,12 @@ inline SandFox::Window* SandFox::Graphics::GetWindow()
 void SandFox::Graphics::InitCamera(Vec3 pos, Vec3 rot, float fov, float nearClip, float farClip)
 {
 	m_camera = std::make_shared<Camera>(pos, rot, fov, nearClip, farClip, (float)m_window->GetW() / (float)m_window->GetH()); 
-	m_cameraInfoBuffer->Bind(BindStagePS);
-	m_cameraInfoBuffer->Bind(BindStageCS);
+	m_activeCamera = m_camera.get();
+}
+
+SandFox::Camera* SandFox::Graphics::GetActiveCamera()
+{
+	return m_activeCamera;
 }
 
 std::shared_ptr<SandFox::Camera> SandFox::Graphics::GetCamera()
@@ -722,17 +837,30 @@ std::shared_ptr<SandFox::Camera> SandFox::Graphics::GetCamera()
 	return m_camera;
 }
 
-void SandFox::Graphics::UpdateCamera()
+void SandFox::Graphics::ApplyCamera(Camera* camera)
 {
-	m_cameraMatrix = m_camera->GetMatrix();
-	m_cameraInfo.cameraPos = m_camera->position;
+	m_activeCamera = camera;
+	m_cameraInfo.cameraPos = camera->position;
+	SetProjection(camera->GetMatrix());
 
 	m_cameraInfoBuffer->Write(&m_cameraInfo);
 }
 
-const dx::XMMATRIX& SandFox::Graphics::GetCameraMatrix()
+void SandFox::Graphics::ApplyViewport(Viewport* viewport, bool useInverse)
 {
-	return m_cameraMatrix;
+	viewport->Apply();
+	m_activeViewport = viewport;
+
+	UPoint res = viewport->GetDimensions();
+
+	m_clientInfo.screenWidth = res.x;
+	m_clientInfo.screenHeight = res.y;
+	//m_clientInfo.screenWidthI = 1.0f / (res.x - 1);
+	//m_clientInfo.screenHeightI = 1.0f / (res.y - 1);
+
+	m_clientInfo.sampleExp = useInverse * FOX_C_DEPTH_STENCIL_EXPONENT;
+
+	m_clientInfoBuffer->Write(&m_clientInfo);
 }
 
 ComPtr<ID3D11Device>& SandFox::Graphics::GetDevice()

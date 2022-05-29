@@ -8,7 +8,21 @@ namespace SandFox
 	class FOX_API Camera
 	{
 	public:
-		Camera(cs::Vec3 position, cs::Vec3 rotation, float fov, float nearClip, float farClip, float aspectRatio);
+		Camera(
+			cs::Vec3 position = { 0, 0, 0 },
+			cs::Vec3 rotation = { 0, 0, 0 },
+			float fov = cs::c_pi * 0.5f,
+			float nearClip = FOX_C_NEAR_CLIP_DEFAULT,
+			float farClip = FOX_C_FAR_CLIP_DEFAULT,
+			float aspectRatio = 16.0f / 9.0f);
+
+		void Load(
+			cs::Vec3 position = { 0, 0, 0 },
+			cs::Vec3 rotation = { 0, 0, 0 },
+			float fov = cs::c_pi * 0.5f,
+			float nearClip = FOX_C_NEAR_CLIP_DEFAULT,
+			float farClip = FOX_C_FAR_CLIP_DEFAULT,
+			float aspectRatio = 16.0f / 9.0f);
 
 		void SetFOV(float fov);
 		void SetClip(float nearClip, float farClip);

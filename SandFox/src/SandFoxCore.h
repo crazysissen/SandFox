@@ -11,6 +11,8 @@
 #pragma warning( push )
 #pragma warning( disable : 4251 )
 #pragma warning( disable : 4275 )
+#pragma warning( disable : 6385 )
+#pragma warning( disable : 6386 )
 
 #include <CHSL\WindowsExt.h>
 #include <DirectXMath.h>

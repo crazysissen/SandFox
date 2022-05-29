@@ -7,6 +7,7 @@ struct VSIn
     float3 position : POSITION;
     float4 normal : NORMAL0;
     float2 uv : TEXCOORD0;
+    float3 tangent : TANGENT0;
 };
 
 // Output struct
@@ -16,15 +17,19 @@ struct VSOut
     float3 position : WORLD_POSITION;
     float4 normal : NORMAL0;
     float2 uv : TEXCOORD0;
+    float3 tangent : TANGENT0;
 };
 
 
 
 // Transform info
-cbuffer CBuf : REGISTER_CBV_OBJECT_INFO
+cbuffer ObjectInfo : REGISTER_CBV_OBJECT_INFO
 {
     matrix world;
     matrix projection;
+    
+    float3 position;
+    float distanceSquared;
 };
 
 
@@ -39,7 +44,9 @@ VSOut main(VSIn input)
     o.clipPosition = mul(position, projection);
     o.position = position.xyz;
     o.normal = normal;
-    o.uv = float2(input.uv.x, 1 - input.uv.y);
-
+    //o.uv = float2(input.uv.x, 1 - input.uv.y);
+    o.uv = input.uv;
+    o.tangent = mul(float4(input.tangent, 0.0f), world).xyz;
+    
     return o;
 }

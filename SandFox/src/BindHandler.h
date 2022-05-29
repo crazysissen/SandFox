@@ -52,6 +52,8 @@ namespace SandFox
 		static bool BindShader(Shader* shader);
 		static bool BindVS(Bind::VertexShader* vs);			// Vertex shader
 		static bool BindGS(Bind::GeometryShader* gs);		// Geometry shader
+		static bool BindHS(Bind::HullShader* hs);			// Hull shader
+		static bool BindDS(Bind::DomainShader* ds);			// Domain shader
 		static bool BindPS(Bind::PixelShader* ps);			// Pixel shader
 		static bool BindIL(Bind::InputLayout* il);			// Input layout
 		static bool BindPT(Bind::PrimitiveTopology* pt);	// Primitive topology
@@ -67,6 +69,8 @@ namespace SandFox
 		static void UnbindShader();
 		static void UnbindVS();		// Vertex shader
 		static void UnbindGS();		// Geometry shader
+		static void UnbindHS();		// Hull shader
+		static void UnbindDS();		// Domain shader
 		static void UnbindPS();		// Pixel shader
 		static void UnbindIL();		// Input layout
 		static void UnbindPT();		// Primitive topology
@@ -112,6 +116,8 @@ namespace SandFox
 		BindID m_shader;
 		BindID m_vs;
 		BindID m_gs;
+		BindID m_hs;
+		BindID m_ds;
 		BindID m_ps;
 		BindID m_il;
 		BindID m_vb;

@@ -7,6 +7,7 @@ struct VSIn
     float3 position : POSITION;
     float4 normal : NORMAL0;
     float2 uv : TEXCOORD0;
+    float3 tangent : TANGENT0;
 };
 
 

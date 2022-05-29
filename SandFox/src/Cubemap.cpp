@@ -14,6 +14,38 @@ SandFox::Cubemap::~Cubemap()
 {
 }
 
+void SandFox::Cubemap::Load(RegSRV reg, unsigned int faceSideWidth, DXGI_FORMAT format, D3D11_USAGE usage, unsigned int additionalBindFlags)
+{
+	SetReg(reg);
+
+
+
+	// Create cubemap texture and SRV
+
+	D3D11_TEXTURE2D_DESC td;
+	td.Width = faceSideWidth;
+	td.Height = faceSideWidth;
+	td.MipLevels = 1;
+	td.ArraySize = 6;
+	td.Format = format;
+	td.CPUAccessFlags = 0;
+	td.SampleDesc.Count = 1;
+	td.SampleDesc.Quality = 0;
+	td.Usage = D3D11_USAGE_DEFAULT;
+	td.BindFlags = additionalBindFlags | D3D11_BIND_SHADER_RESOURCE;
+	td.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
+
+	EXC_COMCHECKINFO(Graphics::Get().GetDevice()->CreateTexture2D(&td, nullptr, &m_texture));
+
+	D3D11_SHADER_RESOURCE_VIEW_DESC srvd;
+	srvd.Format = td.Format;
+	srvd.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
+	srvd.TextureCube.MipLevels = td.MipLevels;
+	srvd.TextureCube.MostDetailedMip = 0;
+
+	EXC_COMCHECKINFO(Graphics::Get().GetDevice()->CreateShaderResourceView(m_texture.Get(), &srvd, &m_srv));
+}
+
 void SandFox::Cubemap::Load(RegSRV reg, const std::wstring& path, D3D11_USAGE usage)
 {
 	SetReg(reg);
@@ -21,7 +53,7 @@ void SandFox::Cubemap::Load(RegSRV reg, const std::wstring& path, D3D11_USAGE us
 	Load(reg, path, usage, D3D11_BIND_SHADER_RESOURCE);
 }
 
-void SandFox::Cubemap::Load(RegSRV reg, const std::wstring& path, D3D11_USAGE usage, D3D11_BIND_FLAG additionalBindFlags)
+void SandFox::Cubemap::Load(RegSRV reg, const std::wstring& path, D3D11_USAGE usage, unsigned int additionalBindFlags)
 {
 	SetReg(reg);
 
@@ -56,6 +88,8 @@ void SandFox::Cubemap::Load(RegSRV reg, const std::wstring& path, D3D11_USAGE us
 	D3D11_TEXTURE2D_DESC sourceDesc = {};
 	sourceTexture->GetDesc(&sourceDesc);
 
+	sourceTexture.Reset();
+
 	uint width = sourceDesc.Width / 4;
 	uint height = sourceDesc.Height / 3;
 
@@ -85,7 +119,7 @@ void SandFox::Cubemap::Load(RegSRV reg, const std::wstring& path, D3D11_USAGE us
 	td.SampleDesc.Count = 1;
 	td.SampleDesc.Quality = 0;
 	td.Usage = D3D11_USAGE_DEFAULT;
-	td.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+	td.BindFlags = additionalBindFlags | D3D11_BIND_SHADER_RESOURCE;
 	td.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
 
 	EXC_COMCHECKINFO(Graphics::Get().GetDevice()->CreateTexture2D(&td, nullptr, &m_texture));
@@ -104,9 +138,14 @@ void SandFox::Cubemap::Load(RegSRV reg, const std::wstring& path, D3D11_USAGE us
 
 	Point targets[6] =
 	{
-		{ 2, 1 }, { 0, 1 },		// X
-		{ 1, 0 }, { 1, 2 },		// Y
-		{ 1, 1 }, { 3, 1 }		// Z
+		{ 2, 1 },	// +X	right
+		{ 0, 1 },	// -X	left
+
+		{ 1, 0 },	// +Y	up
+		{ 1, 2 },	// -Y	down
+
+		{ 1, 1 },	// +Z	forward
+		{ 3, 1 }	// -Z	backward
 	};
 
 	for (int i = 0; i < 6; i++)
@@ -117,7 +156,7 @@ void SandFox::Cubemap::Load(RegSRV reg, const std::wstring& path, D3D11_USAGE us
 			(targets[i].x + 1) * width, (targets[i].y + 1) * height, 1u
 		};
 
-		Graphics::Get().GetContext()->CopySubresourceRegion(m_texture.Get(), i, 0u, 0u, 0u, sourceTexture.Get(), 0u, &box);
+		Graphics::Get().GetContext()->CopySubresourceRegion(m_texture.Get(), i, 0u, 0u, 0u, resource.Get(), 0u, &box);
 	}
 }
 
@@ -132,6 +171,16 @@ void SandFox::Cubemap::Bind(BindStage stage)
 SandFox::BindType SandFox::Cubemap::Type()
 {
 	return BindTypeShaderResource;
+}
+
+const ComPtr<ID3D11Texture2D>& SandFox::Cubemap::GetTexture()
+{
+	return m_texture;
+}
+
+const ComPtr<ID3D11ShaderResourceView>& SandFox::Cubemap::GetSRV()
+{
+	return m_srv;
 }
 
 SandFox::CubemapDrawable::CubemapDrawable(Transform t, Cubemap* cubemap, bool ownCubemap)
@@ -178,7 +227,7 @@ SandFox::CubemapDrawable::CubemapDrawable(Transform t, Cubemap* cubemap, bool ow
 
 	// Configure Drawable
 
-	AddBind(new SandFox::Bind::STConstBuffer(*this), BindStageVS);
+	AddResource(new SandFox::Bind::STConstBuffer(*this), BindStageVS);
 }
 
 SandFox::CubemapDrawable::~CubemapDrawable()
@@ -198,4 +247,56 @@ void SandFox::CubemapDrawable::Draw()
 	ExecuteIndexed();
 
 	Graphics::Get().SetDepthStencilWrite(true);
+}
+
+SandFox::CubemapDynamic::CubemapDynamic()
+{
+}
+
+SandFox::CubemapDynamic::~CubemapDynamic()
+{
+}
+
+void SandFox::CubemapDynamic::Load(cs::Vec3 position, TextureQuality quality, RegSRV reg, D3D11_USAGE usage)
+{
+	Load(position, quality, reg, usage, D3D11_BIND_RENDER_TARGET);
+}
+
+void SandFox::CubemapDynamic::Load(cs::Vec3 position, TextureQuality quality, RegSRV reg, D3D11_USAGE usage, unsigned int additionalBindFlags)
+{
+	Cubemap::Load(reg, GetTextureQuality(quality), DXGI_FORMAT_B8G8R8A8_UNORM, usage, D3D11_BIND_RENDER_TARGET | additionalBindFlags);
+
+	uint res = GetTextureQuality(quality);
+
+	m_position = position;
+	m_viewport.Load(res, res);
+
+	Vec3 rotations[6] =
+	{
+		{ 0, cs::c_pi * 0.5f, 0 },
+		{ 0, -cs::c_pi * 0.5f, 0 },
+		{ -cs::c_pi * 0.5f, 0, 0 },
+		{ cs::c_pi * 0.5f, 0, 0 },
+		{ 0, 0, 0 },
+		{ 0, cs::c_pi, 0 }
+	};
+
+	for (int i = 0; i < 6; i++)
+	{
+		m_cameras[i].Load(m_position, rotations[i], cs::c_pi * 0.5f, 0.05f, 1000.0f, 1.0f);
+	}
+}
+
+void SandFox::CubemapDynamic::Draw(DrawQueue* drawQueue)
+{
+	for (int i = 0; i < 6; i++)
+	{
+		Graphics::Get().FrameBegin(cs::Color(0, 0, 0), &m_cameras[i], &m_viewport);
+		drawQueue->DrawPre();
+		Graphics::Get().FrameMain();
+		drawQueue->DrawMain();
+		Graphics::Get().FrameComposite();
+		drawQueue->DrawPost();
+		Graphics::Get().PresentToTexture(GetTexture().Get(), m_viewport.GetDimensions(), i);
+	}
 }

@@ -30,8 +30,8 @@
 #define REGISTER_CBV_SYSTEM_0           register(b5)
 #define REGISTER_CBV_SYSTEM_1           register(b6)
 #define REGISTER_CBV_SYSTEM_2           register(b7)
-#define REGISTER_CBV_SYSTEM_3           register(b8)
 
+#define REGISTER_CBV_TESSELATION_INFO   register(b8)
 #define REGISTER_CBV_OBJECT_INFO        register(b9)
 #define REGISTER_CBV_MATERIAL_INFO      register(b10)
 #define REGISTER_CBV_CAMERA_INFO        register(b11)

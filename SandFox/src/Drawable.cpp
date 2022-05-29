@@ -146,3 +146,8 @@ void SandFox::DrawableBase::ReleaseStatics()
 		delete b;
 	}
 }
+
+void SandFox::DrawableBase::AddToAllStatics(IBindable* bindable)
+{
+	s_allStatics.Add(bindable);
+}

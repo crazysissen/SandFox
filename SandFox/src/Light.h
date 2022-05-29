@@ -24,14 +24,14 @@ namespace SandFox
 		Vec3 angles;
 		float fov;
 
-		bool shadow;
+		float directionalWidth;
 		float nearClip;
 		float farClip;
 		int shadowIndex;
 
 		dx::XMMATRIX projection;
 
-		dx::XMMATRIX GetViewDirectional(const cs::Vec3* samplePoints, int count);
+		dx::XMMATRIX GetViewDirectional(const cs::Vec3& focalPoint, float distance);
 		dx::XMMATRIX GetViewSpot();
 
 		static FOX_API Light Directional(const cs::Vec3& angles, float intensity = 10.0f, const cs::Color& color = cs::Color(1.0f, 1.0f, 1.0f));

@@ -5,9 +5,10 @@
 namespace SandFox
 {
 
-	class IBindable
+	class FOX_API IBindable
 	{
 	public:
+		virtual ~IBindable() = default;
 		virtual void Bind(BindStage stage) = 0;
 	};
 

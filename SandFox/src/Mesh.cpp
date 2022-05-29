@@ -109,6 +109,9 @@ bool LoadOBJ(SandFox::Mesh& m, const wchar_t* path)
 		float exponent = 1.0f;
 
 		int albedoMap = -1;
+		int ambientMap = -1;
+		int specularMap = -1;
+		int normalMap = -1;
 		int exponentMap = -1;
 	};
 
@@ -163,7 +166,7 @@ bool LoadOBJ(SandFox::Mesh& m, const wchar_t* path)
 
 	FOX_TRACE("Parsing OBJ file...");
 
-#pragma region OBJ Reading
+#pragma region OBJ_Reading
 	while (std::getline(fileObj, line))
 	{
 		switch (line[0])
@@ -191,7 +194,7 @@ bool LoadOBJ(SandFox::Mesh& m, const wchar_t* path)
 					case 'n':
 					{
 						ReadFloats(&(line[3]), (int)line.length() - 3, 3, fBuffer);
-						normals.Add(Vec3(fBuffer[0], fBuffer[1], fBuffer[2]));
+						normals.Add(Vec3(fBuffer[0], fBuffer[1], fBuffer[2]).Normalized());
 					}
 					break;
 
@@ -199,7 +202,7 @@ bool LoadOBJ(SandFox::Mesh& m, const wchar_t* path)
 					{
 						fBuffer[1] = 0.0f;
 						ReadFloats(&(line[3]), (int)line.length() - 3, 2, fBuffer);
-						uvs.Add(Vec2(fBuffer[0], fBuffer[1]));
+						uvs.Add(Vec2(fBuffer[0], 1.0f - fBuffer[1]));
 					}
 					break;
 				}
@@ -289,7 +292,7 @@ bool LoadOBJ(SandFox::Mesh& m, const wchar_t* path)
 	}
 #pragma endregion
 
-#pragma region MTL Reading
+#pragma region MTL_Reading
 
 	FOX_TRACE("Parsing MTL file(s)...");
 
@@ -344,27 +347,27 @@ bool LoadOBJ(SandFox::Mesh& m, const wchar_t* path)
 				}
 				break;
 
-				case 'm': // Color maps
+				case 'm': // Texture maps
 				{
-					string name = line.substr(7, line.length() - 7);
-
-					switch (line[4])
+					switch (std::tolower(line[4]))
 					{
-						case 'K':
+						case 'k':
 						{
+							string name = line.substr(7, line.length() - 7);
+
 							switch (line[5])
 							{
-								//case 'a':
-								//	materialPrimers.Back().ambientMap = currentTexture;
-								//	break;
+								case 'a':
+									materialPrimers.Back().ambientMap = currentTexture;
+									break;
 
 								case 'd':
 									materialPrimers.Back().albedoMap = currentTexture;
 									break;
 
-								//case 's':
-								//	materialPrimers.Back().specularMap = currentTexture;
-								//	break;
+								case 's':
+									materialPrimers.Back().specularMap = currentTexture;
+									break;
 
 								//case 'e':
 								//	materialPrimers.Back().emissiveMap = currentTexture;
@@ -379,8 +382,10 @@ bool LoadOBJ(SandFox::Mesh& m, const wchar_t* path)
 						}
 						break;
 
-						case 'N':
+						case 'n':	// Exponent map
 						{
+							string name = line.substr(7, line.length() - 7);
+
 							if (line[5] == 's')
 							{
 								materialPrimers.Back().exponentMap = currentTexture;
@@ -390,6 +395,21 @@ bool LoadOBJ(SandFox::Mesh& m, const wchar_t* path)
 							textureStrings.Add(name);
 						}
 						break;
+
+						case 'b':	// Bump/normal map
+						{
+							string name = line.substr(9, line.length() - 9);
+
+							if (line[5] == 'u')
+							{
+								materialPrimers.Back().normalMap = currentTexture;
+							}
+
+							currentTexture++;
+							textureStrings.Add(name);
+						}
+						break;
+						
 					}
 				}
 				break;
@@ -515,45 +535,26 @@ bool LoadOBJ(SandFox::Mesh& m, const wchar_t* path)
 		m.materials[i].exponent = materialPrimers[i].exponent;
 
 		loadTextureColor(m.materials[i].albedoIndex, materialPrimers[i].albedoMap, cs::Color(1.0f, 1.0f, 1.0f));
+		loadTextureColor(m.materials[i].normalIndex, materialPrimers[i].normalMap, cs::Color(0.5f, 0.5f, 1.0f));
 		loadTextureLinear(m.materials[i].exponentIndex, materialPrimers[i].exponentMap, 1.0f);
 
-		//if (materialPrimers[i].ambientMap == -1 && materialPrimers[i].ambient.r == -1.0f)
-		//{
-		//	if (materialPrimers[i].diffuseMap != -1)
-		//	{
-		//		materialPrimers[i].ambientMap = materialPrimers[i].diffuseMap;
-		//	}
-		//	else if (materialPrimers[i].diffuse.r != -1.0f)
-		//	{
-		//		materialPrimers[i].ambient = materialPrimers[i].diffuse;
-		//	}
-		//	else
-		//	{
-		//		materialPrimers[i].ambient = cs::Color(1.0f, 1.0f, 1.0f);
-		//	}
-		//}
+		if (materialPrimers[i].ambientMap == -1 && materialPrimers[i].albedoMap != -1)
+		{
+			m.materials[i].ambientIndex = m.materials[i].albedoIndex;
+		}
+		else
+		{
+			loadTextureColor(m.materials[i].ambientIndex, materialPrimers[i].ambientMap, cs::Color(1.0f, 1.0f, 1.0f));
+		}
 
-		//if (materialPrimers[i].specularMap == -1 && materialPrimers[i].specular.r == -1.0f)
-		//{
-		//	if (materialPrimers[i].diffuseMap != -1)
-		//	{
-		//		materialPrimers[i].specularMap = materialPrimers[i].diffuseMap;
-		//	}
-		//	else if (materialPrimers[i].diffuse.r != -1.0f)
-		//	{
-		//		materialPrimers[i].specular = materialPrimers[i].diffuse;
-		//	}
-		//	else
-		//	{
-		//		materialPrimers[i].specular = cs::Color(1.0f, 1.0f, 1.0f);
-		//	}
-		//}
-
-		//loadTextureColor(m.materials[i].ambientMapIndex, materialPrimers[i].ambientMap, materialPrimers[i].ambient);
-		//loadTextureColor(m.materials[i].diffuseMapIndex, materialPrimers[i].diffuseMap, materialPrimers[i].diffuse);
-		//loadTextureColor(m.materials[i].specularMapIndex, materialPrimers[i].specularMap, materialPrimers[i].specular);
-		////loadTextureColor(m.materials[i].emissiveMapIndex, materialPrimers[i].emissiveMap, materialPrimers[i].emissive);
-		//loadTextureLinear(m.materials[i].exponentMapIndex, materialPrimers[i].exponentMap, materialPrimers[i].exponent);
+		if (materialPrimers[i].specularMap == -1 && materialPrimers[i].albedoMap != -1)
+		{
+			m.materials[i].specularIndex = m.materials[i].albedoIndex;
+		}
+		else
+		{
+			loadTextureColor(m.materials[i].specularIndex, materialPrimers[i].specularMap, cs::Color(1.0f, 1.0f, 1.0f));
+		}
 	}
 
 
@@ -578,9 +579,36 @@ bool LoadOBJ(SandFox::Mesh& m, const wchar_t* path)
 
 		for (j = 0; j < s.faces.Size(); j++)
 		{
-			m.vertices[currentVertex] = { vertices[s.faces[j].indices[0]], normals[s.faces[j].indices[2]], uvs[s.faces[j].indices[1]] };
-			m.vertices[currentVertex + 1] = { vertices[s.faces[j].indices[3]], normals[s.faces[j].indices[5]], uvs[s.faces[j].indices[4]] };
-			m.vertices[currentVertex + 2] = { vertices[s.faces[j].indices[6]], normals[s.faces[j].indices[8]], uvs[s.faces[j].indices[7]] };
+			m.vertices[currentVertex] =		{ vertices[s.faces[j].indices[0]], normals[s.faces[j].indices[2]], uvs[s.faces[j].indices[1]], {} };
+			m.vertices[currentVertex + 1] = { vertices[s.faces[j].indices[3]], normals[s.faces[j].indices[5]], uvs[s.faces[j].indices[4]], {} };
+			m.vertices[currentVertex + 2] = { vertices[s.faces[j].indices[6]], normals[s.faces[j].indices[8]], uvs[s.faces[j].indices[7]], {} };
+
+			Vec3 edges[2] =
+			{
+				m.vertices[currentVertex + 1].position - m.vertices[currentVertex].position,
+				m.vertices[currentVertex + 2].position - m.vertices[currentVertex].position
+			};
+
+			Vec2 texEdge[2] =
+			{
+				m.vertices[currentVertex + 1].uv - m.vertices[currentVertex].uv,
+				m.vertices[currentVertex + 2].uv - m.vertices[currentVertex].uv
+			};
+
+			float f = 1.0f / (texEdge[0].x * texEdge[1].y - texEdge[1].x * texEdge[0].y);
+
+			Vec3 tangent =
+			{
+				(texEdge[1].y * edges[0].x - texEdge[0].y * edges[1].x) * f,
+				(texEdge[1].y * edges[0].y - texEdge[0].y * edges[1].y) * f,
+				(texEdge[1].y * edges[0].z - texEdge[0].y * edges[1].z) * f
+			};
+
+			tangent.Normalize();
+
+			m.vertices[currentVertex].tangent = tangent;
+			m.vertices[currentVertex + 1].tangent = tangent;
+			m.vertices[currentVertex + 2].tangent = tangent;
 
 			m.submeshes[i].indices[j * 3] = currentVertex;
 			m.submeshes[i].indices[j * 3 + 1] = currentVertex + 1;
@@ -612,7 +640,8 @@ SandFox::Mesh::Mesh()
 	vertexCount(0),
 	submeshCount(0),
 	materialCount(0),
-	textureCount(0)
+	textureCount(0),
+	vertexFurthest(0)
 {
 }
 

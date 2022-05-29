@@ -14,9 +14,9 @@ namespace SandFox
 		class FOX_API MeshDrawable : public IDrawable
 		{
 		public:
-			MeshDrawable(Transform transform = Transform());
-			MeshDrawable(Transform transform, const Mesh& mesh);
-			~MeshDrawable();
+			MeshDrawable(Transform transform = Transform(), bool tesselation = false);
+			MeshDrawable(Transform transform, const Mesh& mesh, bool tesselation = false);
+			virtual ~MeshDrawable();
 
 			void Draw() override;
 
@@ -24,7 +24,10 @@ namespace SandFox
 
 			Transform GetTransform();
 			void SetTransform(Transform t);
+			void SetTesselation(bool tesselation);
 			void SetUVScaleAll(Vec2 scale);
+
+			bool GetTesselation();
 
 		private:
 			struct MaterialInfo
@@ -57,6 +60,7 @@ namespace SandFox
 			Mesh m_mesh;
 			Transform m_transform;
 			cs::List<SubmeshDrawable*> m_submeshes;
+			bool m_tesselation;
 		};
 
 	}

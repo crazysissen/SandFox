@@ -1,7 +1,7 @@
 
 #include <SandFox.h>
-#include <SandFox\Window.h>
 #include <SandFox\Graphics.h>
+#include <SandFox\Window.h>
 #include <SandFox\Input.h>
 #include <SandFox\CubeInterpolated.h>
 #include <SandFox\MeshDrawable.h>
@@ -10,16 +10,43 @@
 #include <SandFox\ImGuiHandler.h>
 #include <SandFox\Debug.h>
 #include <SandFox\Cubemap.h>
+#include <SandFox\MirrorDrawable.h>
 
 #include <SandFox\ImGui\imgui.h>
 
 
 
+// ---------------------- SandBox
+// 
+// Welcome!
+// 
+// This is merely a sandbox project containing a lot of
+// demonstration and testing code, as well as UI. All actual
+// DX11 and other core functionality happens in the SandFox
+// project, which compiles into a dynamic library automatically
+// used by this project.
+// 
+// The other library used, CHSL, is my own library, and 
+// contains mainly helper functionality and general-purpose
+// classes that I use across many projects.
+// 
+// To switch rendering technique, modify the define below.
+// Either	sx::GraphicsTechniqueImmediate
+// or..		sx::GraphicsTechniqueDeferred
+//
+
+#define TECHNIQUE sx::GraphicsTechniqueDeferred
+
+
+
 // Input system
+
+#pragma region Input
 
 sx::Input input;
 
 constexpr float c_moveSpeed = 20.0f;
+constexpr float c_slowModifier = 0.1f;
 constexpr float c_lookSpeed = 0.008f;
 constexpr byte c_mouseKey = sx::KeyE;
 
@@ -27,17 +54,22 @@ Mat3 HandleInput(float dTime)
 {
 	bool locked = sx::Input::GetMouseLocked(); 
 
-	std::shared_ptr<sx::Camera> c = sx::Graphics::Get().GetCamera();
+	std::shared_ptr<sx::Camera> c = sx::Graphics::Get().GetCamera();  
 
 	cs::Vec3 move;
 	cs::Vec2 look;
 
-	if (sx::Input::KeyPressed(sx::KeyW))		move += cs::Vec3(0, 0, 1);
-	if (sx::Input::KeyPressed(sx::KeyA))		move += cs::Vec3(-1, 0, 0);
-	if (sx::Input::KeyPressed(sx::KeyS))		move += cs::Vec3(0, 0, -1);
-	if (sx::Input::KeyPressed(sx::KeyD))		move += cs::Vec3(1, 0, 0);
-	if (sx::Input::KeyPressed(sx::KeySpace))	move += cs::Vec3(0, 1, 0);
-	if (sx::Input::KeyPressed(sx::KeyShift))	move += cs::Vec3(0, -1, 0);
+	if (locked) 
+	{
+		if (sx::Input::KeyPressed(sx::KeyW))		move += cs::Vec3(0, 0, 1);
+		if (sx::Input::KeyPressed(sx::KeyA))		move += cs::Vec3(-1, 0, 0);
+		if (sx::Input::KeyPressed(sx::KeyS))		move += cs::Vec3(0, 0, -1);
+		if (sx::Input::KeyPressed(sx::KeyD))		move += cs::Vec3(1, 0, 0);
+		if (sx::Input::KeyPressed(sx::KeySpace))	move += cs::Vec3(0, 1, 0);
+		if (sx::Input::KeyPressed(sx::KeyShift))	move += cs::Vec3(0, -1, 0);
+
+		if (sx::Input::KeyPressed(sx::KeyControl)) move *= c_slowModifier;
+	}
 
 	if (sx::Input::KeyDown(c_mouseKey))
 	{
@@ -49,32 +81,36 @@ Mat3 HandleInput(float dTime)
 	{
 		look = (cs::Vec2)sx::Input::MousePositionDiff() * c_lookSpeed;
 		c->rotation = cs::Vec3(
-			cs::fclamp(c->rotation.x - look.y, -cs::c_pi * 0.5f, cs::c_pi * 0.5f), 
-			cs::fwrap(c->rotation.y - look.x, -cs::c_pi, cs::c_pi),
+			cs::fclamp(c->rotation.x + look.y, -cs::c_pi * 0.5f, cs::c_pi * 0.5f), 
+			cs::fwrap(c->rotation.y + look.x, -cs::c_pi, cs::c_pi),
 			0
 		);
 	}
 
-	Mat3 turn = Mat::rotation3Y(-c->rotation.y);
-	move = turn * (move * c_moveSpeed) * dTime;
+	Mat3 turn = Mat::rotation3Y(c->rotation.y);
+	move = turn * (move * c_moveSpeed) * dTime; 
 
 	c->position += move; 
 
-	return turn * Mat::rotation3X(-c->rotation.x);
+	return turn * Mat::rotation3X(c->rotation.x);
 }
 
-inline bool CullFrustum(const cs::Box& box, void* data)
+inline bool CullFrustum(const cs::Box& box, void* data) 
 {
 	return ((cs::Frustum*)data)->IntersectsFuzzy(box); 
 }
 
+#pragma endregion
 
+
+
+sx::Debug debug;
 
 int SafeWinMain(
 	HINSTANCE	hInstance,
 	HINSTANCE	hPrevInstance,
 	char*		lpCmdLine,
-	int			nCmdShow)
+	int			nCmdShow) 
 {
 	// Variables
 
@@ -84,9 +120,9 @@ int SafeWinMain(
 	cs::Point aspectRatio = { 16, 9 }; 
 
 	bool frustumEnable = true;
-	float frustumFov = cs::c_pi * 0.5f;
+	float frustumFov = cs::c_pi * 0.4f;
 	float frustumNearClip = 0.01f;
-	float frustumFarClip = 100.0f;
+	float frustumFarClip = 1000.0f;
 	cs::Point frustumAspectRatio = { 16, 9 }; 
 
 	int monkeyDisplayCount = 0; // Set later to max 
@@ -95,29 +131,27 @@ int SafeWinMain(
 
 	// Initial setup of base resources 
 
-	sx::Debug debug;
-	debug.Init(false);
 	 
 	sx::Window window;
-	window.InitClass(hInstance);
- 	window.InitWindow(hInstance, 1280, 720, "SandBox", true); 
+	window.InitClass(hInstance); 
+ 	window.InitWindow(hInstance, 1920, 1080, "SandBox", true);
 
 	sx::Graphics graphics;
-	sx::GraphicsTechnique technique = sx::GraphicsTechniqueImmediate;
-	graphics.Init(&window, L"Assets\\Shaders", technique);
-	graphics.InitCamera({ 0, 0, 0 }, { 0, 0, 0 }, fov, nearClip, farClip);
+	sx::GraphicsTechnique technique = TECHNIQUE;
+	graphics.Init(&window, L"Assets\\Shaders", technique, &debug);
+	graphics.InitCamera({ 0, 0, 0 }, { 0, 0, 0 }, fov, nearClip, farClip); 
 
 	// Input created statically
 	input.LoadWindow(&window);
-	input.MouseLocked(false);
+	input.MouseLocked(false); 
 
-	sx::ImGuiHandler imgui(&graphics); 
+	sx::ImGuiHandler *imgui = new sx::ImGuiHandler(&graphics);
 
 	window.Show(); 
-	debug.CreateConsole();
+	debug.CreateConsole(); 
 	
 	cs::Random r;
-	cs::ViewFrustum frustum(Vec3(0, 0, 0), Vec3(0, 0, 0), frustumNearClip, frustumFarClip, frustumFov);
+	cs::ViewFrustum frustum(Vec3(0, 0, 0), Vec3(0, 0, 0), frustumNearClip, frustumFarClip, frustumFov); 
 
 
 
@@ -133,14 +167,39 @@ int SafeWinMain(
 	cs::List<sx::LightID> lights;
 
 	sx::LightHandler lightHandler; 
-	lightHandler.Init(technique, ambientColor, ambientLight);
+	lightHandler.Init(sx::TextureQualityHighest, technique, ambientColor, ambientLight);
 
-	lights.Add(lightHandler.AddDirectional({ 1.0f, 1.0f, 0.0f }, 0.9f, cs::Color(0xFFFFF0)));
-	lights.Add(lightHandler.AddSpot(sx::LightShadowQualityDefault, { 0, 0, 0 }, { 0, 0, 0 }, 1.0f, 20.0f, 0.01f, 100.0f)); 
+	lights.Add(lightHandler.AddDirectionalShadowed({ 0.75f, 1.95f, 0.0f }, 50.0f, 1.8f, cs::Color(0xFFFFF0), 0.05f, 500.0f));
+	lights.Add(lightHandler.AddSpotShadowed({ 0, 0, 0 }, { 0, 0, 0 }, 1.0f, 20.0f, cs::Color(0xFFFFFF), 0.01f, 100.0f));
 	lightHandler.SetAmbient(ambientColor, ambientLight); 
 
 	int lightLockIndex = -1;
 	Vec3 lightLockOffset = { 0, 0, 0 };
+
+	Vec3 samplePoints[] =
+	{
+		{ 100, 0, 100 },
+		{ -100, 0, 100 },
+		{ -100, 0, -100 },
+		{ 100, 0, -100 }
+	};
+
+	lightHandler.SetFocalPoint(Vec3(0, 0, 0));
+
+#pragma endregion
+
+#pragma region Dynamic area map
+
+	sx::TextureQuality areaMapQuality = sx::TextureQualityLower;
+	unsigned int areaMapWidth = sx::GetTextureQuality(areaMapQuality);
+	int areaMapMode = 1;
+	float areaMapFrequency = 60.0f;
+	float areaMapTarget = 1.0f / areaMapFrequency;
+	float areaMapTime = 0.0f;
+	bool areaMapOnce = false;
+
+	sx::CubemapDynamic areaMap;
+	areaMap.Load({ -10, 0, 0 }, areaMapQuality, sx::RegSRVCubemap);
 
 #pragma endregion
 
@@ -148,25 +207,49 @@ int SafeWinMain(
 
 	// Models
 
-	sx::Cubemap cubemap;
-	cubemap.Load(sx::RegSRVCubemap, L"Assets/Textures/Cubemaps/Clouds0.png"); 
-	sx::CubemapDrawable cubemap1(sx::Transform({}, {}, { 10, 10, 10 }), &cubemap, false);
+	sx::Cubemap skyboxTexture;
+	skyboxTexture.Load(sx::RegSRVCubemap, L"Assets/Textures/Cubemaps/Clouds2.png"); 
+	sx::CubemapDrawable skybox(sx::Transform({}, {}, { 10, 10, 10 }), &skyboxTexture, false); 
 
-	sx::Mesh mSphere1;
-	mSphere1.Load(L"Assets/Models/Sphere1.obj");
-	sx::Prim::MeshDrawable sphere1(sx::Transform({ 0, 0, 10 }), mSphere1);
-	sphere1.SetUVScaleAll(Vec2(2, 2));
+	sx::Mesh sphereMesh;
+	sphereMesh.Load(L"Assets/Models/Sphere1.obj");
+	sx::Prim::MeshDrawable sphere(sx::Transform({ 0, 0, 10 }), sphereMesh, true); 
+	sphere.SetUVScaleAll(Vec2(2, 2)); 
 
-	sx::Mesh mTerrain1;
-	mTerrain1.Load(L"Assets/Models/Terrain1.obj");
-	sx::Prim::MeshDrawable terrain1(sx::Transform({ 0, -20, 0 }, { 0, 0, 0 }, { 10, 5, 10 }), mTerrain1);
-	terrain1.SetUVScaleAll(Vec2(20, 20));
+	sx::Mesh sphereMesh2;
+	sphereMesh2.Load(L"Assets/Models/Sphere2.obj");
+	sx::Prim::MeshDrawable sphere2(sx::Transform({ 0, 0, 20 }), sphereMesh2, true); 
+	sphere2.SetUVScaleAll(Vec2(2, 2));
 
-	sx::Mesh mWatchtower;
-	mWatchtower.Load(L"Assets/Models/Watchtower.obj");
-	sx::Prim::MeshDrawable watchtower(sx::Transform({ 0, -20, 0 }, { 0, 0, 0 }, { 2, 2, 2 }), mWatchtower);
+	sx::Mesh icosahedronMesh;
+	icosahedronMesh.Load(L"Assets/Models/Icosahedron.obj");
+	sx::Prim::MeshDrawable icosahedron(sx::Transform({ 10, 0, 0 }), icosahedronMesh, true); 
+	icosahedron.SetUVScaleAll(Vec2(8, 8));
+
+	sx::Mesh terrainMesh;
+	terrainMesh.Load(L"Assets/Models/Terrain2.obj");
+	sx::Prim::MeshDrawable terrain(sx::Transform({ 0, -20, 0 }, { 0, 0, 0 }, { 2, 2, 2 }), terrainMesh, false);
+	terrain.SetUVScaleAll(Vec2(40, 40));
+
+	sx::Mesh watchtowerMesh;
+	watchtowerMesh.Load(L"Assets/Models/Watchtower.obj");
+	sx::Prim::MeshDrawable watchtower(sx::Transform({ 0, -21.5f, 0 }, { 0, 0, 0 }, { 2, 2, 2 }), watchtowerMesh, false); 
+
+	sx::Mesh monkeyMesh;
+	monkeyMesh.Load(L"Assets/Models/Monkey1.obj");
+	sx::Prim::MeshDrawable monkey1(sx::Transform({ -15, 0, 0 }, { 0, 0, 0 }, { 1, 1, 1 }), monkeyMesh, true);
+	sx::Prim::MeshDrawable monkey2(sx::Transform({ -15, 0, 5 }, { 0, 0, 0 }, { 1, 1, 1 }), monkeyMesh, true);
+	sx::Prim::MeshDrawable monkey3(sx::Transform({ -15, 0, -5 }, { 0, 0, 0 }, { 1, 1, 1 }), monkeyMesh, true);
+	sx::Prim::MeshDrawable monkey4(sx::Transform({ -15, 5, 0 }, { 0, 0, 0 }, { 1, 1, 1 }), monkeyMesh, true);
 
 
+	// Mirror
+
+	sx::Prim::MeshDrawable mirrorInternal(sx::Transform({ -10, 0, 0 }), sphereMesh, true); 
+	sx::MirrorDrawable mirror;
+	mirror.Load(&mirrorInternal, &areaMap, true); 
+
+	
 
 	// DrawQueue
 
@@ -183,7 +266,7 @@ int SafeWinMain(
 	);
 
 	const int c_monkeyCount = 1000; 
-	monkeyDisplayCount = 10;
+	monkeyDisplayCount = 0;
 
  	sx::Mesh mMonkey; 
 	mMonkey.Load(L"Assets/Models/MonkeyTexture.obj");
@@ -250,26 +333,37 @@ int SafeWinMain(
 
 	sx::Bind::ConstBuffer noiseInfoBuffer(sx::RegCBVUser0, &updateInfo, sizeof(UpdateInfo));
 
+	int spawnRate = 1000;
+	float particleTargetTime = 1.0f / spawnRate;
+
 	float noiseTimer = 0.0f;
 	float particleTimer = 0.0f;
-	float particleTargetTime = 0.001f;
 	
-	Vec3 particleSpawn = { 15, 0, 0 };
-	Vec3 particleSpawnArea = { 3, 0, 3 }; // Maximum distance in each direction for particle spawn
-	Vec3 particleVelocity = { 0, 5, 0 };
+	Vec3 particleSpawn = { 0, -20, -20 };
+	Vec3 particleSpawnArea = { 2, 0, 2 }; // Maximum distance in each direction for particle spawn
+	Vec3 particleVelocity = { 0, 30, 0 };
 	Vec3 particleVelocityVariability = { 2, 2, 2 };
-	Vec3 particleAcceleration = { 0, -5, 0 };
-	float particleSizeMin = 0.2f;
-	float particleSizeMax = 0.3f;
+	Vec3 particleAcceleration = { 0, -9.81f, 0 };
+	float particleSizeMin = 0.15f;
+	float particleSizeMax = 0.2f;
 	float particleDampening = 0.2f;
+
+#pragma endregion
+
+#pragma region Tesselation
+
+	float nearTesselation = 1.0f;
+	float nearDistance = 1.0f;
+
+	float overrideTesselation = 0.0f;
 
 #pragma endregion
 
 
 
-	// Main message pump and game loop
+	// -------------------------------------- Main message pump and game loop
 
-	cs::Timer timer;
+	cs::Timer timer; 
 	int exitCode = 0;
 	
 	for (int frame = 0;; frame++)
@@ -340,11 +434,13 @@ int SafeWinMain(
 
 		if (lightLockIndex >= 0 && lightLockIndex < lights.Size())
 		{
-			sx::Light& l = lightHandler.GetLight(lights[lightLockIndex]);
+			sx::Light& l = lightHandler.GetLight(lights[lightLockIndex]); 
 
 			l.position = position + orientation * lightLockOffset; 
 			l.direction = direction;
 			l.angles = sx::Graphics::Get().GetCamera()->rotation;
+
+			lightHandler.UpdateMap(lights[lightLockIndex]);
 		}
 
 		lightHandler.SetAmbient(ambientColor, ambientLight);
@@ -352,7 +448,7 @@ int SafeWinMain(
 		frustum.SetPosition(position);
 		frustum.SetViewDirection(orientation);
 
-		cubemap1.transform.SetPosition(sx::Graphics::Get().GetCamera()->position);
+		skybox.transform.SetPosition(sx::Graphics::Get().GetCamera()->position);
 #pragma endregion
 
 #pragma region Particle updating
@@ -395,18 +491,41 @@ int SafeWinMain(
 
 #pragma endregion
 
-		// Draw the frame 
+#pragma region Transformation
+
+		static float monkeyTimer = 0.0f;
+		static cs::NoiseSimplex monkeyNoise[3] = { cs::NoiseSimplex(1), cs::NoiseSimplex(2), cs::NoiseSimplex(3) };
+		monkeyTimer += dTime;
+
+		sx::Transform t;
+		
+		t = monkey2.GetTransform();
+		t.ChangeRotation(cs::Vec3(monkeyNoise[0].Gen1D(monkeyTimer), monkeyNoise[1].Gen1D(monkeyTimer), monkeyNoise[2].Gen1D(monkeyTimer)) * dTime * 2);
+		monkey2.SetTransform(t);
+
+		t = monkey3.GetTransform();
+		t.SetScale(cs::Vec3(1.0f + 0.5f * monkeyNoise[0].Gen1D(monkeyTimer), 1.0f + 0.5f * monkeyNoise[1].Gen1D(monkeyTimer), 1.0f + 0.5f * monkeyNoise[2].Gen1D(monkeyTimer)));
+		monkey3.SetTransform(t);
+
+		t = monkey4.GetTransform();
+		t.SetPosition(cs::Vec3(-10 - std::cos(monkeyTimer) * 5, 5, std::sin(monkeyTimer) * 5));
+		monkey4.SetTransform(t);
+
+		t = sphere2.GetTransform();
+		t.ChangeRotation(cs::Vec3(0, dTime * 0.4f, 0));
+		sphere2.SetTransform(t);
+
+#pragma endregion
+
+
+
+		// ---------------------------------- Draw the frame 
 
 		dq.Clear();
 
-		dq.AddMain(&cubemap1); 
-		dq.AddMain(&sphere1);
-		dq.AddMain(&terrain1);
-		dq.AddMain(&watchtower);
-
-		if (frustumEnable)
+		if (frustumEnable) 
 		{
-			monkeyTree->Search(&frustum, CullFrustum, CullFrustum); 
+			monkeyTree->Search(&frustum, CullFrustum, CullFrustum);
 			int i = 0;
 			for (sx::Prim::MeshDrawable* m : *monkeyTree)
 			{
@@ -415,7 +534,7 @@ int SafeWinMain(
 					break;
 				}
 
-				dq.AddMain(m); 
+				dq.AddMain(m);
 			}
 		}
 		else
@@ -426,20 +545,71 @@ int SafeWinMain(
 			}
 		}
 
+
+
+		// Add drawables
+
+		dq.AddPre(&skybox);
+		dq.AddPre(&mirror);
+		dq.AddMain(&sphere);
+		dq.AddMain(&terrain);
+		dq.AddMain(&watchtower); 
+		dq.AddMain(&icosahedron); 
+		dq.AddMain(&sphere2);
+		dq.AddMain(&monkey1);
+		dq.AddMain(&monkey2);
+		dq.AddMain(&monkey3);
+		dq.AddMain(&monkey4);
 		dq.AddPost(&particles);
 
-		lightHandler.UpdateMap(lights[1]);
-		lightHandler.Update(&dq);
+
+
+		// Update shadow and area maps 
+
+		for (int i = 0; i < lights.Size(); i++)
+		{
+			lightHandler.UpdateMap(lights[i]);
+		}
+
+		lightHandler.Update(&dq); 
 		lightHandler.UpdateLightInfo();
 		lightHandler.BindMaps();
+
+		switch (areaMapMode)
+		{
+		case 0:
+			areaMap.Draw(&dq);
+			break;
+
+		case 1:
+			areaMapTime += dTime;
+			if (areaMapTime > areaMapTarget)
+			{
+				areaMapTime -= areaMapTarget;
+				areaMap.Draw(&dq);
+			}
+			break;
+
+		case 2:
+			if (areaMapOnce)
+			{
+				areaMap.Draw(&dq);
+				areaMapOnce = false;
+			}
+			break;
+		}
+
+
+
+		// Drawing of scene and then UI
 
 		graphics.DrawFrame(&dq);
 
 #pragma region Imgui
 
-#define SPACE3 ImGui::Spacing(); ImGui::Spacing(); ImGui::Spacing();
+#define SPACE3 ImGui::Spacing(); ImGui::Spacing(); ImGui::Spacing(); 
 
-		imgui.BeginDraw();
+		imgui->BeginDraw();
 
 		// Info window
 		{
@@ -484,7 +654,7 @@ int SafeWinMain(
 			{
 				if (ImGui::BeginTabItem("Graphics"))
 				{
-					graphics.DrawGraphicsImgui();
+					graphics.DrawGraphicsImgui(); 
 					ImGui::EndTabItem();
 				}
 				
@@ -524,15 +694,19 @@ int SafeWinMain(
 
 							if (ImGui::BeginPopupContextWindow(title.c_str()))
 							{
+								bool changed = false;
+
 								if (l.type != sx::LightTypeDirectional)
 								{
 									ImGui::DragFloat3("Position", (float*)&l.position, 0.05f);
+									changed = true;
 								}
 								if (l.type != sx::LightTypePoint)
 								{
 									if (ImGui::DragFloat3("Rotation", (float*)&l.angles, 0.05f))
 									{
-										l.direction = cs::Mat::rotation3(l.angles.x, l.angles.y, l.angles.z) * Vec3(0, 0, 1);
+										l.direction = (cs::Mat::rotation3Y(l.angles.y) * cs::Mat::rotation3X(l.angles.x)) * Vec3(0, 0, 1);
+										changed = true;
 									}
 								}
 								if (l.type == sx::LightTypeSpot)
@@ -540,6 +714,7 @@ int SafeWinMain(
 									if (ImGui::SliderFloat("Spread", (float*)&l.fov, 0.01f, 3.0f)) 
 									{
 										l.spreadDotLimit = std::cosf(l.fov * 0.5f);
+										changed = true;
 									}
 								}
 
@@ -553,8 +728,14 @@ int SafeWinMain(
 
 								if (ImGui::Button("Remove Light"))
 								{
+									changed = false;
 									lights.Remove(i);
 									i--;
+								}
+
+								if (changed)
+								{
+									lightHandler.UpdateMap(lights[i]);
 								}
 
 								ImGui::EndPopup();
@@ -576,17 +757,17 @@ int SafeWinMain(
 
 						if (ImGui::Button("Directional Light"))
 						{
-							lightHandler.AddDirectional(direction);
+							lights.Add(lightHandler.AddDirectional(direction));
 						}
 
 						if (ImGui::Button("Point Light"))
 						{
-							lightHandler.AddPoint(pos);
+							lights.Add(lightHandler.AddPoint(pos));
 						}
 
 						if (ImGui::Button("Spot Light"))
 						{
-							lightHandler.AddSpot(pos, direction);
+							lights.Add(lightHandler.AddSpot(pos, direction));
 						}
 
 						ImGui::Text("Light will, as applicable,");
@@ -608,6 +789,19 @@ int SafeWinMain(
 					ImGui::Text("Suzanne Heads");
 					ImGui::TextWrapped("Note: Display Count doesn't change the Octree structure, so Octree culling is unaffected.");
 					ImGui::SliderInt("Display Count", &monkeyDisplayCount, 0, c_monkeyCount);
+					SPACE3;
+
+					ImGui::Text("Particle System");
+					ImGui::DragFloat3("Spawn position", (float*)&particleSpawn, 0.05f);
+					ImGui::DragFloat3("Spawn area", (float*)&particleSpawnArea, 0.01f);
+					ImGui::DragFloat3("Velocity", (float*)&particleVelocity, 0.05f);
+					ImGui::DragFloat3("V Randomness", (float*)&particleVelocityVariability, 0.05f);
+					ImGui::DragFloat3("Acceleration", (float*)&particleAcceleration, 0.05f);
+					ImGui::DragFloat("Dampening", (float*)&particleDampening, 0.01f);
+					ImGui::DragFloat("Min Size", (float*)&particleSizeMin, 0.001f, 0.001f, particleSizeMax - 0.001f);
+					ImGui::DragFloat("Max Size", (float*)&particleSizeMax, 0.001f, particleSizeMin + 0.001f);
+					ImGui::Spacing();
+					if (ImGui::DragInt("Spawn Rate", &spawnRate, 5)) particleTargetTime = 1.0f / spawnRate;
 
 					ImGui::EndTabItem();
 				}
@@ -636,6 +830,36 @@ int SafeWinMain(
 
 				if (ImGui::BeginTabItem("Misc"))
 				{
+					ImGui::Text("Dynamic Area Map");
+					ImGui::LabelText("Size", "%i x %i", areaMapWidth, areaMapWidth);
+
+					int mode = 0;
+					ImGui::Combo("Mode", &areaMapMode, "Continuous\0Semi-Continuous\0Manual", 3);
+
+					switch (areaMapMode)
+					{
+					case 1:
+						if (ImGui::DragFloat("Frequency", &areaMapFrequency, 0.5f, 1.0f, 100.0f))
+						{
+							areaMapTarget = 1.0f / areaMapFrequency;
+						}
+						break;
+
+					case 2:
+						if (ImGui::Button("Update Area Map"))
+						{
+							areaMapOnce = true;
+						}
+						break;
+
+					default:
+						break;
+					}
+
+					SPACE3;
+
+
+
 					if (ImGui::Button("Generate debug message"))
 					{
 						sx::Debug::PushMessage(sx::DebugLevelDebug, "Test message!");
@@ -653,21 +877,22 @@ int SafeWinMain(
 		// Debug console
 		debug.DrawConsole();
 
-		imgui.EndDraw(); 
+		imgui->EndDraw(); 
 
 #pragma endregion
 
-		graphics.Present(); 
+		graphics.Present();
 	}
 
-	graphics.DeInit();
-	debug.DeInit();
+	delete imgui;
+
+	graphics.DeInit(); 
 	window.DeInitWindow(); 
 
 	delete monkeyTree; 
 	delete[] suzannes;
 
-	return 0;
+	return exitCode;
 }
 
 
@@ -683,19 +908,20 @@ int WINAPI WinMain(
 #endif
 
 
+	debug.Init(false);
 
-
+	int exitCode = 0;
 
 #if 1
 
 	try
 	{
-		SafeWinMain(hInstance, hPrevInstance, lpCmdLine, nCmdShow);
+		exitCode = SafeWinMain(hInstance, hPrevInstance, lpCmdLine, nCmdShow);
 	}
 	catch (const cs::Exception& e)
 	{
 		input.MouseVisible(true);
-		MessageBoxA(nullptr, e.what(), e.GetType(), MB_OK | MB_ICONERROR);
+		MessageBoxA(nullptr, e.what(), e.GetType(), MB_OK | MB_ICONERROR); 
 	}
 	catch (const std::exception& e)
 	{
@@ -705,14 +931,19 @@ int WINAPI WinMain(
 	catch (...)
 	{
 		input.MouseVisible(true);
-		MessageBoxA(nullptr, "No details", "Unknown Exception", MB_OK | MB_ICONERROR);
+		MessageBoxA(nullptr, "No details", "Unknown Exception", MB_OK | MB_ICONERROR); 
 	}
 
 #else
-//
-	//SafeWinMain(hInstance, hPrevInstance, lpCmdLine, nCmdShow); 
-//
+
+	SafeWinMain(hInstance, hPrevInstance, lpCmdLine, nCmdShow);
+
 #endif
 
-	return 0;
+
+
+	//debug.DumpDevice();
+	debug.DeInit();
+
+	return exitCode;
 }

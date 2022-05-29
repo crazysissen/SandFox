@@ -2,20 +2,20 @@
 
 #include "SplitTransformConstantBuffer.h"
 #include "Graphics.h"
-#include "BindHandler.h"
 #include "Drawable.h"
+#include "BufferStructs.h"
 
 SandFox::Bind::STConstBuffer::STConstBuffer(Transform& transform)
 	:
 	BindableResource(RegCBVObjectInfo),
 	m_transform(transform)
 {
-	MatrixInfo m =
+	ObjectInfo m =
 	{
-		dx::XMMatrixIdentity(), dx::XMMatrixIdentity()
+		dx::XMMatrixIdentity(), dx::XMMatrixIdentity(), { 0, 0, 0 }, 0
 	};
 
-	m_constBuffer = new ConstBuffer(RegCBVObjectInfo, &m, sizeof(MatrixInfo)); 
+	m_constBuffer = new ConstBuffer(RegCBVObjectInfo, &m, sizeof(ObjectInfo));
 }
 
 SandFox::Bind::STConstBuffer::STConstBuffer(DrawableBase& drawable)
@@ -31,13 +31,17 @@ SandFox::Bind::STConstBuffer::~STConstBuffer()
 
 void SandFox::Bind::STConstBuffer::Bind(BindStage stage)
 {
+	dx::XMMATRIX worldMatrix = m_transform.GetMatrix();
 	dx::XMMATRIX projectionMatrix = Graphics::GetProjection();
-	dx::XMMATRIX transformationMatrix = m_transform.GetMatrix();
 
-	MatrixInfo m =
+	Vec3 diff = m_transform.GetPosition() - Graphics::Get().GetActiveCamera()->position;
+
+	ObjectInfo m =
 	{
-		dx::XMMatrixTranspose(transformationMatrix), // <- flips matrix cpu-side to make gpu calculations more efficient
-		dx::XMMatrixTranspose(projectionMatrix)
+		dx::XMMatrixTranspose(worldMatrix),
+		dx::XMMatrixTranspose(projectionMatrix),
+		m_transform.GetPosition(),
+		diff.LengthSq()
 	};
 
 	m_constBuffer->Write(&m);

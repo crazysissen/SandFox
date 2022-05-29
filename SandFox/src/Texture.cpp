@@ -329,6 +329,7 @@ SandFox::BindType SandFox::TextureSRV::Type()
 
 void SandFox::TextureSRV::Load(Texture* texture, RegSRV reg, bool ownTexture, int formatOverride)
 {
+	m_owner = ownTexture;
 	m_texture = texture;
 	SetReg(reg);
 

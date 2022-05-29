@@ -13,8 +13,10 @@ SandFox::Viewport::~Viewport()
 {
 }
 
-void SandFox::Viewport::Load(float width, float height, Vec2 corner, float minDepth, float maxDepth)
+void SandFox::Viewport::Load(unsigned int width, unsigned int height, Vec2 corner, float minDepth, float maxDepth)
 {
+	m_dimensions = { width, height }; 
+
 	m_viewport = {};
 	m_viewport.Width = (float)width;
 	m_viewport.Height = (float)height;
@@ -27,4 +29,9 @@ void SandFox::Viewport::Load(float width, float height, Vec2 corner, float minDe
 void SandFox::Viewport::Apply()
 {
 	EXC_COMINFO(Graphics::Get().GetContext()->RSSetViewports(1u, &m_viewport));
+}
+
+cs::UPoint SandFox::Viewport::GetDimensions()
+{
+	return m_dimensions;
 }

@@ -12,6 +12,7 @@
 #include "LightHandler.h"
 #include "DrawQueue.h"
 #include "Viewport.h"
+#include "BufferStructs.h"
 
 #include "GraphicsEnums.h"
 
@@ -62,26 +63,31 @@ namespace SandFox
 
 		// Initialization/deinitialization logic
 
-		void Init(Window* window, std::wstring shaderDir, GraphicsTechnique technique = GraphicsTechniqueImmediate);
+		void Init(Window* window, std::wstring shaderDir, GraphicsTechnique technique, Debug* debug = nullptr);
 		void DeInit();
 
 
 
 		// Frame drawing
 
-		void FrameBegin(const cs::Color& color);
+		void FrameBegin(const cs::Color& color, Camera* cameraOverride = nullptr, Viewport* viewportOverride = nullptr);
+		void FrameMain();
 		void FrameComposite();
 		void PostProcess();
 
 		// Automatic system
 		// Calls FrameBegin, FrameComposite, and PostProcess.
-		void DrawFrame(DrawQueue* drawQueue);	
+		void DrawFrame(DrawQueue* drawQueue);
 		void Present();
+		void PresentToTexture(ID3D11Texture2D* target, cs::UPoint size, unsigned int arrIndex = 0);
 
 		void DrawGraphicsImgui();
 		void SetDepthStencil(bool enable, bool write, D3D11_COMPARISON_FUNC function = D3D11_COMPARISON_LESS);
 		void SetDepthStencilWrite(bool write);
 		void SetBackgroundColor(const cs::Color& color);
+		void SetTesselation(float nearTesselation, float nearDistancefloat, float interpolationFactor);
+		void SetTesselation(float tesselationOverride, float interpolationFactor = 0.75f);
+		void EnableTesselation(bool enable);
 
 
 
@@ -100,9 +106,10 @@ namespace SandFox
 		// Camera
 
 		void InitCamera(cs::Vec3 pos, cs::Vec3 rot, float fov, float nearClip = FOX_C_NEAR_CLIP_DEFAULT, float farClip = FOX_C_FAR_CLIP_DEFAULT);
-		void UpdateCamera();
+		Camera* GetActiveCamera();
 		std::shared_ptr<Camera> GetCamera();
-		const dx::XMMATRIX& GetCameraMatrix();
+		void ApplyCamera(Camera* camera);
+		void ApplyViewport(Viewport* viewport, bool useInverse = false);
 
 
 
@@ -120,21 +127,6 @@ namespace SandFox
 		// Private implementation
 
 	private:
-		struct CameraInfo
-		{
-			Vec3 cameraPos;
-			PAD(4, 0);
-		};
-
-		struct ClientInfo
-		{
-			uint screenWidth;
-			uint screenHeight;
-			float screenWidthI;
-			float screenHeightI;
-			float sampleExp;
-			PAD(12, 0);
-		};
 
 	private:
 		static Graphics* s_graphics;
@@ -175,11 +167,21 @@ namespace SandFox
 
 		Viewport	m_viewport;
 
+		Viewport*	m_activeViewport;
+		Camera*		m_activeCamera;
+
 		Bind::ConstBuffer*	m_clientInfoBuffer;
 		Bind::ConstBuffer*	m_cameraInfoBuffer;
+		Bind::ConstBuffer*	m_tesselationBuffer;
+		ClientInfo			m_clientInfo;
 		CameraInfo			m_cameraInfo;
+		TesselationInfo		m_tesselationInfo;
+		float				m_tesselationOverride;
+		float				m_tesselationNearDistance;
+		float				m_tesselationInterpolFactor;
 
-		wrl::ComPtr<ID3D11Debug> m_debug;
+		Debug* m_debug;
+		//wrl::ComPtr<ID3D11Debug> m_debug;
 
 		std::shared_ptr<Camera> m_camera;
 		dx::XMMATRIX			m_cameraMatrix;

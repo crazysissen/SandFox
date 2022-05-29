@@ -21,11 +21,14 @@ cbuffer CameraInfo              : REGISTER_CBV_CAMERA_INFO
     float3 viewerPosition;
 };
 
-cbuffer LightInfo               : REGISTER_CBV_LIGHT_INFO
+cbuffer LightInfo : REGISTER_CBV_LIGHT_INFO
 {
     float3 ambient;
-    int lightCount;
+
+    int totalLightCount;
+    int shadowCount;
     
+    float3 nul;
     
     Light lights[FOX_C_MAX_LIGHTS];
 };
@@ -61,9 +64,10 @@ void main(uint3 id : SV_DispatchThreadID)
 
         for (int i = 0; i < FOX_C_MAX_LIGHTS; i++)
         {
-            if (i < lightCount)
+            if (i < totalLightCount)
             {
-                color += phong(
+                color += phongShadowed(
+                    i,
                     lights[i],
                     viewerPosition,
                     position,

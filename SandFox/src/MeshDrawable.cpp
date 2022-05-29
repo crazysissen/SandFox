@@ -3,17 +3,19 @@
 
 #include "Bindables.h"
 
-SandFox::Prim::MeshDrawable::MeshDrawable(Transform transform)
+SandFox::Prim::MeshDrawable::MeshDrawable(Transform transform, bool tesselation)
 	:
 	m_transform(transform),
-	m_mesh()
+	m_mesh(),
+	m_tesselation(tesselation)
 {
 }
 
-SandFox::Prim::MeshDrawable::MeshDrawable(Transform transform, const Mesh& mesh)
+SandFox::Prim::MeshDrawable::MeshDrawable(Transform transform, const Mesh& mesh, bool tesselation)
 	:
 	m_transform(transform),
-	m_mesh(mesh)
+	m_mesh(mesh),
+	m_tesselation(tesselation)
 {
 	for (int i = 0; i < m_mesh.submeshCount; i++)
 	{
@@ -59,6 +61,11 @@ void SandFox::Prim::MeshDrawable::SetTransform(Transform t)
 	}
 }
 
+void SandFox::Prim::MeshDrawable::SetTesselation(bool tesselation)
+{
+	m_tesselation = tesselation;
+}
+
 void SandFox::Prim::MeshDrawable::SetUVScaleAll(Vec2 scale)
 {
 	for (SubmeshDrawable* s : m_submeshes)
@@ -67,8 +74,15 @@ void SandFox::Prim::MeshDrawable::SetUVScaleAll(Vec2 scale)
 	}
 }
 
+bool SandFox::Prim::MeshDrawable::GetTesselation()
+{
+	return m_tesselation;
+}
+
 void SandFox::Prim::MeshDrawable::Draw()
 {
+	Shader::ShaderTesselationCurrent(m_tesselation);
+
 	for (SubmeshDrawable* s : m_submeshes)
 	{
 		s->Draw();
@@ -104,7 +118,7 @@ SandFox::Prim::MeshDrawable::SubmeshDrawable::SubmeshDrawable(Transform t, Mesh*
 	BindPipeline p;
 	p.vb = new SandFox::Bind::VertexBuffer(m->vertices, m->vertexCount, sizeof(MeshVertex));
 	p.ib = new SandFox::Bind::IndexBuffer(s.indices, s.indexCount);
-	p.shader = Shader::Get(ShaderTypePhongMapped);
+	p.shader = Shader::Get(ShaderTypePhong);
 
 	m_materialInfo = new SandFox::Bind::ConstBuffer(RegCBVMaterialInfo, &mi, sizeof(MaterialInfo), false);
 
@@ -114,10 +128,14 @@ SandFox::Prim::MeshDrawable::SubmeshDrawable::SubmeshDrawable(Transform t, Mesh*
 
 	SetPipeline(p);
 
-	AddBind(new SandFox::Bind::STConstBuffer(*this), BindStageVS);
+	AddResource(new SandFox::Bind::STConstBuffer(*this), BindStageVS);
+	AppendStage(BindStageHS);
+	AppendStage(BindStageDS);
+
 	AddResource(m_materialInfo, BindStagePS);
 	AddResource(new SandFox::TextureSRV(&m->textures[mt.albedoIndex], RegSRVTexColor, false), BindStagePS);
 	AddResource(new SandFox::TextureSRV(&m->textures[mt.exponentIndex], RegSRVTexSpecularity, false), BindStagePS);
+	AddResource(new SandFox::TextureSRV(&m->textures[mt.normalIndex], RegSRVTexNormal, false), BindStagePS);
 }
 
 void SandFox::Prim::MeshDrawable::SubmeshDrawable::Draw()

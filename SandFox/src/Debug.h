@@ -55,8 +55,10 @@ namespace SandFox
 		void ClearFrameTrace();
 
 		void WriteHelp();
-
 		void WriteLog();
+
+		void DumpDevice();
+		void LoadDeviceRef(ComPtr<ID3D11Device> device);
 
 		static void PushMessage(DebugLevel level, const char* format, ...);
 		static void PushMessage(const char* message, DebugLevel level = DebugLevelDebug);
@@ -206,6 +208,8 @@ namespace SandFox
 		byte* m_dataBuffer;
 		bool m_scrollToBottom;
 		bool m_showCommandLine;
+
+		ComPtr<ID3D11Device> m_deviceRef;
 	};
 
 }
