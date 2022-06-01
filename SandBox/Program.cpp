@@ -26,6 +26,9 @@
 // project, which compiles into a dynamic library automatically
 // used by this project.
 // 
+// MAKE SURE THAT PROJECT IS BUILT BEFORE BUILDING THIS!
+// Should be done automatically by reference, but just in case.
+// 
 // The other library used, CHSL, is my own library, and 
 // contains mainly helper functionality and general-purpose
 // classes that I use across many projects.
