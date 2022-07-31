@@ -395,58 +395,9 @@ void processPackage(path inDir, path outFile, ID3D11Device* device, ID3D11Device
         SandFox::Mesh mesh;
         mesh.Load(raw.modelPaths[i].path.c_str(), SandFox::MeshLoaderOBJ);
 
-//  |        Mesh        
-//  |        |
-//  |        |   uint    8B      Mesh size (total)
-//  |        |   uint    8B      Mesh start
-//  |        |   uint    4B      Vertex count
-//  |        |   uint    4B      Material count
-//  |        |   uint    4B      Texture count
-//  |        |   uint    4B      Submesh count
-//  |        |   uint    8B      File hash
-//  |        |   uint    8B      Name hash
-//  |
-//  :
-//
-//  Data
-//  |   
-//  |    Texture data
-//  |
-//  |    Mesh data
-//  |
-//  |        Vertex      44B
-//  |        |
-//  |        |   Vec3    12B     Position
-//  |        |   Vec3    12B     Normal
-//  |        |   Vec2    8B      UV/Texture coordinate
-//  |        |   Vec3    12B     Tangent
-//  |        
-//  |        Material    60B
-//  |        |
-//  |        |   Vec3    12B     Ambient color
-//  |        |   Vec3    12B     Diffuse color
-//  |        |   Vec3    12B     Specular color
-//  |        |   float   4B      Specular exponent
-//  |        |   uint    4B      Albedo texture index
-//  |        |   uint    4B      Ambient texture index
-//  |        |   uint    4B      Specular texture index
-//  |        |   uint    4B      Specular exponent texture index
-//  |        |   uint    4B      Normal map texture index
-//  |
-//  |        Texture     9B
-//  |        |
-//  |        |   byte    1B      Texture listing type        [ 0: Package texture index, 1: Texture name hash ]
-//  |        |   uint    8B      Texture information
-//  |
-//  |        Submesh
-//  |        |
-//  |        |   uint    4B      Index count
-//  |        |   uint    4B      Material index
-//  |        |   uint[]  4B*n    Indices
-//  |        :
 
 
- 
+        // TODO: Finish haha.
 
 
 
