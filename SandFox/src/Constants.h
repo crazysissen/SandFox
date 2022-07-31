@@ -21,6 +21,8 @@
 #define FOX_C_DEFERRED_PER_THREAD_X		4
 #define FOX_C_DEFERRED_PER_THREAD_Y		2
 
+#define FOX_C_MESH_TANGENT_BIAS			0.01f
+
 
 
 #endif

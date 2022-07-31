@@ -3,6 +3,7 @@
 
 #include <fstream>
 #include <charconv>
+#include <map>
 
 
 
@@ -69,7 +70,14 @@ int ReadIndices(char* start, int length, int maxNumbers, uindex* buffer) // <-- 
 }
 
 
-bool LoadOBJ(SandFox::Mesh& m, const wchar_t* path)
+ullong UPointHash(const UPoint3 p)
+{
+	uint temp[2] = { p.x, p.y };
+	return *((ullong*)temp) ^ ((ullong)p.z << 20);
+}
+
+
+bool LoadOBJ(SandFox::Mesh& m, const wchar_t* path, bool compress = true)
 {
 	FOX_TRACE_F("Loading Mesh object with OBJ-format at \"%ls\".", path);
 
@@ -244,7 +252,13 @@ bool LoadOBJ(SandFox::Mesh& m, const wchar_t* path)
 						break;
 
 					default:
+						count = 0;
 						break;
+				}
+
+				if (count > 0)
+				{
+
 				}
 			}
 			break;
@@ -469,14 +483,15 @@ bool LoadOBJ(SandFox::Mesh& m, const wchar_t* path)
 
 	// Final loading
 
-	m.vertexCount = vertexCount;
 	m.submeshCount = submeshPrimers.Size();
 	m.materialCount = materialPrimers.Size();
 	m.textureCount = materialPrimers.Size() * 5 - originalTextureCount + textureStrings.Size();
 
 	m.vertexFurthest = sqrtf(maxDistanceSq);
 
-	m.vertices = new SandFox::MeshVertex[m.vertexCount];
+	SandFox::MeshVertex* allVertices = new SandFox::MeshVertex[vertexCount];
+
+	//m.vertices = new SandFox::MeshVertex[m.vertexCount];
 	m.submeshes = new SandFox::MeshSubmesh[m.submeshCount];
 	m.materials = new SandFox::MeshMaterial[m.materialCount];
 	m.textures = new SandFox::Texture[m.textureCount];
@@ -561,12 +576,20 @@ bool LoadOBJ(SandFox::Mesh& m, const wchar_t* path)
 
 	// Vertices and submeshes
 
-	int currentVertex = 0;
+	uint currentIndex = 0;
 
 	FOX_TRACE("Assembling submesh(es)...");
 	for (int i = 0; i < m.submeshCount; i++)
 	{
 		SubmeshPrimer& s = submeshPrimers[i];
+
+		struct VertexHook
+		{
+			SandFox::MeshVertex* v;
+			uint i;
+		};
+
+		std::unordered_multimap<ullong, VertexHook> vertexMap{};
 
 		m.submeshes[i].name = s.name;
 		m.submeshes[i].indexCount = s.faces.Size() * 3;
@@ -579,20 +602,23 @@ bool LoadOBJ(SandFox::Mesh& m, const wchar_t* path)
 
 		for (j = 0; j < s.faces.Size(); j++)
 		{
-			m.vertices[currentVertex] =		{ vertices[s.faces[j].indices[0]], normals[s.faces[j].indices[2]], uvs[s.faces[j].indices[1]], {} };
-			m.vertices[currentVertex + 1] = { vertices[s.faces[j].indices[3]], normals[s.faces[j].indices[5]], uvs[s.faces[j].indices[4]], {} };
-			m.vertices[currentVertex + 2] = { vertices[s.faces[j].indices[6]], normals[s.faces[j].indices[8]], uvs[s.faces[j].indices[7]], {} };
+			SandFox::MeshVertex currentVertices[3] =
+			{
+				{ vertices[s.faces[j].indices[0]], normals[s.faces[j].indices[2]], uvs[s.faces[j].indices[1]], {} },
+				{ vertices[s.faces[j].indices[3]], normals[s.faces[j].indices[5]], uvs[s.faces[j].indices[4]], {} },
+				{ vertices[s.faces[j].indices[6]], normals[s.faces[j].indices[8]], uvs[s.faces[j].indices[7]], {} }
+			};
 
 			Vec3 edges[2] =
 			{
-				m.vertices[currentVertex + 1].position - m.vertices[currentVertex].position,
-				m.vertices[currentVertex + 2].position - m.vertices[currentVertex].position
+				currentVertices[1].position - currentVertices[0].position,
+				currentVertices[2].position - currentVertices[0].position
 			};
 
 			Vec2 texEdge[2] =
 			{
-				m.vertices[currentVertex + 1].uv - m.vertices[currentVertex].uv,
-				m.vertices[currentVertex + 2].uv - m.vertices[currentVertex].uv
+				currentVertices[1].uv - currentVertices[0].uv,
+				currentVertices[2].uv - currentVertices[0].uv
 			};
 
 			float f = 1.0f / (texEdge[0].x * texEdge[1].y - texEdge[1].x * texEdge[0].y);
@@ -606,17 +632,86 @@ bool LoadOBJ(SandFox::Mesh& m, const wchar_t* path)
 
 			tangent.Normalize();
 
-			m.vertices[currentVertex].tangent = tangent;
-			m.vertices[currentVertex + 1].tangent = tangent;
-			m.vertices[currentVertex + 2].tangent = tangent;
 
-			m.submeshes[i].indices[j * 3] = currentVertex;
-			m.submeshes[i].indices[j * 3 + 1] = currentVertex + 1;
-			m.submeshes[i].indices[j * 3 + 2] = currentVertex + 2;
 
-			currentVertex += 3;
+
+			// Dupe checking
+
+			UPoint3 vertexTriples[3] =
+			{
+				{ s.faces[j].indices[0], s.faces[j].indices[2], s.faces[j].indices[1] },
+				{ s.faces[j].indices[3], s.faces[j].indices[5], s.faces[j].indices[4] },
+				{ s.faces[j].indices[6], s.faces[j].indices[8], s.faces[j].indices[7] }
+			};
+
+			if (compress)
+			{
+				for (int k = 0; k < 3; k++)
+				{
+					ullong currentHash = UPointHash(vertexTriples[i]);
+					auto range = vertexMap.equal_range(currentHash);
+					bool found = false;
+
+					for (std::unordered_multimap<ullong, VertexHook>::iterator l = range.first; l != range.second; l++)
+					{
+						Vec3& otherTangent = l->second.v->tangent;
+						if (l->second.v->position == currentVertices[k].position &&
+							(otherTangent - tangent).LengthSq() < FOX_C_MESH_TANGENT_BIAS * FOX_C_MESH_TANGENT_BIAS)
+						{
+							found = true;
+							m.submeshes[i].indices[j * 3 + k] = l->second.i;
+							break;
+						}
+					}
+
+					if (!found)
+					{
+						currentVertices[k].tangent = tangent;
+						allVertices[currentIndex] = currentVertices[k];
+						m.submeshes[i].indices[j * 3 + k] = currentIndex;
+						vertexMap.insert({ currentHash, { &allVertices[currentIndex], currentIndex } });
+						currentIndex++;
+					}
+				}
+			}
+			else
+			{
+				for (int k = 0; k < 3; k++)
+				{
+					currentVertices[k].tangent = tangent;
+					allVertices[currentIndex] = currentVertices[k];
+					m.submeshes[i].indices[j * 3 + k] = currentIndex;
+					currentIndex++;
+				}
+			}
+			
+
+
+
+			//// Adding
+
+			//m.vertices[currentIndex].tangent = tangent;
+			//m.vertices[currentIndex + 1].tangent = tangent;
+			//m.vertices[currentIndex + 2].tangent = tangent;
+
+			//m.submeshes[i].indices[j * 3] = currentIndex;
+			//m.submeshes[i].indices[j * 3 + 1] = currentIndex + 1;
+			//m.submeshes[i].indices[j * 3 + 2] = currentIndex + 2;
+
+			//currentIndex += 3;
 		}
 	}
+
+	if (compress)
+	{
+		FOX_TRACE_F("Compression reduced vertices from [%i] to [%i].", vertexCount, currentIndex);
+	}
+
+	m.vertices = new SandFox::MeshVertex[currentIndex];
+	m.vertexCount = currentIndex;
+	memcpy(m.vertices, allVertices, currentIndex * sizeof(SandFox::MeshVertex));
+
+	delete[] allVertices;
 
 	FOX_TRACE("Done!");
 

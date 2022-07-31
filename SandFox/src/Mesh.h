@@ -34,9 +34,9 @@ namespace SandFox
 	{
 		string name;
 
-		Vec3 ambient;
-		Vec3 diffuse;
-		Vec3 specular;
+		cs::Vec3 ambient;
+		cs::Vec3 diffuse;
+		cs::Vec3 specular;
 		float exponent;
 
 		int albedoIndex;

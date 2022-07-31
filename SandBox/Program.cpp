@@ -38,7 +38,7 @@
 // or..		sx::GraphicsTechniqueDeferred
 //
 
-#define TECHNIQUE sx::GraphicsTechniqueDeferred
+#define TECHNIQUE sx::GraphicsTechniqueImmediate
 
 
 
@@ -232,7 +232,7 @@ int SafeWinMain(
 	sx::Mesh terrainMesh;
 	terrainMesh.Load(L"Assets/Models/Terrain2.obj");
 	sx::Prim::MeshDrawable terrain(sx::Transform({ 0, -20, 0 }, { 0, 0, 0 }, { 2, 2, 2 }), terrainMesh, false);
-	terrain.SetUVScaleAll(Vec2(40, 40));
+	terrain.SetUVScaleAll(Vec2(40, 40)); 
 
 	sx::Mesh watchtowerMesh;
 	watchtowerMesh.Load(L"Assets/Models/Watchtower.obj");
