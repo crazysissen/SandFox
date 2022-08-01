@@ -12,12 +12,12 @@ namespace SandFox
 
 	enum DebugLevel
 	{
-		DebugLevelFrameTrace,	// Most verbose, information rarely useful, and expected to spam the console.
+		DebugLevelFrameTrace,	// Most verbose. Information rarely useful, and expected to spam the console in real time.
 		DebugLevelTrace,		// Information very rarely useful on debug.
 		DebugLevelDebug,		// Information judged to be useful on debug.
 		DebugLevelWarn,			// Information related to potentially unintended behavior.
 		DebugLevelError,		// Information related to erroneous behavior.
-		DebugLevelCritical,		// Least verbose, information related to critical errors and system-breaking behavior.
+		DebugLevelCritical,		// Least verbose. Information related to critical errors and system-breaking behavior likely to cause further errors.
 
 		DebugLevelCommandTrace,	// Information following from commands.
 		DebugLevelCommand,		// Information specifically triggered by user for debugging.

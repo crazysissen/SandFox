@@ -9,6 +9,16 @@
 
 
 
+// Hej!
+// För uppdaterad funktionalitet, dupe checking och dylikt, se rader:
+// 596: Använder en multimap för god tidskomplexitet och en approximativ hashfunktion som ligger längre upp här i filen.
+// 657: Uppdaterad algoritm för att uppdatera vertrisbuffret och indexbuffret, beroende på om en identisk vertris med (approximativt) samma texurtangent redan existerar.
+// 700: Sparar ner den exakta storleken på det uppdaterade vertrisbuffret. En log kan ses i programmet (om man slår över Display i konsollen för att visa trace) som berättar hur stor skillnad optimeringen gjort för varje modell.
+
+
+
+
+
 // Loaders
 
 inline int FastIndex(char* start, const char* end)
@@ -684,21 +694,6 @@ bool LoadOBJ(SandFox::Mesh& m, const wchar_t* path, bool compress = true)
 					currentIndex++;
 				}
 			}
-			
-
-
-
-			//// Adding
-
-			//m.vertices[currentIndex].tangent = tangent;
-			//m.vertices[currentIndex + 1].tangent = tangent;
-			//m.vertices[currentIndex + 2].tangent = tangent;
-
-			//m.submeshes[i].indices[j * 3] = currentIndex;
-			//m.submeshes[i].indices[j * 3 + 1] = currentIndex + 1;
-			//m.submeshes[i].indices[j * 3 + 2] = currentIndex + 2;
-
-			//currentIndex += 3;
 		}
 	}
 

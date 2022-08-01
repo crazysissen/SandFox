@@ -392,8 +392,8 @@ void processPackage(path inDir, path outFile, ID3D11Device* device, ID3D11Device
     {
         ullong currentListingStart = startModelListings + i * LISTING_MESH_SIZE;
 
-        SandFox::Mesh mesh;
-        mesh.Load(raw.modelPaths[i].path.c_str(), SandFox::MeshLoaderOBJ);
+        /*SandFox::Mesh mesh;
+        mesh.Load(raw.modelPaths[i].path.c_str(), SandFox::MeshLoaderOBJ);*/
 
 
 
@@ -413,7 +413,7 @@ void processPackage(path inDir, path outFile, ID3D11Device* device, ID3D11Device
 
         // Build header
 
-    SandShedHeader header;
+   /* SandShedHeader header;
     header.majorVersion     = MAJOR_VERSION;
     header.minorVersion     = MINOR_VERSION;
     header.contentHash;
@@ -429,7 +429,7 @@ void processPackage(path inDir, path outFile, ID3D11Device* device, ID3D11Device
 
     header.materialCount;
     header.materialListStart;
-    header.materialDataStart;
+    header.materialDataStart;*/
 
 }
 
