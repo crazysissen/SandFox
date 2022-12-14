@@ -77,6 +77,7 @@ float4 main(PSIn input) : SV_TARGET
             viewerPosition,
             position,
             newNormal,
+            normal,
             albedoSample * materialDiffuse,
             albedoSample * materialSpecular,
             exponentSample * materialShininess

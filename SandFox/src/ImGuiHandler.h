@@ -17,8 +17,12 @@ namespace SandFox
 	class FOX_API ImGuiHandler
 	{
 	public:
+		ImGuiHandler();
 		ImGuiHandler(Graphics* graphics, ImGuiStyleBasic style = ImGuiStyleDark);
 		~ImGuiHandler();
+
+		void Init(Graphics* graphics, ImGuiStyleBasic style = ImGuiStyleDark);
+		void DeInit();
 
 		void BeginDraw();
 		void EndDraw();
@@ -26,6 +30,7 @@ namespace SandFox
 		void SetStyle(ImGuiStyleBasic style);
 
 	private:
+		bool m_initialized;
 		Graphics* m_graphics;
 	};
 

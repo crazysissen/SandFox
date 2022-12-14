@@ -11,12 +11,42 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg
 
 
 
-SandFox::ImGuiHandler::ImGuiHandler(Graphics* graphics, ImGuiStyleBasic style)
+SandFox::ImGuiHandler::ImGuiHandler()
 	:
-	m_graphics(graphics)
+	m_initialized(false),
+	m_graphics(nullptr)
 {
 	FOX_TRACE("Constructing ImGuiHandler.");
+}
+
+SandFox::ImGuiHandler::ImGuiHandler(Graphics* graphics, ImGuiStyleBasic style)
+	:
+	ImGuiHandler()
+{
+	Init(graphics, style);
+}
+
+SandFox::ImGuiHandler::~ImGuiHandler()
+{
+	FOX_TRACE("Deconstructing ImGuiHandler.");
+
+	DeInit();
+}
+
+void SandFox::ImGuiHandler::Init(Graphics* graphics, ImGuiStyleBasic style)
+{
+	if (m_initialized)
+	{
+		return;
+	}
+
+	FOX_TRACE("Initializing ImGuiHandler.");
+	m_initialized = true;
+	m_graphics = graphics;
+
+	FOX_TRACE("Creating ImGui context.");
 	ImGui::CreateContext();
+
 	//ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 
 	FOX_TRACE("Initializing ImGui Win32 and DX11 implementation.");
@@ -32,17 +62,28 @@ SandFox::ImGuiHandler::ImGuiHandler(Graphics* graphics, ImGuiStyleBasic style)
 	SetStyle(style);
 }
 
-SandFox::ImGuiHandler::~ImGuiHandler()
+void SandFox::ImGuiHandler::DeInit()
 {
-	FOX_TRACE("Deconstructing ImGuiHandler.");
+	if (!m_initialized)
+	{
+		return;
+	}
+
+	FOX_TRACE("Deinitializing ImGuiHandler.");
+
 	ImGui_ImplDX11_Shutdown();
 	ImGui_ImplWin32_Shutdown();
-	
+
 	ImGui::DestroyContext();
 }
 
 void SandFox::ImGuiHandler::BeginDraw()
 {
+	if (!m_initialized)
+	{
+		return;
+	}
+
 	FOX_FTRACE("Begin new ImGui frame.");
 	ImGui_ImplDX11_NewFrame();
 	ImGui_ImplWin32_NewFrame();
@@ -51,6 +92,11 @@ void SandFox::ImGuiHandler::BeginDraw()
 
 void SandFox::ImGuiHandler::EndDraw()
 {
+	if (!m_initialized)
+	{
+		return;
+	}
+
 	FOX_FTRACE("Render finished ImGui frame.");
 	ImGui::Render();
 	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
@@ -65,6 +111,11 @@ void SandFox::ImGuiHandler::EndDraw()
 
 void SandFox::ImGuiHandler::SetStyle(ImGuiStyleBasic style)
 {
+	if (!m_initialized)
+	{
+		return;
+	}
+
 	FOX_TRACE("ImGui style changed.");
 
 	switch (style)

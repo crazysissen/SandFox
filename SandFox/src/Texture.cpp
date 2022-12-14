@@ -68,8 +68,6 @@ void SandFox::Texture::Load(const std::wstring& name, bool immutable, D3D11_BIND
 	);
 
 	resource->QueryInterface(IID_ID3D11Texture2D, (void**)m_texture.GetAddressOf());
-
-
 }
 
 void SandFox::Texture::Load(unsigned char* data, int width, int height, bool immutable, int stride, DXGI_FORMAT format, D3D11_BIND_FLAG bindFlags)

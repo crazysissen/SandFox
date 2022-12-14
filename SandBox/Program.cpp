@@ -246,11 +246,18 @@ int SafeWinMain(
 	sx::Prim::MeshDrawable monkey4(sx::Transform({ -15, 5, 0 }, { 0, 0, 0 }, { 1, 1, 1 }), monkeyMesh, true);
 
 
+
 	// Mirror
 
 	sx::Prim::MeshDrawable mirrorInternal(sx::Transform({ -10, 0, 0 }), sphereMesh, true); 
 	sx::MirrorDrawable mirror;
 	mirror.Load(&mirrorInternal, &areaMap, true); 
+
+
+
+	// Texture plane
+
+	sx::Prim::TexturePlane plane(sx::Transform({ 10, 10, 0 }, { 0.5f, 0.5f, 0.0f }), L"Assets/Textures/Square.jpg");
 
 	
 
@@ -565,6 +572,8 @@ int SafeWinMain(
 		dq.AddMain(&monkey4);
 		dq.AddPost(&particles);
 
+		dq.AddMain(&plane); 
+
 
 
 		// Update shadow and area maps 
@@ -770,7 +779,7 @@ int SafeWinMain(
 
 						if (ImGui::Button("Spot Light"))
 						{
-							lights.Add(lightHandler.AddSpot(pos, direction));
+							lights.Add(lightHandler.AddSpotShadowed(pos, direction));
 						}
 
 						ImGui::Text("Light will, as applicable,");

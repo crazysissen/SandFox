@@ -148,6 +148,9 @@
     <ClCompile Include="src\MirrorDrawable.cpp">
       <Filter>Source\%2a Graphics\%2a Drawable\MirrorDrawable</Filter>
     </ClCompile>
+    <ClCompile Include="src\Material.cpp">
+      <Filter>Source\%2a Data Structures\Material</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Graphics.h">
@@ -320,6 +323,9 @@
     </ClInclude>
     <ClInclude Include="src\BufferStructs.h">
       <Filter>Source\%2a Graphics\%2a Bindable</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Material.h">
+      <Filter>Source\%2a Data Structures\Material</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -494,9 +500,13 @@
     <Filter Include="Source\%2a Graphics\%2a Drawable\MeshDrawable">
       <UniqueIdentifier>{464655cb-5ac3-430c-a039-de2c472fdc7f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\%2a Data Structures\Material">
+      <UniqueIdentifier>{75487fc9-cdff-42da-acdb-9bd7fb66881b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="Exclude.txt" />
+    <Text Include="README.txt" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="src\Shaders\VSStandard.hlsl">

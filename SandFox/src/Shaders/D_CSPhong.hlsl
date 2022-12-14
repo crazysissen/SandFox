@@ -72,6 +72,7 @@ void main(uint3 id : SV_DispatchThreadID)
                     viewerPosition,
                     position,
                     normal,
+                    normal,                 // BROKEN IN DEFERRED
                     diffuseSample.xyz,
                     specularSample,
                     exponentSample

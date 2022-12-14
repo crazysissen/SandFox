@@ -25,7 +25,7 @@ Texture2DArray<float> shadowMaps        : REGISTER_SRV_SHADOW_DEPTH;
 
 
 
-float3 phong(Light l, float3 viewerPosition, float3 position, float3 normal, float3 mDiffuse, float3 mSpecular, float mExponent)
+float3 phong(Light l, float3 viewerPosition, float3 position, float3 normal, float3 borderNormal, float3 mDiffuse, float3 mSpecular, float mExponent)
 {
     float3 phongValue = float3(0, 0, 0);
 
@@ -44,10 +44,10 @@ float3 phong(Light l, float3 viewerPosition, float3 position, float3 normal, flo
 
     // Scalar by angle of incidence, where 1.0f is straight-on, and <=0.0f is parallell or behind 
     float incidence = dot(normal, towardsLight);
-
+    float borderIncidence = dot(borderNormal, towardsLight);
 
     // Return no light for backsides of objects, or parts outside the spread of a spotlight
-    if (!(incidence < 0.0f || (l.type == 2 && dot(-l.direction, towardsLight) < l.spreadDotLimit)))
+    if (!(incidence < 0.0f || borderIncidence < 0.0f || (l.type == 2 && dot(-l.direction, towardsLight) < l.spreadDotLimit)))
     {
         // Direction of reflected light
         float3 reflection = 2 * normal * incidence - towardsLight;
@@ -67,7 +67,7 @@ float3 phong(Light l, float3 viewerPosition, float3 position, float3 normal, flo
     return phongValue;
 }
 
-float3 phongShadowed(int index, Light l, float3 viewerPosition, float3 position, float3 normal, float3 mDiffuse, float3 mSpecular, float mExponent)
+float3 phongShadowed(int index, Light l, float3 viewerPosition, float3 position, float3 normal, float3 borderNormal, float3 mDiffuse, float3 mSpecular, float mExponent)
 {
     float3 phongValue = float3(0, 0, 0);
     bool ignoreRest = false;
@@ -85,7 +85,7 @@ float3 phongShadowed(int index, Light l, float3 viewerPosition, float3 position,
 
     if (!ignoreRest)
     {
-        phongValue += phong(l, viewerPosition, position, normal, mDiffuse, mSpecular, mExponent);
+        phongValue += phong(l, viewerPosition, position, normal, borderNormal, mDiffuse, mSpecular, mExponent);
     }
     
     return phongValue;

@@ -631,17 +631,26 @@ bool LoadOBJ(SandFox::Mesh& m, const wchar_t* path, bool compress = true)
 				currentVertices[2].uv - currentVertices[0].uv
 			};
 
-			float f = 1.0f / (texEdge[0].x * texEdge[1].y - texEdge[1].x * texEdge[0].y);
+			float fInv = texEdge[0].x * texEdge[1].y - texEdge[1].x * texEdge[0].y;
+			Vec3 tangent;
 
-			Vec3 tangent =
+			if (fInv == 0)
 			{
-				(texEdge[1].y * edges[0].x - texEdge[0].y * edges[1].x) * f,
-				(texEdge[1].y * edges[0].y - texEdge[0].y * edges[1].y) * f,
-				(texEdge[1].y * edges[0].z - texEdge[0].y * edges[1].z) * f
-			};
+				tangent = edges[0];
+			}
+			else
+			{
+				float f = 1.0f / fInv;
+
+				tangent =
+				{
+					(texEdge[1].y * edges[0].x - texEdge[0].y * edges[1].x) * f,
+					(texEdge[1].y * edges[0].y - texEdge[0].y * edges[1].y) * f,
+					(texEdge[1].y * edges[0].z - texEdge[0].y * edges[1].z) * f
+				};
+			}
 
 			tangent.Normalize();
-
 
 
 
