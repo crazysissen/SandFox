@@ -7,7 +7,7 @@
 
 (c) Sixten Schelin 2022
 Distributed freely, do whatever with it. By using this framework you acknowlege that the original creator(s) hold no responsibility or control over the usage, or results/effects related to usage usage, of the software included. 
-DearImGui is not affiliated with the SandFox framework nor creator(s) of the SandFox framework.
+DearImGui is not affiliated with the SandFox framework nor creator(s) of the SandFox framework. Source found here: https://github.com/ocornut/imgui
 
 Lightweight 3D graphics framework targeting Windows (x64).
 Currently in the early stages of development.
@@ -26,6 +26,7 @@ If in Solution/Libraries folder:
 |
 |		Output Directory:					$(SolutionDir)\bin\$(ProjectName)-$(Platform)-$(Configuration)\
 |		Intermediate Directory:				$(SolutionDir)\bin-int\$(ProjectName)-$(Platform)-$(Configuration)\
+|		C++ Language Standard:				ISO C++20 Standard (or greater)
 |
 |	Debugging:
 |
@@ -182,6 +183,7 @@ int Run(HINSTANCE instance)
 
 		g_input.CoreUpdateState();
 
+		lightHandler.SetFocalPoint({ 0, 0, 0 }, 50.0f);
 		lightHandler.SetAmbient(cs::Color(LIGHT_AMB_COLOR), LIGHT_AMB_LEVEL);
 
 		drawQueue.Clear();

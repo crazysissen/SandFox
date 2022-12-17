@@ -19,11 +19,11 @@ SandFox::ImGuiHandler::ImGuiHandler()
 	FOX_TRACE("Constructing ImGuiHandler.");
 }
 
-SandFox::ImGuiHandler::ImGuiHandler(Graphics* graphics, ImGuiStyleBasic style)
+SandFox::ImGuiHandler::ImGuiHandler(Graphics* graphics, bool docking, bool viewports, ImGuiStyleBasic style)
 	:
 	ImGuiHandler()
 {
-	Init(graphics, style);
+	Init(graphics, docking, viewports, style);
 }
 
 SandFox::ImGuiHandler::~ImGuiHandler()
@@ -33,7 +33,7 @@ SandFox::ImGuiHandler::~ImGuiHandler()
 	DeInit();
 }
 
-void SandFox::ImGuiHandler::Init(Graphics* graphics, ImGuiStyleBasic style)
+void SandFox::ImGuiHandler::Init(Graphics* graphics, bool docking, bool viewports, ImGuiStyleBasic style)
 {
 	if (m_initialized)
 	{
@@ -47,7 +47,15 @@ void SandFox::ImGuiHandler::Init(Graphics* graphics, ImGuiStyleBasic style)
 	FOX_TRACE("Creating ImGui context.");
 	ImGui::CreateContext();
 
-	//ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+	if (docking)
+	{
+		ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+	}
+
+	if (viewports)
+	{
+		ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+	}
 
 	FOX_TRACE("Initializing ImGui Win32 and DX11 implementation.");
 	ImGui_ImplWin32_Init(m_graphics->GetWindow()->GetHwnd());

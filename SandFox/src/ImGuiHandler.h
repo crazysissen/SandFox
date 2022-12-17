@@ -18,10 +18,10 @@ namespace SandFox
 	{
 	public:
 		ImGuiHandler();
-		ImGuiHandler(Graphics* graphics, ImGuiStyleBasic style = ImGuiStyleDark);
+		ImGuiHandler(Graphics* graphics, bool docking = true, bool viewports = false, ImGuiStyleBasic style = ImGuiStyleDark);
 		~ImGuiHandler();
 
-		void Init(Graphics* graphics, ImGuiStyleBasic style = ImGuiStyleDark);
+		void Init(Graphics* graphics, bool docking = true, bool viewports = false, ImGuiStyleBasic style = ImGuiStyleDark);
 		void DeInit();
 
 		void BeginDraw();
